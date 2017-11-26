@@ -110,6 +110,7 @@ def get_vimeo_info(vimeo_id):
         response = urllib2.urlopen(url)
     except URLError as e:
         msg = 'Cannot open URL'
+        msg += '\n\n   ' + url 
         raise_wrapped(VimeoInfoException, e, msg) 
          
     data = response.read()

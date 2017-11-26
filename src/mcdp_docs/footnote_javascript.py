@@ -1,5 +1,4 @@
-from mcdp_utils_xml import bs
-from mcdp_utils_xml.misc import copy_contents_into
+from mcdp_utils_xml import bs, copy_contents_into
 
 
 def add_footnote_polyfill(soup):

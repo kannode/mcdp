@@ -3,8 +3,7 @@ from mcdp_docs.composing.cli import Compose
 from mcdp_docs.composing.recipes import Recipe
 from mcdp_docs.mcdp_render_manual import RenderManual
 from mcdp_docs.split import Split
-from mcdp_utils_misc.create_mockups import with_dir_content
-from mcdp_utils_misc import write_data_to_file
+from mcdp_utils_misc import with_dir_content, write_data_to_file
 from mcdp_utils_xml import bs_entire_document
 import os
 

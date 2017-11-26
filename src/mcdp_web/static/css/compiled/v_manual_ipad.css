@@ -444,7 +444,7 @@ img.video-vimeo-thumbnail-deadtree {
   color: #008000;
 }
 .syntax_highlight .nc {
-  color: #0000ff;
+  color: #f19f3b;
 }
 .syntax_highlight .no {
   color: #880000;
@@ -471,7 +471,7 @@ img.video-vimeo-thumbnail-deadtree {
   color: #008000;
 }
 .syntax_highlight .nv {
-  color: #19177c;
+  color: #b5ffbb;
 }
 .syntax_highlight .ow {
   color: #aa22ff;
@@ -525,22 +525,22 @@ img.video-vimeo-thumbnail-deadtree {
   color: pink;
 }
 .syntax_highlight .ss {
-  color: #19177c;
+  color: #b5ffbb;
 }
 .syntax_highlight .bp {
   color: #009ae8;
 }
 .syntax_highlight .vc {
-  color: #19177c;
+  color: #b5ffbb;
 }
 .syntax_highlight .vg {
-  color: #19177c;
+  color: #b5ffbb;
 }
 .syntax_highlight .vi {
-  color: #19177c;
+  color: #b5ffbb;
 }
 .syntax_highlight .il {
-  color: #666666;
+  color: #666666 ;
 }
 .syntax_highlight .p {
   color: #009ae8;
@@ -1502,6 +1502,19 @@ p.special-par-note::before {
 p.special-par-note {
   border-left: solid 3px darkred;
   padding-left: 0.5em;
+}
+p.special-par-motto {
+  color: black;
+  text-align: center;
+  letter-spacing: 0.4pt;
+  display: inline-block;
+  line-height: 2.124;
+  box-shadow: 3px 0px 10px 2px rgba(100, 100, 100, 0.74);
+  border: solid 1px black;
+  padding: 1em;
+  margin-top: 1.5em;
+  margin-left: 4em;
+  margin-right: 4em;
 }
 p.special-par-maintainer::before {
   content: 'Maintainer: ';

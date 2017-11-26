@@ -14,7 +14,6 @@ from mcdp_posets import Poset
 
 from .parse_actions import parse_wrap
 from .refinement import apply_refinement
-from mcdp_lang.namedtuple_tricks import recursive_print
 
 
 __all__ = [

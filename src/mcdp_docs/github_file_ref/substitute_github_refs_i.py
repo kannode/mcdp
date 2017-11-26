@@ -74,7 +74,13 @@ def resolve_reference(ref, defaults):
         ref = ref._replace(branch='master')
         
     tmpdir = '/tmp/git_repos'
-    dirname = checkout_repository(tmpdir, ref.org, ref.repo, ref.branch)
+    
+    try:
+        dirname = checkout_repository(tmpdir, ref.org, ref.repo, ref.branch)
+    except OSError as e:
+        msg = 'Could not check out the repository'
+        msg += '\n\n' + indent(str(ref), '  ')
+        raise_wrapped(CouldNotResolveRef, e, msg)
     
     # now look for the file
     all_files = get_all_files(dirname)
@@ -184,7 +190,10 @@ def checkout(path, url, branch):
 #             repo.delete_head('master')
         return repo
     except:
-        shutil.rmtree(path)
+        try:
+            shutil.rmtree(path)
+        except:
+            pass
         raise 
 
     

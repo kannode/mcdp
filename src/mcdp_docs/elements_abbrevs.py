@@ -83,6 +83,7 @@ prefix2class = {
     'Next steps: ': 'special-par-next',
     'Next Steps: ': 'special-par-next',
     'Next: ': 'special-par-next',
+    'Motto: ': 'special-par-motto',
     'Recommended: ': 'special-par-recommended',
     'See also: ': 'special-par-see-also',
     
@@ -90,6 +91,7 @@ prefix2class = {
     'Question: ': 'question',
     'Doubt: ': 'doubt',
 } 
+
 def has_special_line_prefix(line):
     for prefix in prefix2class:
         if line.startswith(prefix):

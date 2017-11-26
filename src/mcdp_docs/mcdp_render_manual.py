@@ -1,27 +1,25 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
-import logging
-import os
-import tempfile
-
-from quickapp import QuickApp
-from reprep.utils import natsorted
-
 from compmake.utils.friendly_path_imp import friendly_path
 from contracts import contract
-from contracts.utils import raise_wrapped
+import logging
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
-from mcdp_utils_misc import expand_all, locate_files, get_md5
+from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file
+import os
+import tempfile
+
+from contracts.utils import raise_wrapped
+from quickapp import QuickApp
+from reprep.utils import natsorted
 
 from .check_bad_input_files import check_bad_input_file_presence
 from .github_edit_links import add_edit_links
 from .manual_constants import MCDPManualConstants
-from .manual_join_imp import DocToJoin
-from .manual_join_imp import manual_join
+from .manual_join_imp import DocToJoin, manual_join
 from .minimal_doc import get_minimal_document
 from .read_bibtex import run_bibtex2html
 from .source_info_imp import get_source_info, make_last_modified
@@ -51,7 +49,6 @@ class RenderManual(QuickApp):
         options = self.get_options()
         src = options.src
         src_dirs = [_ for _ in src.split(":") if _ and _.strip()]
-
 
         raise_errors = options.raise_errors
         out_dir = options.output
@@ -274,19 +271,20 @@ def generate_metadata(src_dir):
     from .pipeline import replace_macros
 
     s = replace_macros(s)
-    with open(out, 'w') as f:
-        f.write(s)
+    write_data_to_file(s, out)
+
 
 
 def write(s, out):
-    dn = os.path.dirname(out)
-    if dn != '':
-        if not os.path.exists(dn):
-            print('creating directory %r for %r' % (dn, out))
-            os.makedirs(dn)
-    with open(out, 'w') as f:
-        f.write(s)
-    print('Written %s ' % out)
+    write_data_to_file(s, out)
+#     dn = os.path.dirname(out)
+#     if dn != '':
+#         if not os.path.exists(dn):
+#             print('creating directory %r for %r' % (dn, out))
+#             os.makedirs(dn)
+#     with open(out, 'w') as f:
+#         f.write(s)
+#     print('Written %s ' % out)
 
 
 def render_book(src_dir, generate_pdf,
@@ -342,8 +340,7 @@ def render_book(src_dir, generate_pdf,
         except:
             pass
     fn = os.path.join(dirname, '%s.html' % out_part_basename)
-    with open(fn, 'w') as f:
-        f.write(doc)
+    write_data_to_file(doc, fn) 
 
     return html_contents
 

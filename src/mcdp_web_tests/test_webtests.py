@@ -2,9 +2,9 @@ from comptests.registrar import run_module_tests
 from mcdp import MCDPConstants
 from mcdp.logs import logger
 from mcdp_docs.preliminary_checks import assert_not_contains
-from mcdp_utils_misc.create_mockups import write_hierarchy
 from mcdp_shelf.access import Privileges
 from mcdp_utils_misc import dir_from_package_name, tmpdir
+from mcdp_utils_misc.create_mockups import write_hierarchy
 from mcdp_utils_misc.mis import repo_commit_all_changes
 from mcdp_utils_xml.project_text import project_html
 from mcdp_web.confi import parse_mcdpweb_params_from_dict
@@ -237,8 +237,8 @@ def check_tree():
 
 
 if __name__ == '__main__':
-    run_module_tests()
-#     check_tree()
+#     run_module_tests()
+    check_tree()
     
     
     

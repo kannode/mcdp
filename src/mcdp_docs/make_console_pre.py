@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import namedtuple
 from contracts import contract
-from mcdp import MCDPConstants
-from mcdp import logger
+from mcdp import MCDPConstants, logger
 from mcdp_utils_xml import add_class,  has_class
 
 from bs4.element import NavigableString, Tag

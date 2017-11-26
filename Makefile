@@ -5,6 +5,12 @@ package=mcdp_tests
 
 libraries=src/mcdp_data/bundled.mcdp_repo/shelves
 
+all:
+	echo "Instructions:"
+
+serve-local:
+	DISABLE_CONTRACTS=1 PYRAMID_RELOAD_TEMPLATES=1 pserve --reload ../mcdp-user-db/config/local.ini
+
 prepare_tests:
 	mkdir -p $(out)
 

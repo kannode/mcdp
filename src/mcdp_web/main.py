@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from ConfigParser import RawConfigParser
 from collections import OrderedDict
-from contracts import contract
 import datetime
 from mcdp import MCDPConstants
 from mcdp import logger
@@ -12,6 +11,8 @@ from mcdp_hdb_mcdp.host_instance import HostInstance
 from mcdp_hdb_mcdp.main_db_schema import DB
 from mcdp_library import MCDPLibrary
 from mcdp_utils_misc import duration_compact, dir_from_package_name, format_list, yaml_load
+from mcdp_utils_misc.fileutils import create_tmpdir
+from mcdp_utils_misc.memoize_simple_imp import memoize_simple
 import os
 import sys
 import time
@@ -19,6 +20,7 @@ import traceback
 import urlparse
 from wsgiref.simple_server import make_server
 
+from contracts import contract
 from contracts.utils import indent, check_isinstance
 import git.cmd  # @UnusedImport
 from pyramid.authentication import AuthTktAuthenticationPolicy
@@ -42,8 +44,7 @@ from .environment import cr2e
 from .images.images import WebAppImages, get_mime_for_format
 from .interactive.app_interactive import AppInteractive
 from .qr.app_qr import AppQR
-from .resource_tree import MCDPResourceRoot, ResourceLibraries, ResourceLibrary,  ResourceLibraryRefresh, ResourceRefresh, ResourceExit, ResourceLibraryDocRender, ResourceLibraryAsset, ResourceRobots, ResourceShelves, ResourceShelvesShelfUnsubscribe, ResourceShelvesShelfSubscribe, ResourceExceptionsFormatted, ResourceExceptionsJSON, ResourceShelf, ResourceLibrariesNewLibname, Resource, context_display_in_detail, ResourceShelfInactive, ResourceThingDelete, ResourceChanges, ResourceTree, ResourceThing, ResourceRepos, ResourceRepo, ResourceThings, ResourceLibraryInteractive, ResourceThingRename
-from .resource_tree import ResourceAllShelves, ResourceShelfForbidden,\
+from .resource_tree import MCDPResourceRoot, ResourceLibraries, ResourceLibrary,  ResourceLibraryRefresh, ResourceRefresh, ResourceExit, ResourceLibraryDocRender, ResourceLibraryAsset, ResourceRobots, ResourceShelves, ResourceShelvesShelfUnsubscribe, ResourceShelvesShelfSubscribe, ResourceExceptionsFormatted, ResourceExceptionsJSON, ResourceShelf, ResourceLibrariesNewLibname, Resource, context_display_in_detail, ResourceShelfInactive, ResourceThingDelete, ResourceChanges, ResourceTree, ResourceThing, ResourceRepos, ResourceRepo, ResourceThings, ResourceLibraryInteractive, ResourceThingRename, ResourceAllShelves, ResourceShelfForbidden,\
     ResourceShelfNotFound, ResourceRepoNotFound, ResourceLibraryAssetNotFound,\
     ResourceLibraryDocNotFound, ResourceNotFoundGeneric, ResourceAbout, ResourceAuthomaticProvider, ResourceListUsers,\
     ResourceListUsersUser, ResourceUserPicture,  ResourceConfirmBind,\
@@ -61,8 +62,6 @@ from .utils.response import response_data
 from .utils0 import add_other_fields, add_std_vars_context
 from .utils0 import add_std_vars_context_no_redir
 from .visualization.app_visualization import AppVisualization
-from mcdp_utils_misc.fileutils import create_tmpdir
-from mcdp_utils_misc.memoize_simple_imp import memoize_simple
 
 
 Privileges = MCDPConstants.Privileges
@@ -235,7 +234,8 @@ class WebApp(AppVisualization, AppStatus,
         else:
             library = MCDPLibrary()
             desc_long = render_complete(
-                library, desc_long_md, raise_errors=True, realpath=e.shelf_name, do_math=False)
+                library=library, s=desc_long_md, raise_errors=True, 
+                realpath=e.shelf_name, use_mathjax=False)
         res = {
             'shelf': e.shelf,
             'sname': e.shelf_name,
