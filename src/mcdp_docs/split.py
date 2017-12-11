@@ -16,6 +16,7 @@ from .manual_join_imp import add_prev_next_links, split_in_files, get_id2filenam
 from .manual_join_imp import update_refs_
 from .source_info_imp import get_first_header_title
 from .split_disqus import append_disqus
+from mcdp_docs.manual_join_imp import create_link_base_js
 
 
 show_timing = False
@@ -162,9 +163,13 @@ class Split(QuickApp):
         
         id2filename = get_id2filename(filename2contents)
         linkbase = 'link.html' # do not change (it's used by http://purl.org/dth)
+        linkbasejs = 'link.js'
         lb = create_link_base(id2filename)
         write_data_to_file(str(lb), os.path.join(output_dir, linkbase))
-
+        
+        linkjs = create_link_base_js(id2filename)
+        write_data_to_file(str(linkjs), os.path.join(output_dir, linkbasejs))
+        
         if preamble:
             preamble = open(preamble).read()
             

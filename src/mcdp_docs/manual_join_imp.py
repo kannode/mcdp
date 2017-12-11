@@ -864,6 +864,14 @@ if(window.location.hash) {
 }
 """
 
+def create_link_base_js(id2filename):
+    s = """
+
+links = %s;
+
+""" % json.dumps(id2filename)
+    return s
+
 def create_link_base(id2filename):
     ''' Returns a Tag <html> containing the page that is responsible to translate links '''
     html = Tag(name='html')
@@ -872,11 +880,7 @@ def create_link_base(id2filename):
 
     body = Tag(name='body')
     html.append(body)
-    s = """
-
-links = %s;
-
-""" % json.dumps(id2filename)
+    s = create_link_base_js(id2filename)
     script = Tag(name='script')
     script.append(s)
     body.append(script)
