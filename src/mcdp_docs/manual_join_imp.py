@@ -447,11 +447,12 @@ def add_prev_next_links(filename2contents, only_for=None):
         from .source_info_imp import get_main_header
         actual_id = get_main_header(contents2)
 
-        e = contents2.find(id=actual_id)
-        if e is not None: 
-            pass
-        else:
-            logger.error('not found %r' % actual_id)
+        if False: # just checking
+            e = contents2.find(id=actual_id)
+            if e is not None: 
+                pass
+            else:
+                logger.error('not found %r' % actual_id)
         S.attrs['id'] = actual_id
 
         contents2.insert(0, nav1.__copy__())

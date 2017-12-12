@@ -72,7 +72,8 @@ def to_html_entire_document(soup):
 
 def read_html_doc_from_file(filename):
     """ Reads an entire document from the file """
-    data = open(filename).read()
+    with open(filename) as f:
+        data = f.read()
     return bs_entire_document(data)
 
 def write_html_doc_to_file(soup, filename):
