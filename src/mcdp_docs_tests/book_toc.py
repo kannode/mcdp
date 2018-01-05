@@ -98,6 +98,7 @@ def test_toc_first():
     s = str(index)
     assert 'Before everything' in s
     
+# XXX: erratic behavior
 @comptest
 def test_toc2():
     s = """
