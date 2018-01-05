@@ -4,6 +4,7 @@ jobs:
      docker:
         - image: andreacensi/duckietown-xenial-kinetic:19
      parallelism: 4
+     resource_class: large
      steps:
         - checkout
         - run:
