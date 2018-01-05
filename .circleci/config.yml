@@ -2,7 +2,7 @@ version: 2
 jobs:
     build:
      docker:
-        - image: andreacensi/duckietown-xenial-kinetic:18
+        - image: andreacensi/duckietown-xenial-kinetic:19
      parallelism: 4
      steps:
         - checkout
@@ -14,7 +14,9 @@ jobs:
         - run:
             name: deps
             command: |
+                make python-module-stats
                 pip install -U -r requirements.txt
+                make python-module-stats
 
 
         - run:
@@ -24,11 +26,6 @@ jobs:
                 apt install -y nodejs
                 npm install MathJax-node jsdom@9.3 less
 
-        - run:
-            name: update comptests
-            command: |
-
-                mkdir -p out/comptests-failures
 
         - run:
             name: Install
@@ -39,6 +36,8 @@ jobs:
 
 
                 make python-module-stats
+
+                mkdir -p out/comptests-failures
 
         - run:
             name: Make sure things are ok
