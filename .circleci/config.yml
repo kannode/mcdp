@@ -16,6 +16,7 @@ jobs:
             command: |
                 make python-module-stats
                 pip install -U -r requirements.txt
+                pip install -U selenium
                 make python-module-stats
 
 

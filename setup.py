@@ -95,6 +95,7 @@ setup(name=name,
       tests_require=[
         'nose>=1.1.2,<2',
         'comptests',
+        'selenium',
       ],
 
       entry_points={

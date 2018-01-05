@@ -203,4 +203,5 @@ python-module-stats:
 		matplotlib\
 		networkx\
 		Pillow\
-		qtfaststart
+		qtfaststart\
+		selenium
