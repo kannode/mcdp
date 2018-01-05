@@ -38,6 +38,7 @@ jobs:
 
                 # pip install pympler
 
+                apt install -y strace
 
                 make python-module-stats
 
