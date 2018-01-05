@@ -4,7 +4,7 @@ jobs:
      docker:
         - image: andreacensi/duckietown-xenial-kinetic:19
           environment:
-              COLUMNS: 200
+              COLUMNS: 160
      parallelism: 4
      resource_class: large
      steps:
@@ -38,7 +38,7 @@ jobs:
 
                 # pip install pympler
 
-                apt install -y strace
+                apt install -y strace lsof iotop 
 
                 make python-module-stats
 

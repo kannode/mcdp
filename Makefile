@@ -53,8 +53,10 @@ circle: prepare_tests
 	DISABLE_CONTRACTS=1 \
 	# MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates,manual" \
 	# 	comptests -o $(out) --nonose -c "rparmake n=2" $(package)
+	# MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
+	# 	strace -o $(CIRCLE_NODE_INDEX).trace -ff comptests -o $(out) --nonose -c "rmake" $(package)
 	MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
-		strace -o $(CIRCLE_NODE_INDEX).trace -ff comptests -o $(out) --nonose -c "rmake" $(package)
+		comptests -o $(out) --nonose -c "rparmake" $(package)
 	# ./misc/t ls failed
 	# ./misc/t parmake
 
