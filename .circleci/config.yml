@@ -27,9 +27,6 @@ jobs:
         - run:
             name: update comptests
             command: |
-                # pip uninstall -y comptests
-                # python setup.py develop
-                # python -c "import comptests; print comptests.__version__"
 
                 mkdir -p out/comptests-failures
 
@@ -38,11 +35,10 @@ jobs:
             command: |
                 python setup.py develop
 
-                pip install pympler
+                # pip install pympler
 
-                pip install git+https://github.com/AndreaCensi/compmake.git@mcdp
 
-                pip install compmake==3.5.12
+                make python-module-stats
 
         - run:
             name: Make sure things are ok

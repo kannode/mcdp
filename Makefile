@@ -183,3 +183,24 @@ test-dependencies.deps:
 
 css:
 	$(MAKE) -C src/mcdp_web/static/css/
+
+
+
+
+python-module-stats:
+	./misc/python_environment.py \
+		compmake\
+		contracts\
+		decent_logs\
+		quickapp\
+		conf_tools\
+		comptests\
+		ruamel.yaml\
+		ruamel.ordereddict\
+		geometry\
+		bs4\
+		cv2\
+		matplotlib\
+		networkx\
+		Pillow\
+		qtfaststart
