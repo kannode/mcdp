@@ -4,6 +4,7 @@ import logging
 from mcdp import logger
 from mcdp_utils_misc import get_md5, write_data_to_file, create_tmpdir
 from mcdp_utils_xml import bs, read_html_doc_from_file
+from multiprocessing import cpu_count
 import os
 import time
 
@@ -15,8 +16,6 @@ from .extract_assets import extract_assets_from_file
 from .manual_join_imp import (add_prev_next_links, split_in_files, get_id2filename,
                               create_link_base, create_link_base_js, update_refs_)
 from .source_info_imp import get_first_header_title
-from multiprocessing import cpu_count
-import math
 
 
 show_timing = False
@@ -242,8 +241,6 @@ def go(context, worker_i, num_workers, ifilename, mathjax, preamble, output_dir)
             h = get_md5(result)[:8]
             context.comp(extract_assets_from_file, fn0, fn, assets_dir,
                          job_id='assets-%s' % h)
-
-
 
 
 def identity(x):
