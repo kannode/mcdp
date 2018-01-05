@@ -14,7 +14,7 @@ jobs:
         - run:
             name: deps
             command: |
-                pip install -U decorator>=4.1.0
+                pip install -U -r requirements.txt
 
 
         - run:
@@ -28,8 +28,8 @@ jobs:
             name: update comptests
             command: |
                 # pip uninstall -y comptests
-                python setup.py develop
-                python -c "import comptests; print comptests.__version__"
+                # python setup.py develop
+                # python -c "import comptests; print comptests.__version__"
 
                 mkdir -p out/comptests-failures
 
