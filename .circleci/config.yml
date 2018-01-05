@@ -3,6 +3,8 @@ jobs:
     build:
      docker:
         - image: andreacensi/duckietown-xenial-kinetic:19
+          environment:
+              COLUMNS: 200
      parallelism: 4
      resource_class: large
      steps:
