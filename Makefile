@@ -54,7 +54,7 @@ circle: prepare_tests
 	# MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates,manual" \
 	# 	comptests -o $(out) --nonose -c "rparmake n=2" $(package)
 	MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
-		comptests -o $(out) --nonose -c "rmake" $(package)
+		strace -o $(CIRCLE_NODE_INDEX).trace -ff comptests -o $(out) --nonose -c "rmake" $(package)
 	# ./misc/t ls failed
 	# ./misc/t parmake
 
