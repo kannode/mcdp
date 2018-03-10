@@ -736,13 +736,13 @@ def get_empty_links_to_fragment(soup):
         if not href.startswith('#'):
             continue
         rest = href[1:]
-        if '/' in rest:
-            i = rest.index('/')
-            eid = rest[:i]
-            query = rest[i + 1:]
-        else:
-            eid = rest
-            query = None
+#         if '/' in rest:
+#             i = rest.index('/')
+#             eid = rest[:i]
+#             query = rest[i + 1:]
+#         else:
+        eid = rest
+        query = None
 
         linked = id2element.get(eid, None)
         yield LinkElement(linker=element, eid=eid, linked=linked, query=query)

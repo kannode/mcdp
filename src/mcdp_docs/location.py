@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
-from contracts import contract
 import inspect
 from mcdp_lang_utils import Where
 from mcdp_utils_misc import pretty_print_dict
 import os
 
+from contracts import contract
 from contracts.interface import location
 from contracts.utils import indent
 
 from .github_edit_links import get_repo_root, get_repo_information
+from compmake.utils.friendly_path_imp import friendly_path
 
 
 class Location(object):
@@ -75,7 +76,7 @@ class LocalFile(Location):
         
     def __repr__(self):
         d = OrderedDict()
-        d['filename'] = self.filename
+        d['filename'] = friendly_path(self.filename)
         if self.github_info is not None:
             d['github'] = self.github_info
         else:
@@ -172,6 +173,8 @@ def get_github_location(filename):
     org = repo_info['org']
     repo = repo_info['repo']
     
+    if branch is None:
+        branch = 'master'
     # Relative path in the directory
     relpath = os.path.relpath(filename, repo_root)
     

@@ -10,6 +10,7 @@ from mcdp import logger
 
 from .fileutils import get_mcdp_tmp_dir, write_data_to_file
 from .locate_files_imp import locate_files
+from comptests.comptests import get_comptests_output_dir
 
 
 def remove_tree_contents(dirname):
@@ -130,16 +131,21 @@ def with_dir_content(data, use_dir=None):
     else:
         raise Exception()
     
+    
+    
     import yaml
     files = OrderedDict()
     for d in datas:
         data_files = mockup_flatten(yaml.load(d))
         files.update(data_files)
     
+        
     if use_dir is not None:
-        remove_tree_contents(use_dir)
-        write_hierarchy(use_dir, files)
-        d = use_dir
+        if '/' in use_dir:
+            raise Exception(use_dir)
+        d = os.path.join(get_comptests_output_dir(), use_dir)
+        remove_tree_contents(d)
+        write_hierarchy(d, files)
     else:
         d = create_hierarchy(files)
         
