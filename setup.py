@@ -25,14 +25,11 @@ setup(name=name,
       maintainer_email="acensi@idsc.mavt.ethz.ch",
       description='PyMCDP is an interpreter and solver for Monotone Co-Design Problems',
       long_description='',
-      #package_data={'':['*.*', '*.mcdp*', '*.js', '*.png', '*.css']},
-
-      # without this, the stuff is included but not installed
-      include_package_data=True,
       keywords="Optimization",
       classifiers=[
         'Development Status :: 4 - Beta',
       ],
+
       version=version,
 
       download_url=
@@ -46,22 +43,23 @@ setup(name=name,
         # 'reprep',
         'pint',
         'watchdog',
-        'decorator>=4.1.0',
+        'decorator',
         'networkx',
         'pygments',
           'pyramid',
         'pyramid_jinja2',
         #'pyramid_chameleon',
         'pyramid_debugtoolbar',
-        'bs4',
         'nose',
-        'PyContracts>=1.7.6',
-        'ConfTools>=1.7', # even if implied
-        'comptests>=1.4.23', # xxx: now it's always needed
-        'RepRep>=2.9.3',
-        'DecentLogs',
-        'QuickApp>=1.2',
-        'compmake',
+
+        'beautifulsoup4>=4.6',
+        'PyContracts>=1.8.0,<2',
+        'ConfTools>=1.7,<2',
+        'comptests>=1.4.23,<2',
+        'RepRep>=2.9.3,<3',
+        'DecentLogs>=1.1.2,<2',
+        'QuickApp>=1.3.10,<2',
+        'compmake>=3.5.20,<4',
         'psutil',
         'setproctitle',
         'markdown',
@@ -82,6 +80,9 @@ setup(name=name,
       # This avoids creating the egg file, which is a zip file, which makes our data
       # inaccessible by dir_from_package_name()
       zip_safe = False,
+        # without this, the stuff is included but not installed
+        include_package_data=True,
+
       dependency_links  = [
           # 'https://github.com/AndreaCensi/contracts/archive/env_mcdp.zip#egg=PyContracts',
           # 'https://github.com/AndreaCensi/conf_tools/archive/env_fault.zip#egg=ConfTools',
@@ -93,8 +94,7 @@ setup(name=name,
 
       tests_require=[
         'nose>=1.1.2,<2',
-        'comptests',
-        'selenium',
+        'selenium>=3.3.1,<4',
       ],
 
       entry_points={

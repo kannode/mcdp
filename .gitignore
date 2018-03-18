@@ -53,3 +53,4 @@ ghostdriver.log
 geckodriver.log
 config
 circleci
+all_removed.html
