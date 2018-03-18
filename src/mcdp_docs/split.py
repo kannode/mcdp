@@ -353,11 +353,10 @@ spurious = """
 <p>This file is a spurious remain from earlier compilation.</p>
 
 <p>If you are reached this file, it means that somebody is not using PURLs
-to link to parts of the duckiebook.</p>
+to link to parts of the book.</p>
 
 OTHER
 
 </body>
 </html>
 """
-

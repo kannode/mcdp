@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 import os
 
-from mcdp import logger
 from contracts import contract
-from mcdp_cli.plot import allplots
-from mcdp_lang.syntax import Syntax
-from mcdp_library import Librarian
-from mcdp_report.gdc import STYLE_GREENREDSYM
-from mcdp_docs.highlight import get_ast_as_pdf
-from mcdp.exceptions import DPSemanticError
 from system_cmd import CmdException
 
-from .find_dep import EntryNDP, EntryTemplate, FindDependencies
-from mcdp_web.editor_fancy.image import ndp_template_graph_enclosed
+from mcdp import logger
+from mcdp.exceptions import DPSemanticError
+from mcdp_cli.plot import allplots
+from mcdp_docs.highlight import get_ast_as_pdf
+from mcdp_lang.syntax import Syntax
+from mcdp_library import Librarian
 from mcdp_library.specs_def import SPEC_TEMPLATES
+from mcdp_report.gdc import STYLE_GREENREDSYM
+from mcdp_web.editor_fancy.image import ndp_template_graph_enclosed
+
+from .find_dep import EntryNDP, EntryTemplate, FindDependencies
 
 
 @contract(config_dirs='list(str)', outdir='str', maindir='str')
@@ -22,20 +23,21 @@ def other_jobs(context, maindir, config_dirs, outdir, res):
     assert isinstance(fd, FindDependencies)
 
     G = fd.create_graph()
-    
+
     texs = []
     nodes = list(G.nodes())
-    
+
     for entry in nodes:
 
         tex = context.comp(other_reports,
                      maindir=maindir,
                      config_dirs=config_dirs,
                      outdir=outdir,
-                     entry=entry)#, job_id='other_reports-%s-%s' % (entry.libname, entry.name))
+                     entry=entry)  #, job_id='other_reports-%s-%s' % (entry.libname, entry.name))
         texs.append(tex)
 
     context.comp(write_tex, outdir, texs)
+
 
 def write_tex(outdir, texs):
     fn = os.path.join(outdir, 'all.tex')
@@ -71,7 +73,7 @@ def other_reports(outdir, maindir, config_dirs, entry):
         write_to_file(out, pdf)
         tex += '\n\\includegraphics{%s}' % base
 
-        source_code = library._get_file_data(entry.name +'.mcdp_template')['data']
+        source_code = library._get_file_data(entry.name + '.mcdp_template')['data']
         code_pdf = get_ast_as_pdf(s=source_code, parse_expr=Syntax.template)
 
         base = entry.libname + '-' + entry.name + '-syntax_pdf.pdf'
@@ -80,8 +82,7 @@ def other_reports(outdir, maindir, config_dirs, entry):
         tex += '\n\\includegraphics{%s}' % base
 
     if isinstance(entry, EntryNDP):
-        
-        
+
         filename = entry.name + '.mcdp'
         x = library._get_file_data(filename)
         data = {}
@@ -98,7 +99,6 @@ def other_reports(outdir, maindir, config_dirs, entry):
         plots.remove('ndp_greenred')
         plots.remove('dp_graph_tree_compact_labeled')
 #         plots.remove('dp_graph_compact_labeled')
-
 
         for p in plots:
             # print('plotting %r ' % p)
@@ -123,11 +123,11 @@ def other_reports(outdir, maindir, config_dirs, entry):
                 if ext == 'pdf':
                     tex += '\n\\includegraphics{%s}' % base
 
-
     print('outdir: %s' % outdir)
     print('entry: {}'.format(entry))
 
     return tex
+
 
 def write_to_file(out, contents):
     dn = os.path.dirname(out)

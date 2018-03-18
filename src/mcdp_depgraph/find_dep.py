@@ -10,9 +10,9 @@ from mcdp_lang.parse_actions import parse_wrap
 from mcdp_lang.parts import CDPLanguage
 from mcdp_lang.syntax import Syntax
 from mcdp_library import Librarian
+from mcdp_library.specs_def import SPEC_MODELS
 from mcdp_utils_misc import memoize_simple
 import networkx as nx
-from mcdp_library.specs_def import SPEC_MODELS
 
 
 @contract(config_dirs='list(str)', maindir='str', seeds='None|seq(str)')
@@ -27,21 +27,21 @@ def find_dependencies(config_dirs, maindir, seeds):
     default_library = librarian.get_library_by_dir(maindir)
 
     fd = FindDependencies(default_library)
-    
+
     if seeds is None:
         # add all models for all libraries
         libnames = list(librarian.get_libraries())
-        
+
         seeds = []
         for libname in libnames:
             library = librarian.load_library(libname)
             ndps = library.list_spec(SPEC_MODELS)
-            
+
             for name in ndps:
                 seeds.append('%s.%s' % (libname, name))
     else:
         pass
-    
+
     fd.search(seeds)
 
     res = {}
@@ -51,26 +51,29 @@ def find_dependencies(config_dirs, maindir, seeds):
 
 # Entry = namedtuple('Entry', 'libname name')
 class Entry():
-    
+
     def __init__(self, libname, name):
         self.libname = libname
         self.name = name
-        
+
     def __repr__(self):
         return '%s(%s,%s)' % (type(self), self.libname, self.name)
 
     def __hash__(self):
         return hash(str(self))
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         # XXX: not checking type?
-        return self.name == other.name and self.libname== other.libname
-        
+        return self.name == other.name and self.libname == other.libname
+
+
 class EntryNDP(Entry):
     pass
 
+
 class EntryTemplate(Entry):
     pass
+
 
 class EntryPoset(Entry):
     pass
@@ -82,7 +85,9 @@ types = [
     (EntryNDP, MCDPConstants.ext_ndps),
 ]
 
+
 class FindDependencies():
+
     def __init__(self, library):
         self.library = library
         self.default_library_name = library.library_name
@@ -99,7 +104,7 @@ class FindDependencies():
                 G.add_edge(n, d)
 
         return G
-    
+
     def create_libgraph(self):
         """ Create a graph where each node is a string, name for a library"""
         G0 = self.create_graph()
@@ -107,17 +112,17 @@ class FindDependencies():
         G = nx.DiGraph()
         for entry in G0:
             G.add_node(entry.libname)
-            
+
         for n1, n2 in G0.edges():
             G.add_edge(n1.libname, n2.libname)
-            
+
         return G
 
     def __setstate__(self, x):
         self.default_library_name = x['default_library_name']
         self.visited = x['visited']
         self.library = 'not-set-after-pickle'
-        
+
     def __getstate__(self):
         d = dict(**self.__dict__)
         if 'library' in d:
@@ -178,6 +183,7 @@ class FindDependencies():
         #print recursive_print(x)
         deps = set()
         CDP = CDPLanguage
+
         def visit(x):
             if isinstance(x, CDP.LoadNDP):
                 if isinstance(x.load_arg, CDP.NDPName):

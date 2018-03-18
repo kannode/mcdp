@@ -6,8 +6,8 @@ import textwrap
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
-
 from contracts.utils import raise_desc, raise_wrapped, indent
+
 from mcdp import logger, MCDPConstants
 from mcdp.development import mcdp_dev_warning
 from mcdp.exceptions import DPSemanticError, DPSyntaxError, DPInternalError

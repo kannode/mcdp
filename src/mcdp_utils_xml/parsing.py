@@ -1,12 +1,14 @@
-
 from bs4 import BeautifulSoup
-from contracts.utils import raise_desc, indent
 from contracts import contract
+from contracts.utils import raise_desc, indent, check_isinstance
 
 
 def bs(fragment):
     """ Returns the contents wrapped in an element called "fragment".
         Expects fragment as a str in utf-8 """
+
+    check_isinstance(fragment, (str, unicode))
+
     if isinstance(fragment, unicode):
         fragment = fragment.encode('utf8')
     s = '<fragment>%s</fragment>' % fragment

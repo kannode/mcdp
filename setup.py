@@ -30,7 +30,6 @@ setup(name=name,
       # without this, the stuff is included but not installed
       include_package_data=True,
       keywords="Optimization",
-      license="GPLv2",
       classifiers=[
         'Development Status :: 4 - Beta',
       ],

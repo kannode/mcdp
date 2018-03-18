@@ -6,10 +6,11 @@ import sys
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment, Tag, NavigableString
-
 from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
+
 from mcdp.logs import logger
+from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_xml import add_class, bs, copy_contents_into
 
 from .footnote_javascript import add_footnote_polyfill
@@ -129,12 +130,14 @@ def manual_join(template, files_contents,
     extract_bibtex_blocks(d)
     logger.info('external bib')
 
-    bibhere = d.find('div', id='put-bibliography-here')
+    ID_PUT_BIB_HERE = MCDPManualConstants.ID_PUT_BIB_HERE
+
+    bibhere = d.find('div', id=ID_PUT_BIB_HERE)
     if bibhere is None:
-        logger.warning('Could not find #put-bibliography-here in document. '
-                       'Adding one at end of document.')
+        logger.warning(('Could not find #%s in document. '
+                       'Adding one at end of document.') % ID_PUT_BIB_HERE)
         bibhere = Tag(name='div')
-        bibhere.attrs['id'] = 'put-bibliography-here'
+        bibhere.attrs['id'] = ID_PUT_BIB_HERE
         d.find('body').append(bibhere)
 
     do_bib(d, bibhere)
@@ -156,8 +159,6 @@ def manual_join(template, files_contents,
 
     for a in d.select('[href]'):
         href = a.attrs['href']
-#         if href.startswith('#'):
-#             id_ = href[1:]
         if href in references:
             r = references[href]
             a.attrs['href'] = r.url
@@ -857,7 +858,7 @@ if(window.location.hash) {
     } else {
         log("Could not find reference <code>" + hashid+ "</code>.");
         log("This means that the text to which it refers has not made it to the master branch yet.");
-        log("Or, it might mean that the bot has not compiled and published the new duckiebook version yet.");
+        log("Or, it might mean that the bot has not compiled and published the new book version yet.");
         log("Note that this is completely normal if you are creating a new section.");
     }
 } else {

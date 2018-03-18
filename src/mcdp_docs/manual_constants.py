@@ -5,6 +5,7 @@ import mcdp
 
 
 class MCDPManualConstants(object):
+
     activate_tilde_as_nbsp = False
     
     
@@ -45,6 +46,8 @@ class MCDPManualConstants(object):
     CLASS_ONLY_NUMBER = 'only_number'
     CLASS_ONLY_NAME = 'only_name'
     CLASS_NUMBER_NAME ='number_name'
+
+    ID_PUT_BIB_HERE = 'put-bibliography-here'
 
     enable_syntax_higlighting = True
     enforce_status_attribute = True

@@ -1,12 +1,12 @@
+
 import copy
 
 from bs4.element import Tag
-from decent_params.utils.script_utils import UserError
-from quickapp import QuickAppBase
-import yaml
-
 from contracts import contract
 from contracts.utils import check_isinstance, raise_wrapped
+import yaml
+
+from decent_params.utils.script_utils import UserError
 from mcdp import logger
 from mcdp_docs.add_edit_links import add_github_links_if_edit_url
 from mcdp_docs.composing.recipes import Recipe, RecipeContext, append_all
@@ -16,6 +16,7 @@ from mcdp_docs.manual_join_imp import generate_and_add_toc, \
 from mcdp_docs.tocs import get_ids_from_soup, is_empty_link
 from mcdp_utils_misc import write_data_to_file
 from mcdp_utils_xml import add_class, get_classes, bs_entire_document
+from quickapp import QuickAppBase
 
 
 class ComposeConfig():

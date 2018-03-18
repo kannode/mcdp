@@ -1,13 +1,13 @@
 from abc import abstractmethod, ABCMeta
-from contracts import contract
 import copy
-from mcdp import logger
-from mcdp_utils_misc.my_yaml import yaml_dump_pretty
-from mcdp_utils_xml import note_error2
-from mcdp_utils_xml import soup_find_absolutely
 
 from bs4.element import Tag
+from contracts import contract
 from contracts.utils import raise_desc, check_isinstance, indent, raise_wrapped
+
+from mcdp import logger
+from mcdp_utils_misc.my_yaml import yaml_dump_pretty
+from mcdp_utils_xml import note_error2, soup_find_absolutely
 
 
 class RecipeContext():

@@ -1,9 +1,13 @@
+import os
 import sys
+
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-from .logs import logger
-import os
+
 from compmake.utils.friendly_path_imp import friendly_path
+
+from .logs import logger
+
 
 def embed_css_files(soup):
     """ Look for <link> elements of CSS and embed them if they are local files"""

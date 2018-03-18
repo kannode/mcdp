@@ -1,22 +1,25 @@
-from contracts import contract
-from mcdp import logger
-from mcdp_utils_xml import add_class
-from mcdp_utils_xml import bs
 import sys
 import traceback
 
 from bs4.element import Tag
+from contracts import contract
 from contracts.utils import check_isinstance, indent
 
+from mcdp import logger
+from mcdp_utils_xml import add_class
+from mcdp_utils_xml.parsing import bs
 
 # class to give to the <details> element
 ERROR_CLASS = 'error' 
 WARNING_CLASS = 'warning'
+
+
 def search_for_errors(soup):
     ''' 
         Returns a string summarizing all errors
         marked by note_error() 
     '''
+
     s = ''
     for element in soup.select('details.'+ERROR_CLASS):
         summary = element.summary.text.encode('utf8')
@@ -26,6 +29,7 @@ def search_for_errors(soup):
         s0 = summary + '\n\n' + other
         s += '\n\n' + indent(s0, '', '* ')
     return s
+
 
 if __name__ == '__main__':
     filename = sys.argv[1]

@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 import logging
+import os
+
+from contracts.enabling import disable_all
+from contracts.utils import raise_desc
+from system_cmd import system_cmd_show
+
+from decent_params import UserError
 from mcdp import MCDPConstants, logger, mcdp_dev_warning
 from mcdp_library import Librarian
 from mcdp_report.html import get_css_filename
 from mcdp_utils_xml.parsing import \
     bs_entire_document, to_html_entire_document
-import os
-from system_cmd import system_cmd_show
-
-from contracts.enabling import disable_all
-from contracts.utils import raise_desc
-from decent_params import UserError
 from quickapp import QuickAppBase
 
 from .add_mathjax import add_mathjax_preamble
