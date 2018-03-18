@@ -26,5 +26,13 @@ def host_name():
     if socket.gethostname().find('.')>=0:
         name=socket.gethostname()
     else:
-        name=socket.gethostbyaddr(socket.gethostname())[0]
+        gh = socket.gethostname()
+        print('gh: %s' % gh)
+        try:
+            name = socket.gethostbyaddr(gh)[0]
+        except IOError as e:
+            if e.errno == 8:
+                return gh
+            raise
     return name
+
