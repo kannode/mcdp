@@ -94,7 +94,7 @@ setup(name=name,
 
       tests_require=[
         'nose>=1.1.2,<2',
-        'selenium>=3.3.1,<4',
+        'selenium>=3.3.1,<4f',
       ],
 
       entry_points={

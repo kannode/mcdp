@@ -1,6 +1,7 @@
+# not_implemented_error
 mcdp {
     provides f [m]
     requires r [m]
-    c = 2
+    c = Nat:2
     required r * c >=  provided f
 }
