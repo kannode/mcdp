@@ -1,8 +1,7 @@
 from compmake.utils.filesystem_utils import make_sure_dir_exists
 from mcdp_report.embedded_images import extract_img_to_file
 from mcdp_utils_misc import write_data_to_file
-from mcdp_utils_xml import read_html_doc_from_file,\
-    write_html_doc_to_file
+from mcdp_utils_xml import read_html_doc_from_file, write_html_doc_to_file
 import os
 
 from quickapp import QuickAppBase

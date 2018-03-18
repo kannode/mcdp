@@ -12,18 +12,18 @@ margin-top: 1em;
     <details>
         <summary>
             Comments (<span class="disqus-comment-count" data-disqus-url="PAGE_URL"></span>)
-        </summary>    
+        </summary>
         <div id="disqus_thread"></div>
     </details>
 </div>
 
 <script>
     var disqus_config = function () {
-        this.page.url = "PAGE_URL";  
-        this.page.identifier = "PAGE_IDENTIFIER"; 
+        this.page.url = "PAGE_URL";
+        this.page.identifier = "PAGE_IDENTIFIER";
     };
 
-    (function() { 
+    (function() {
         var d = document, s = d.createElement('script');
         s.src = 'https://DISQUS_DOMAIN/embed.js';
         s.setAttribute('data-timestamp', +new Date());
@@ -39,7 +39,7 @@ def append_disqus(filename, html):
     PAGE_URL = 'https://duckietown.github.io/duckuments/master/' + filename
     DISQUS_DOMAIN = 'duckuments.disqus.com'
     s = disqus
-    s = s.replace('PAGE_IDENTIFIER', PAGE_IDENTIFIER)    
+    s = s.replace('PAGE_IDENTIFIER', PAGE_IDENTIFIER)
     s = s.replace('PAGE_URL', PAGE_URL)
     s = s.replace('DISQUS_DOMAIN', DISQUS_DOMAIN)
     disqus_section = bs(s)
@@ -66,11 +66,7 @@ padding-bottom: 0.5em;
 }
 div.super { margin-top: 2em; }
 </style>
-<div id='banner'>
-We are preparing things for Fall 2017. Please pardon our dust as we prepare the Duckiebook.
-</div>
 """
     banner = bs(banner_string)
     banner.name = 'div'
     html.body.insert(0, banner)
-    

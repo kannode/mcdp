@@ -1,7 +1,10 @@
 # annoying warning from BS4
 
-import logging
 from logging import Logger, StreamHandler, Formatter
+import logging
+
+import PIL  # @UnusedImport
+import chardet  # @UnusedImport
 
 FORMAT = "%(name)15s|%(filename)15s:%(lineno)-4s - %(funcName)-15s| %(message)s"
 
@@ -18,9 +21,6 @@ else:
 logger = logging.getLogger('mcdp-docs')
 logger.setLevel(logging.DEBUG)
 
-import chardet  # @UnusedImport
 logging.getLogger("chardet.universaldetector").setLevel(logging.CRITICAL)
-import PIL  # @UnusedImport
 logging.getLogger("PIL.PngImagePlugin").setLevel(logging.CRITICAL)
-
 

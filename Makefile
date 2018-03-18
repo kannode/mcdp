@@ -53,6 +53,8 @@ circle: prepare_tests
 	DISABLE_CONTRACTS=1 \
 	# MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates,manual" \
 	# 	comptests -o $(out) --nonose -c "rparmake n=2" $(package)
+	# MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
+	# 	strace -o $(CIRCLE_NODE_INDEX).trace -ff comptests -o $(out) --nonose -c "rmake" $(package)
 	MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
 		comptests -o $(out) --nonose -c "rmake" $(package)
 	# ./misc/t ls failed
@@ -183,3 +185,25 @@ test-dependencies.deps:
 
 css:
 	$(MAKE) -C src/mcdp_web/static/css/
+
+
+
+
+python-module-stats:
+	./misc/python_environment.py \
+		compmake\
+		contracts\
+		decent_logs\
+		quickapp\
+		conf_tools\
+		comptests\
+		ruamel.yaml\
+		ruamel.ordereddict\
+		geometry\
+		bs4\
+		cv2\
+		matplotlib\
+		networkx\
+		Pillow\
+		qtfaststart\
+		selenium

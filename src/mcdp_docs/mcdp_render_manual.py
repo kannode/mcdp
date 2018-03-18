@@ -4,24 +4,23 @@ import logging
 import os
 import tempfile
 
-from quickapp import QuickApp
-from reprep.utils import natsorted
-
-from compmake.utils.friendly_path_imp import friendly_path
 from contracts import contract
 from contracts.utils import raise_wrapped
+
+from compmake.utils.friendly_path_imp import friendly_path
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
-from mcdp_utils_misc import expand_all, locate_files, get_md5
+from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file
+from quickapp import QuickApp
+from reprep.utils import natsorted
 
 from .check_bad_input_files import check_bad_input_file_presence
 from .github_edit_links import add_edit_links
 from .manual_constants import MCDPManualConstants
-from .manual_join_imp import DocToJoin
-from .manual_join_imp import manual_join
+from .manual_join_imp import DocToJoin, manual_join
 from .minimal_doc import get_minimal_document
 from .read_bibtex import run_bibtex2html
 from .source_info_imp import get_source_info, make_last_modified
@@ -40,18 +39,25 @@ class RenderManual(QuickApp):
         params.add_string('symbols', help='.tex file for MathJax', default=None)
         params.add_flag('raise_errors', help='If given, fail the compilation on errors')
         params.add_flag('cache')
+        params.add_flag('last_modified', help='Add last modified page')
         params.add_flag('pdf', help='Generate PDF version of code and figures.')
-        params.add_string('remove', help='Remove the items with the given selector (so it does not mess indexing)',
+        params.add_string('remove', help='Remove the items with the given selector'
+                          ' (so it does not mess indexing)',
                           default=None)
         params.add_flag('no_resolve_references')
+        params.add_flag('mcdp_settings')
 
     def define_jobs_context(self, context):
+        options = self.get_options()
+
+        if options.mcdp_settings:
+            MCDPManualConstants.activate_tilde_as_nbsp = False
+            MCDPConstants.softy_mode = False
+
         logger.setLevel(logging.DEBUG)
 
-        options = self.get_options()
         src = options.src
         src_dirs = [_ for _ in src.split(":") if _ and _.strip()]
-
 
         raise_errors = options.raise_errors
         out_dir = options.output
@@ -60,6 +66,7 @@ class RenderManual(QuickApp):
         remove = options.remove
         stylesheet = options.stylesheet
         symbols = options.symbols
+        do_last_modified = options.last_modified
         use_mathjax = True if options.mathjax else False
 
         logger.info('use mathjax: %s' % use_mathjax)
@@ -86,7 +93,8 @@ class RenderManual(QuickApp):
                     use_mathjax=use_mathjax,
                     raise_errors=raise_errors,
                     symbols=symbols,
-                    resolve_references=resolve_references
+                    resolve_references=resolve_references,
+                    do_last_modified=do_last_modified
                     )
 
 
@@ -106,6 +114,7 @@ def look_for_files(srcdirs, pattern):
         Excludes files with "excludes" in the name.
     """
     results = []
+    results_absolute = set()
     for d0 in srcdirs:
         d = expand_all(d0)
         if not os.path.exists(d):
@@ -120,26 +129,29 @@ def look_for_files(srcdirs, pattern):
 
         ok = []
         for fn in filenames:
-            fn = os.path.realpath(fn)
-#             fn = os.path.relpath(fn, root)
-            if 'exclude' in fn:
+            fn0 = os.path.realpath(fn)
+            if 'exclude' in fn0:
                 logger.info('Excluding file %r because of string "exclude" in it' % fn)
             else:
-                if fn in results:
-                    logger.debug('Reached the file %s twice' % fn)
-                    pass #
+                if fn0 in results_absolute:
+                    logger.debug('Reached the file %s twice' % fn0)
+                    pass
                 else:
+                    results_absolute.add(fn0)
                     ok.append(fn)
+
         results.extend(natsorted(ok))
 
-    logger.info('Found %d files in %s' % (len(results), srcdirs))
+    logger.info('Found %d files with pattern %s in %s' %
+                (len(results), pattern, srcdirs))
     return results
 
  
 @contract(src_dirs='seq(str)')
 def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
                 use_mathjax, raise_errors, resolve_references=True,
-                remove=None, filter_soup=None, extra_css=None, symbols=None):
+                remove=None, filter_soup=None, extra_css=None, symbols=None,
+                do_last_modified=False):
     """
         src_dirs: list of sources
         symbols: a TeX preamble (or None)
@@ -147,6 +159,8 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
     root_dir = src_dirs[0]
 
     filenames = get_markdown_files(src_dirs)
+    print('using:')
+    print("\n".join(filenames))
 
     if not filenames:
         msg = 'Could not find any file for composing the book.'
@@ -192,6 +206,7 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
         files_contents.append(tuple(doc)) # compmake doesn't do namedtuples
 
     bib_files = get_bib_files(src_dirs)
+
     logger.debug('Found bib files:\n%s' % "\n".join(bib_files))
     if bib_files:
         bib_contents = job_bib_contents(context, bib_files)
@@ -199,7 +214,6 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
                            source_info=None)
         files_contents.append(tuple(entry))
 
-    do_last_modified = True
 
     if do_last_modified:
         data = context.comp(make_last_modified, files_contents=files_contents)
@@ -241,6 +255,8 @@ def is_ignored_by_catkin(dn):
         if os.path.exists(i):
             return True
         dn = os.path.dirname(dn)
+        if not dn:
+            return False
     return False
 
 def job_bib_contents(context, bib_files):
@@ -274,19 +290,12 @@ def generate_metadata(src_dir):
     from .pipeline import replace_macros
 
     s = replace_macros(s)
-    with open(out, 'w') as f:
-        f.write(s)
+    write_data_to_file(s, out)
+
 
 
 def write(s, out):
-    dn = os.path.dirname(out)
-    if dn != '':
-        if not os.path.exists(dn):
-            print('creating directory %r for %r' % (dn, out))
-            os.makedirs(dn)
-    with open(out, 'w') as f:
-        f.write(s)
-    print('Written %s ' % out)
+    write_data_to_file(s, out)
 
 
 def render_book(src_dir, generate_pdf,
@@ -309,11 +318,6 @@ def render_book(src_dir, generate_pdf,
 
     d = tempfile.mkdtemp()
     library.use_cache_dir(d)
-
-#     basename = docname + '.' + MCDPConstants.ext_doc_md
-#     f = library._get_file_data(basename)
-#     data = f['data']
-#     realpath = f['realpath']
 
     def filter_soup0(soup, library):
         if filter_soup is not None:
@@ -342,8 +346,7 @@ def render_book(src_dir, generate_pdf,
         except:
             pass
     fn = os.path.join(dirname, '%s.html' % out_part_basename)
-    with open(fn, 'w') as f:
-        f.write(doc)
+    write_data_to_file(doc, fn) 
 
     return html_contents
 

@@ -6,10 +6,11 @@ import sys
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment, Tag, NavigableString
-
 from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
+
 from mcdp.logs import logger
+from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_xml import add_class, bs, copy_contents_into
 
 from .footnote_javascript import add_footnote_polyfill
@@ -98,7 +99,7 @@ def manual_join(template, files_contents,
         from .latex.latex_preprocess import assert_not_inside
         assert_not_inside(doc_to_join.contents, '<fragment')
         assert_not_inside(doc_to_join.contents, 'DOCTYPE')
-        
+
         frag = bs(doc_to_join.contents)
         basename2soup[doc_to_join.docname] = frag
 
@@ -114,13 +115,13 @@ def manual_join(template, files_contents,
             body.append(NavigableString('\n\n'))
 
         copy_contents_into(content, body)
-             
+
         f = body.find('fragment')
         if f:
             msg = 'I found a <fragment> in the manual after %r' % docname
             msg += '\n\n' + indent(str(content), '> ')
             raise Exception(msg)
-        
+
         if add_comments:
             body.append(NavigableString('\n\n'))
             body.append(Comment('End of document dump of %r' % docname))
@@ -129,12 +130,14 @@ def manual_join(template, files_contents,
     extract_bibtex_blocks(d)
     logger.info('external bib')
 
-    bibhere = d.find('div', id='put-bibliography-here')
+    ID_PUT_BIB_HERE = MCDPManualConstants.ID_PUT_BIB_HERE
+
+    bibhere = d.find('div', id=ID_PUT_BIB_HERE)
     if bibhere is None:
-        logger.warning('Could not find #put-bibliography-here in document.'
-                       'Adding one at end of document')
+        logger.warning(('Could not find #%s in document. '
+                       'Adding one at end of document.') % ID_PUT_BIB_HERE)
         bibhere = Tag(name='div')
-        bibhere.attrs['id'] = 'put-bibliography-here'
+        bibhere.attrs['id'] = ID_PUT_BIB_HERE
         d.find('body').append(bibhere)
 
     do_bib(d, bibhere)
@@ -156,8 +159,6 @@ def manual_join(template, files_contents,
 
     for a in d.select('[href]'):
         href = a.attrs['href']
-#         if href.startswith('#'):
-#             id_ = href[1:]
         if href in references:
             r = references[href]
             a.attrs['href'] = r.url
@@ -173,8 +174,8 @@ def manual_join(template, files_contents,
 
 def document_final_pass_before_toc(soup, remove, remove_selectors):
     logger.info('reorganizing contents in <sections>')
-    
-    
+
+
     body = soup.find('body')
     if body is None:
         msg = 'Cannot find <body>:\n%s' % indent(str(soup)[:1000], '|')
@@ -399,7 +400,7 @@ def dissolve(x):
     for child in list(x.contents):
         child.extract()
         x.parent.insert(index, child)
-        index += 1 
+        index += 1
 
     x.extract()
 
@@ -410,7 +411,7 @@ def add_prev_next_links(filename2contents, only_for=None):
     new_one = OrderedDict()
     for filename, contents in list(filename2contents.items()):
         if only_for and not filename in only_for: continue
-        
+
         id_prev = contents.attrs[ATTR_PREV]
         a_prev = Tag(name='a')
         a_prev.attrs['href'] = '#' + str(id_prev)
@@ -437,26 +438,27 @@ def add_prev_next_links(filename2contents, only_for=None):
         spacer.attrs['style'] ='clear:both'
         nav1.append(spacer)
 
-        
+
 
         add_class(contents, 'main-section-for-page')
- 
+
         contents2 = contents
         S.append(contents2)
 
         from .source_info_imp import get_main_header
         actual_id = get_main_header(contents2)
 
-        e = contents2.find(id=actual_id)
-        if e is not None: 
-            pass
-        else:
-            logger.error('not found %r' % actual_id)
+        if False: # just checking
+            e = contents2.find(id=actual_id)
+            if e is not None:
+                pass
+            else:
+                logger.error('not found %r' % actual_id)
         S.attrs['id'] = actual_id
 
         contents2.insert(0, nav1.__copy__())
         contents2.append(nav1.__copy__())
-        
+
         new_one[filename] = S
 
     return new_one
@@ -627,9 +629,9 @@ def is_part_marker(x):
         return False
     if not x.name == 'h1':
         return False
-    
+
     id_ = x.attrs.get('id', '')
-    id_starts_with_part =  id_.startswith('part:')  
+    id_starts_with_part =  id_.startswith('part:')
     return id_starts_with_part
 
 def reorganize_by_parts(body):
@@ -742,16 +744,16 @@ def copy_attributes_from_header(section, header):
         msg = 'This header has no ID'
         msg += '\n' + str(header)
         raise Exception(msg)
-    
+
     from mcdp_docs.composing.cli import remove_prefix
     pure_id = remove_prefix(header.attrs['id'])
-    
+
     section.attrs['id'] = pure_id + ':section'
     for c in header.attrs.get('class', []):
         add_class(section, c)
     for a in ['status', 'lang', 'type']:
         if a in header.attrs:
-            section.attrs[a] = header.attrs[a] 
+            section.attrs[a] = header.attrs[a]
 
 def make_sections2(elements, is_marker, copy=True, element_name='div', attrs={},
                    add_debug_comments=False):
@@ -856,13 +858,21 @@ if(window.location.hash) {
     } else {
         log("Could not find reference <code>" + hashid+ "</code>.");
         log("This means that the text to which it refers has not made it to the master branch yet.");
-        log("Or, it might mean that the bot has not compiled and published the new duckiebook version yet.");
+        log("Or, it might mean that the bot has not compiled and published the new book version yet.");
         log("Note that this is completely normal if you are creating a new section.");
     }
 } else {
     log("No hash found");
 }
 """
+
+def create_link_base_js(id2filename):
+    s = """
+
+links = %s;
+
+""" % json.dumps(id2filename)
+    return s
 
 def create_link_base(id2filename):
     ''' Returns a Tag <html> containing the page that is responsible to translate links '''
@@ -872,11 +882,7 @@ def create_link_base(id2filename):
 
     body = Tag(name='body')
     html.append(body)
-    s = """
-
-links = %s;
-
-""" % json.dumps(id2filename)
+    s = create_link_base_js(id2filename)
     script = Tag(name='script')
     script.append(s)
     body.append(script)

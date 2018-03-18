@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
 
-from bs4 import Tag, NavigableString
+from bs4 import Tag, NavigableString, BeautifulSoup
+from contracts import contract
 from system_cmd import system_cmd_result
 
-from contracts import contract
 from mcdp import logger
 from mcdp_utils_misc import tmpdir
 from mcdp_utils_xml import bs
@@ -30,7 +30,7 @@ def run_bibtex2html(contents):
         fn = os.path.join(d, 'input.bib')
         fno = os.path.join(d, 'out')
         fno1 = fno + '.html'
-        fno2 = fno + '_bib.html'
+        # fno2 = fno + '_bib.html'
         with open(fn, 'w') as f:
             f.write(contents)
 
@@ -41,27 +41,42 @@ def run_bibtex2html(contents):
                fn]
 
         system_cmd_result('.', cmd,
-                          display_stdout=True,
-                          display_stderr=True,
+                          display_stdout=False,
+                          display_stderr=False,
                           raise_on_error=True,
                           display_prefix=None,  # leave it there
                           env=None)
 
         bibtex2html_output = open(fno1).read()
 
-        out = process_bibtex2html_output(bibtex2html_output)
+        fixed = bibtex2html_output.replace('<p>\n</dd>', '</dd><!--fix-->')
+
+        with open(os.path.join(d, 'fixed.html'), 'w') as f:
+            f.write(fixed)
+
+        out = process_bibtex2html_output(fixed, d)
+
+        with open(os.path.join(d, 'processed.html'), 'w') as f:
+            f.write(out)
+#        print('processed:\n' + out)
+        print('see also %s' % d)
         return out
 
 
-def process_bibtex2html_output(bibtex2html_output):
+def process_bibtex2html_output(bibtex2html_output, d):
     """ 
         From the bibtex2html output, get clean version. 
     """
-    frag = bs(bibtex2html_output)
+#    frag = bs(bibtex2html_output)
+    frag = BeautifulSoup(bibtex2html_output, 'html.parser')
+
+    with open(os.path.join(d, 'fixed_interpreted.html'), 'w') as f:
+        f.write(str(frag))
+
     res = Tag(name='div')
 
     ids = []
-    for dt in frag.select('dt'):
+    for dt in list(frag.select('dt')):
         assert dt.name == 'dt'
         name = dt.a.attrs['name']
         name = 'bib:' + name

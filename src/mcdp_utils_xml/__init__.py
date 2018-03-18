@@ -1,14 +1,8 @@
-from .parsing import *
-from .description import *
-from .project_text import *
 from .add_class_and_style import *
+from .description import *
 from .images import *
-from .note_errors_inline import *
 from .misc import *
-'''
+from .note_errors_inline import *
+from .parsing import *
+from .project_text import *
 
-
-    soup.find_all(href=re.compile("elsie"))
-
-
-'''

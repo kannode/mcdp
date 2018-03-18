@@ -3,6 +3,7 @@ from collections import namedtuple
 import time
 
 from bs4.element import Tag
+from contracts.utils import check_isinstance
 import git
 
 from mcdp_utils_misc import memoize_simple
@@ -39,7 +40,6 @@ def get_source_info(filename):
     commit = commit.hexsha
     #print('%s last modified by %s on %s ' % (filename, author, last_modified))
     return SourceInfo(commit=commit, author=author, last_modified=last_modified)
-
 
 def make_last_modified(files_contents, nmax=100):
     files_contents = [DocToJoin(*x) for x in files_contents]
@@ -101,6 +101,7 @@ def get_main_header(s):
         Gets an ID to use as reference for the file.
         Returns the first h1,h2,h3 with ID set.
     """
+    check_isinstance(s, (str, unicode))
     soup = bs(s)
     for e in soup.find_all(['h1','h2','h3']):
         if 'id' in e.attrs:

@@ -1,9 +1,9 @@
+
 from collections import OrderedDict, namedtuple
 import os
 import sys
 
 from mcdp_utils_xml import bs
-
 
 GenericReference = namedtuple('GenericReference', 'id url title')
 

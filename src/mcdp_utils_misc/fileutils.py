@@ -61,7 +61,7 @@ def read_file_encoded_as_utf8(filename):
     return s
 
 
-def write_data_to_file(data, filename):
+def write_data_to_file(data, filename, quiet=False):
     """ 
         Writes the data to the given filename. 
         If the data did not change, the file is not touched.
@@ -87,6 +87,8 @@ def write_data_to_file(data, filename):
          
     with open(filename, 'w') as f:
         f.write(data)
-    logger.debug('Written to: %s' % friendly_path(filename))
+        
+    if not quiet:
+        logger.debug('Written to: %s' % friendly_path(filename))
      
     

@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
-from contracts import contract
 import inspect
-from mcdp_lang_utils import Where
-from mcdp_utils_misc import pretty_print_dict
 import os
 
+from contracts import contract
 from contracts.interface import location
 from contracts.utils import indent
+
+from compmake.utils.friendly_path_imp import friendly_path
+from mcdp_lang_utils import Where
+from mcdp_utils_misc import pretty_print_dict
 
 from .github_edit_links import get_repo_root, get_repo_information
 
@@ -52,7 +54,7 @@ class LocationInString(Location):
 class LocationUnknown(Location):
     """ We do not know where the thing came from. """
     
-    def __init__(self, level=1): # 1 = our caller
+    def __init__(self, level=1):  # 1 = our caller @UnusedVariable
         self.caller_location = None # location_from_stack(level)
     
     def __repr__(self):
@@ -75,7 +77,7 @@ class LocalFile(Location):
         
     def __repr__(self):
         d = OrderedDict()
-        d['filename'] = self.filename
+        d['filename'] = friendly_path(self.filename)
         if self.github_info is not None:
             d['github'] = self.github_info
         else:
@@ -172,6 +174,8 @@ def get_github_location(filename):
     org = repo_info['org']
     repo = repo_info['repo']
     
+    if branch is None:
+        branch = 'master'
     # Relative path in the directory
     relpath = os.path.relpath(filename, repo_root)
     

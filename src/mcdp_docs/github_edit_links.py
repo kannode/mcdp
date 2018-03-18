@@ -4,7 +4,7 @@ import os, re
 
 from git.repo.base import Repo
 from contracts.utils import raise_wrapped
-from mcdp_utils_misc.memoize_simple_imp import memoize_simple
+from mcdp_utils_misc import memoize_simple
 
 @memoize_simple
 def get_repo_root(d):
@@ -61,7 +61,13 @@ def get_repo_information(repo_root):
     
     gitrepo = Repo(repo_root)
     try:
-        branch = gitrepo.active_branch
+        try:
+            branch = gitrepo.active_branch
+        except TypeError:
+        # TypeError: HEAD is a detached symbolic reference as it points 
+        # to '4bcaf737955277b156a5bacdd80d1805e4b8bb25'
+            branch = None
+            
         commit = gitrepo.head.commit.hexsha
         try:
             origin = gitrepo.remotes.origin
@@ -75,7 +81,10 @@ def get_repo_information(repo_root):
     # now github can use urls that do not end in '.git'
     if 'github' in url and not url.endswith('.git'):
         url = url + '.git'
-    org, repo = org_repo_from_url(url)
+    try:
+        org, repo = org_repo_from_url(url)
+    except NotImplementedError:
+        org, repo = None, None
     return dict(branch=branch, commit=commit, org=org, repo=repo)
 
 
