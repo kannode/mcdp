@@ -3,9 +3,9 @@ from collections import namedtuple
 import time
 
 from bs4.element import Tag
-from contracts.utils import check_isinstance
 import git
 
+from contracts.utils import check_isinstance
 from mcdp_utils_misc import memoize_simple
 from mcdp_utils_xml import bs, to_html_stripping_fragment
 
@@ -66,7 +66,7 @@ def make_last_modified(files_contents, nmax=100):
         li.append(when_s)
         li.append(': ')
         
-        hid = get_main_header(d.contents)
+        hid = get_main_header(bs(d.contents))
         if hid is None:
             what = "File %s" % d.docname
         else:
@@ -96,14 +96,16 @@ def get_first_header_title(soup):
             return e.attrs[a]
     return None
 
-def get_main_header(s):
+
+def get_main_header(tag):
     """ 
         Gets an ID to use as reference for the file.
         Returns the first h1,h2,h3 with ID set.
     """
-    check_isinstance(s, (str, unicode))
-    soup = bs(s)
-    for e in soup.find_all(['h1','h2','h3']):
+    check_isinstance(tag, Tag)
+#    check_isinstance(s, (str, unicode))
+#    soup = bs(s)
+    for e in tag.find_all(['h1', 'h2', 'h3']):
         if 'id' in e.attrs:
             return e.attrs['id']
     return None

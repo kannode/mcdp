@@ -439,7 +439,6 @@ def add_prev_next_links(filename2contents, only_for=None):
         nav1.append(spacer)
 
 
-
         add_class(contents, 'main-section-for-page')
 
         contents2 = contents
