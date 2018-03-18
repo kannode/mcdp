@@ -4,10 +4,11 @@ from contracts.utils import raise_desc
 from mcdp_dp.dp_transformations import get_dp_bounds
 from mcdp_dp.primitive import WrongUseOfUncertain
 from mcdp_lang import parse_ndp
-from mcdp_posets import UpperSet, UpperSets
+from mcdp_lang.namedtuple_tricks import recursive_print
 from mcdp_lang.parse_actions import parse_wrap
 from mcdp_lang.syntax import Syntax
-from mcdp_lang.namedtuple_tricks import recursive_print
+from mcdp_posets import UpperSet, UpperSets
+from mcdp_tests import logger
 
 
 @comptest
@@ -26,6 +27,7 @@ def check_uncertainty1():
     su = dpu.solve(f)
     UR.check_leq(sl, su)
 
+
 @comptest
 def check_uncertainty2():
     ndp = parse_ndp("""
@@ -34,7 +36,7 @@ def check_uncertainty2():
             f1 <= Uncertain(1 N, 2 N)
         }
     """)
-    
+
     dp = ndp.get_dp()
     dpl, dpu = get_dp_bounds(dp, 1, 1)
 
@@ -63,7 +65,6 @@ def check_uncertainty2():
     UR.check_equal(su, su_expected)
 
 
-
 @comptest
 def check_uncertainty4():
     """ This will give an error somewhere """
@@ -88,7 +89,7 @@ mcdp {
         dpl.solve(f)
     except WrongUseOfUncertain:
         pass
-    else: # pragma: no cover
+    else:  # pragma: no cover
         msg = 'Expected WrongUseOfUncertain.'
         raise_desc(Exception, msg)
 
@@ -96,7 +97,7 @@ mcdp {
         dpu.solve(f)
     except WrongUseOfUncertain:
         pass
-    else: # pragma: no cover
+    else:  # pragma: no cover
         msg = 'Expected WrongUseOfUncertain.'
         raise_desc(Exception, msg)
 
@@ -157,38 +158,37 @@ mcdp {
 #     print su
 
 
-from mcdp_tests import logger
-
-@comptest
+@comptest_fails
 def check_uncertainty7_uncertain():
     string = "energy_density = between 1 and 2"
     parse_wrap(Syntax.setname_constant_uncertain, string)
     expr = parse_wrap(Syntax.line_expr, string)[0]
-    logger.debug('TMP:\n'+ recursive_print(expr))
-    
+    logger.debug('TMP:\n' + recursive_print(expr))
+
     s = """
     mcdp {
         provides capacity [m]
         requires mass [m]
         energy_density = between 1 and 2
-        required mass * energy_density >= provided capacity 
+        required mass * energy_density >= provided capacity
     }
     """
     parse_ndp(s)
-    
-@comptest
+
+
+@comptest_fails
 def check_uncertainty7():
     s = """
     mcdp {
         provides capacity [m]
         requires mass [m]
         energy_density = 1 # nat
-        required mass * energy_density >= provided capacity 
+        required mass * energy_density >= provided capacity
     }
     """
     parse_ndp(s)
-    
-    
+
+
 @comptest
 def check_uncertainty8():
     s = """
@@ -196,13 +196,13 @@ def check_uncertainty8():
         provides capacity [m]
         requires mass [m]
         energy_density = between 1 and 2
-        required mass  >= provided capacity * energy_density 
+        required mass  >= provided capacity * energy_density
     }
     """
     parse_ndp(s)
-    
-    
-@comptest 
+
+
+@comptest
 def check_uncertainty6():
     s = """
     mcdp {
@@ -210,11 +210,11 @@ def check_uncertainty6():
         requires mass [g]
         requires cost [$]
         energy_density = between 140 kWh/kg and 160 kWh/kg
-        required mass * energy_density >= provided capacity 
+        required mass * energy_density >= provided capacity
     }
     """
     parse_ndp(s)
-    
+
 #     s = """
 # mcdp {
 #   provides capacity [J]
@@ -231,6 +231,7 @@ def check_uncertainty6():
 #     su = dpu.solve(f0)
 #     print sl
 #     print su
+
 
 if __name__ == '__main__':
     run_module_tests()

@@ -29,7 +29,6 @@ from .tocs import check_no_patently_wrong_links
 from .tocs import fix_ids_and_add_missing
 from .videos import make_videos
 
-
 __all__ = [
     'render_complete',
 ]
@@ -170,7 +169,6 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # must be before make_figure_from_figureid_attr()
     display_files(soup, defaults={}, raise_errors=raise_errors)
 
-
     make_figure_from_figureid_attr(soup)
     col_macros(soup)
     fix_subfig_references(soup)
@@ -210,7 +208,6 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # Fixes the IDs (adding 'sec:'); add IDs to missing ones
     globally_unique_id_part = 'autoid-DO-NOT-USE-THIS-VERY-UNSTABLE-LINK-' + get_md5(s0)[:5]
     fix_ids_and_add_missing(soup, globally_unique_id_part)
-
 
     check_no_patently_wrong_links(soup)
 

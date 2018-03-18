@@ -4,10 +4,9 @@ import logging
 import os
 import tempfile
 
+from compmake.utils.friendly_path_imp import friendly_path
 from contracts import contract
 from contracts.utils import raise_wrapped
-
-from compmake.utils.friendly_path_imp import friendly_path
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
@@ -57,7 +56,8 @@ class RenderManual(QuickApp):
         logger.setLevel(logging.DEBUG)
 
         src = options.src
-        src_dirs = [_ for _ in src.split(":") if _ and _.strip()]
+        src_dirs = [_.strip() for _ in src.split(":") if _ and _.strip()]
+        self.info("Src dirs: \n" + "\n -".join(src_dirs))
 
         raise_errors = options.raise_errors
         out_dir = options.output
@@ -75,7 +75,6 @@ class RenderManual(QuickApp):
         if symbols is not None:
             symbols = open(symbols).read()
 
-
         if out_dir is None:
             out_dir = os.path.join('out', 'mcdp_render_manual')
 
@@ -83,7 +82,7 @@ class RenderManual(QuickApp):
             check_bad_input_file_presence(s)
 
         resolve_references = not options.no_resolve_references
-        
+
         manual_jobs(context,
                     src_dirs=src_dirs,
                     output_file=output_file,
@@ -98,16 +97,17 @@ class RenderManual(QuickApp):
                     )
 
 
-
 @contract(src_dirs='seq(str)', returns='list(str)')
 def get_bib_files(src_dirs):
     """ Looks for .bib files in the source dirs; returns list of filenames """
     return look_for_files(src_dirs, "*.bib")
 
+
 @contract(src_dirs='seq(str)', returns='list(str)')
 def get_markdown_files(src_dirs):
     """ Returns a list of filenames. """
     return look_for_files(src_dirs, "*.md")
+
 
 def look_for_files(srcdirs, pattern):
     """
@@ -146,7 +146,7 @@ def look_for_files(srcdirs, pattern):
                 (len(results), pattern, srcdirs))
     return results
 
- 
+
 @contract(src_dirs='seq(str)')
 def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
                 use_mathjax, raise_errors, resolve_references=True,
@@ -156,8 +156,6 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
         src_dirs: list of sources
         symbols: a TeX preamble (or None)
     """
-    root_dir = src_dirs[0]
-
     filenames = get_markdown_files(src_dirs)
     print('using:')
     print("\n".join(filenames))
@@ -190,7 +188,8 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
         else:
             msg = 'Could not find dir for %s in %s' % (filename, src_dirs)
 
-        html_contents = context.comp(render_book, d, generate_pdf,
+        html_contents = context.comp(render_book, generate_pdf=generate_pdf,
+                                     src_dirs=src_dirs,
                                    data=contents, realpath=filename,
                                    use_mathjax=use_mathjax,
                                    symbols=symbols,
@@ -203,24 +202,24 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
 
         doc = DocToJoin(docname=out_part_basename, contents=html_contents,
                         source_info=source_info)
-        files_contents.append(tuple(doc)) # compmake doesn't do namedtuples
+        files_contents.append(tuple(doc))  # compmake doesn't do namedtuples
 
     bib_files = get_bib_files(src_dirs)
 
     logger.debug('Found bib files:\n%s' % "\n".join(bib_files))
     if bib_files:
         bib_contents = job_bib_contents(context, bib_files)
-        entry  = DocToJoin(docname='bibtex', contents=bib_contents,
+        entry = DocToJoin(docname='bibtex', contents=bib_contents,
                            source_info=None)
         files_contents.append(tuple(entry))
-
 
     if do_last_modified:
         data = context.comp(make_last_modified, files_contents=files_contents)
-        entry  = DocToJoin(docname='last_modified', contents=data,
+        entry = DocToJoin(docname='last_modified', contents=data,
                            source_info=None)
         files_contents.append(tuple(entry))
 
+    root_dir = src_dirs[0]
 
     template = get_main_template(root_dir)
 
@@ -237,7 +236,7 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
 #         docname = os.path.basename(filename) + '_' + get_md5(filename)[:5]
 #         c = (('unused', docname), contents)
 #         files_contents.append(c)
-    
+
     d = context.comp(manual_join, template=template, files_contents=files_contents,
                      stylesheet=stylesheet, remove=remove, references=references,
                      resolve_references=resolve_references)
@@ -259,6 +258,7 @@ def is_ignored_by_catkin(dn):
             return False
     return False
 
+
 def job_bib_contents(context, bib_files):
     bib_files = natsorted(bib_files)
     # read all contents
@@ -269,6 +269,7 @@ def job_bib_contents(context, bib_files):
     job_id = 'bibliography-' + h
     return context.comp(run_bibtex2html, contents, job_id=job_id)
 
+
 def get_main_template(root_dir):
     fn = os.path.join(root_dir, MCDPManualConstants.main_template)
     if not os.path.exists(fn):
@@ -277,6 +278,7 @@ def get_main_template(root_dir):
 
     template = open(fn).read()
     return template
+
 
 def generate_metadata(src_dir):
     template = MCDPManualConstants.pdf_metadata_template
@@ -293,14 +295,13 @@ def generate_metadata(src_dir):
     write_data_to_file(s, out)
 
 
-
 def write(s, out):
     write_data_to_file(s, out)
 
 
-def render_book(src_dir, generate_pdf,
+def render_book(src_dirs, generate_pdf,
                 data, realpath,
-                main_file, use_mathjax, out_part_basename, 
+                main_file, use_mathjax, out_part_basename,
                 raise_errors,
                  filter_soup=None,
                 extra_css=None, symbols=None):
@@ -311,10 +312,11 @@ def render_book(src_dir, generate_pdf,
     if not MCDPConstants.softy_mode:
         librarian.find_libraries('.')
 
-
     load_library_hooks = [librarian.load_library]
     library = MCDPLibrary(load_library_hooks=load_library_hooks)
-    library.add_search_dir(src_dir)
+
+    for src_dir in src_dirs:
+        library.add_search_dir(src_dir)
 
     d = tempfile.mkdtemp()
     library.use_cache_dir(d)
@@ -346,10 +348,9 @@ def render_book(src_dir, generate_pdf,
         except:
             pass
     fn = os.path.join(dirname, '%s.html' % out_part_basename)
-    write_data_to_file(doc, fn) 
+    write_data_to_file(doc, fn)
 
     return html_contents
-
 
 
 mcdp_render_manual_main = RenderManual.get_sys_main()

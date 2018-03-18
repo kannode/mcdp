@@ -2,10 +2,10 @@
 import logging
 import os
 
-from contracts.enabling import disable_all
-from contracts.utils import raise_desc
 from system_cmd import system_cmd_show
 
+from contracts.enabling import disable_all
+from contracts.utils import raise_desc
 from decent_params import UserError
 from mcdp import MCDPConstants, logger, mcdp_dev_warning
 from mcdp_library import Librarian
@@ -20,8 +20,9 @@ from .manual_join_imp import document_final_pass_after_toc, \
 from .minimal_doc import get_minimal_document
 
 
-class Render(QuickAppBase): 
+class Render(QuickAppBase):
     """ Render a single document """
+
     def define_program_options(self, params):
         params.add_string('out', help='Output dir', default=None)
 
@@ -45,19 +46,19 @@ class Render(QuickAppBase):
 
         options = self.get_options()
 
-        symbols=self.options.symbols
+        symbols = self.options.symbols
         if symbols is not None:
             symbols = open(symbols).read()
         else:
             symbols = ''
-            
+
         if not options.contracts:
             disable_all()
 
         stylesheet = options.stylesheet
         # make sure it exists
         get_css_filename('compiled/%s' % stylesheet)
-        
+
         params = options.get_extra()
 
         if len(params) < 1:
@@ -71,7 +72,7 @@ class Render(QuickAppBase):
             cache_dir = os.path.join(out_dir, '_cached', 'solve')
         else:
             cache_dir = None
-        
+
         librarian = Librarian()
         for e in config_dirs:
             librarian.find_libraries(e)
@@ -91,14 +92,14 @@ class Render(QuickAppBase):
                 docname0 = os.path.split(docname)[-1]
                 logger.info("Using %r rather than %r" % (docname0, docname))
                 docname = docname0
-            suffix =  '.' + MCDPConstants.ext_doc_md
+            suffix = '.' + MCDPConstants.ext_doc_md
             if docname.endswith(suffix):
                 docname = docname.replace(suffix, '')
             basename = docname + suffix
             f = library._get_file_data(basename)
             data = f['data']
             realpath = f['realpath']
-            
+
             generate_pdf = options.pdf_figures
             if out_dir is None:
                 use_out_dir = os.path.dirname(realpath)
@@ -107,14 +108,13 @@ class Render(QuickAppBase):
 
             raise_errors = not options.forgiving
             use_mathjax = bool(options.mathjax)
-            
-            html_filename = render(library, docname, data, realpath, use_out_dir, 
+
+            html_filename = render(library, docname, data, realpath, use_out_dir,
                                    generate_pdf, stylesheet=stylesheet,
                                    symbols=symbols, raise_errors=raise_errors,
                                    use_mathjax=use_mathjax)
             if options.pdf:
                 run_prince(html_filename)
-            
 
 # def add_mathjax_call(s, preamble):
 #     soup = BeautifulSoup(s, 'lxml', from_encoding='utf-8')
@@ -122,52 +122,51 @@ class Render(QuickAppBase):
 #     contents2 = str(s)
 #     return contents2
 
+
 def run_prince(html_filename):
     pdf = os.path.splitext(html_filename)[0] + '.pdf'
     cwd = '.'
-    cmd = ['prince', 
-           '-o', pdf, 
-           html_filename] 
+    cmd = ['prince',
+           '-o', pdf,
+           html_filename]
     system_cmd_show(cwd, cmd)
-    
+
     cwd = os.getcwd()
     rel = os.path.relpath(pdf, cwd)
-    logger.info('Written %s' % rel) 
-    
-    
+    logger.info('Written %s' % rel)
+
+
 def render(library, docname, data, realpath, out_dir, generate_pdf, stylesheet,
            symbols, raise_errors, use_mathjax):
-    
+
     if MCDPConstants.pdf_to_png_dpi < 300:
-        msg =( 'Note that pdf_to_png_dpi is set to %d, which is not suitable for printing'
+        msg = ('Note that pdf_to_png_dpi is set to %d, which is not suitable for printing'
                % MCDPConstants.pdf_to_png_dpi)
         mcdp_dev_warning(msg)
-
 
     from mcdp_docs.pipeline import render_complete
 
     out = os.path.join(out_dir, docname + '.html')
-    
+
     html_contents = render_complete(library=library,
-                                    s=data, 
-                                    raise_errors=raise_errors,   
+                                    s=data,
+                                    raise_errors=raise_errors,
                                     realpath=realpath,
                                     generate_pdf=generate_pdf,
                                     symbols=symbols,
                                     use_mathjax=use_mathjax)
 
-    
     title = docname
-    
+
     doc = get_minimal_document(html_contents, title=title, stylesheet=stylesheet,
                                add_markdown_css=True, add_manual_css=True)
-    
+
     soup = bs_entire_document(doc)
-    
+
     document_final_pass_before_toc(soup, remove=None, remove_selectors=[])
     generate_and_add_toc(soup)
     document_final_pass_after_toc(soup)
-    
+
     doc = to_html_entire_document(soup)
 
     if use_mathjax and symbols:
@@ -181,7 +180,6 @@ def render(library, docname, data, realpath, out_dir, generate_pdf, stylesheet,
 
     logger.info('Written %s ' % out)
     return out
-
 
 
 mcdp_render_main = Render.get_sys_main()
