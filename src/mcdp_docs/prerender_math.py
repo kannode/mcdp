@@ -15,13 +15,13 @@ __all__ = [
     'prerender_mathjax',
 ]
 
-      
+
 TAG_DOLLAR = 'tag-dollar'
 which = 'code, mcdp-poset, mcdp-value, mcdp-fvalue, mcdp-rvalue, render'
 
 def escape_for_mathjax(soup):
-    """ Escapes dollars in code 
-     
+    """ Escapes dollars in code
+
     """
     for code in soup.select(which):
         if not code.string:
@@ -30,9 +30,9 @@ def escape_for_mathjax(soup):
         s = code.string
         if '$' in code.string:
             s = s.replace('$', TAG_DOLLAR)
-            
+
         code.string = s
-    
+
 
 def escape_for_mathjax_back(soup):
 
@@ -42,9 +42,9 @@ def escape_for_mathjax_back(soup):
         s = code.string
         if TAG_DOLLAR in code.string:
             s = s.replace(TAG_DOLLAR, '$')
-            
+
         code.string = s
-     
+
 
 @memoize_simple
 def get_prerender_js():
@@ -56,8 +56,8 @@ def get_prerender_js():
 class PrerenderError(Exception):
     pass
 
-def prerender_mathjax(s, symbols):
-    
+def prerender_mathjax(s0, symbols):
+
     if symbols:
         lines = symbols.split('\n')
         lines = [l for l in lines if l.strip()]
@@ -67,13 +67,13 @@ def prerender_mathjax(s, symbols):
 
     STARTTAG = 'STARTHERE'
     ENDTAG = 'ENDHERE'
-    s = STARTTAG +  get_mathjax_preamble() + ENDTAG + m + s
+    s = STARTTAG +  get_mathjax_preamble() + ENDTAG + m + s0
 
     try:
         s = prerender_mathjax_(s)
-    except PrerenderError: # pragma: no cover
+    except PrerenderError as e: # pragma: no cover
         if 'CIRCLECI' in os.environ:
-            msg = 'Ignoring PrerenderError because of CircleCI.'
+            msg = 'Ignoring PrerenderError because of CircleCI: \n %s' % e
             logger.error(msg)
             return s
         else:
@@ -85,7 +85,7 @@ def prerender_mathjax(s, symbols):
 
 #     s = fix_vertical_align(s)
     return s
-# 
+#
 # def fix_vertical_align(s, scale=0.8):
 #     """ For all vertical-align: (.*?)ex in svg, multiplies by scale """
 #     frag = bs(s)
@@ -99,7 +99,7 @@ def prerender_mathjax(s, symbols):
 #             s2 = re.sub(r'vertical-align: (.*?)ex', f, s)
 #             print('%s -> %s' % (s, s2))
 #             element['style'] = s2
-# 
+#
 #     return to_html_stripping_fragment(frag)
 
 
@@ -208,7 +208,7 @@ def prerender_mathjax_(html):
             with open(f_out) as f:
                 data = f.read()
 
-            # Read the data 
+            # Read the data
             soup = bs(data)
             # find this and move it at the end
             # <style id="MathJax_SVG_styles"
@@ -221,16 +221,16 @@ def prerender_mathjax_(html):
             if not tag_svg_defs:
                 msg = 'Expected to find tag <svg display=none>'
                 raise_desc(Exception, msg, soup=str(soup))
-            
+
             other_tag = soup.find('div', style="display:none")
             if not other_tag:
                 msg = 'Expected to find tag <div style="display:none">'
                 raise_desc(Exception, msg, soup=str(soup))
-                
+
             #<div style="display:none">Because of mathjax bug</div>
-            soup.append(other_tag.extract()) 
-            soup.append(tag_svg_defs.extract()) 
-            soup.append(tag_style.extract()) 
+            soup.append(other_tag.extract())
+            soup.append(tag_svg_defs.extract())
+            soup.append(tag_style.extract())
             data = to_html_stripping_fragment(soup)
 
             return data

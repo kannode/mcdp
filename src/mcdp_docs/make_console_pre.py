@@ -157,8 +157,8 @@ def process_ns(t):
     try:
         n = i + s[i:].index(marker2)
     except ValueError:
-        msg = 'I found the substring "![" and so I thought there would '
-        msg += 'be a closing "]"; however, I could not find one.'
+        msg = 'I found the substring "%s" and so I thought there would ' % marker
+        msg += 'be a closing "%s"; however, I could not find one.' % marker2
         logger.warning(msg)
         logger.warning('In string: %r.' % s)
         logger.warning('Above: %s' % t.parent)
