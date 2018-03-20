@@ -579,7 +579,11 @@ def get_id2filename(filename2contents):
                 continue
 
             if id_ in id2filename:
-                logger.error('double element with ID %s' % id_)
+                if id_.startswith('MathJax'):
+                    pass
+                else:
+                    logger.error('double element with ID %s' % id_)
+#                    logger.error(str(element.parent()))
 
             id2filename[id_] = filename
 
