@@ -6,11 +6,12 @@ import sys
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment, Tag, NavigableString
+
 from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
-
 from mcdp.logs import logger
 from mcdp_docs.manual_constants import MCDPManualConstants
+from mcdp_utils_misc.fileutils import write_data_to_file
 from mcdp_utils_xml import add_class, bs, copy_contents_into
 
 from .footnote_javascript import add_footnote_polyfill
@@ -41,6 +42,7 @@ def get_manual_css_frag():
     else:
         assert False
 
+
 DocToJoin = namedtuple('DocToJoin', 'docname contents source_info')
 
 
@@ -51,7 +53,8 @@ def manual_join(template, files_contents,
                 remove_selectors=None,
                 hook_before_toc=None,
                 references={},
-                resolve_references=True):
+                resolve_references=True,
+                hook_before_final_pass=None):
     """
         files_contents: a list of tuples that can be cast to DocToJoin:
         where the string is a unique one to be used for job naming.
@@ -142,6 +145,9 @@ def manual_join(template, files_contents,
 
     do_bib(d, bibhere)
 
+    if hook_before_final_pass is not None:
+        hook_before_final_pass(soup=d)
+
     document_final_pass_before_toc(d, remove, remove_selectors)
 
     if hook_before_toc is not None:
@@ -162,7 +168,7 @@ def manual_join(template, files_contents,
         if href in references:
             r = references[href]
             a.attrs['href'] = r.url
-            if not a.children: # empty
+            if not a.children:  # empty
                 a.append(r.title)
 
     logger.info('converting to string')
@@ -172,9 +178,9 @@ def manual_join(template, files_contents,
     logger.info('done - %d bytes' % len(res))
     return res
 
+
 def document_final_pass_before_toc(soup, remove, remove_selectors):
     logger.info('reorganizing contents in <sections>')
-
 
     body = soup.find('body')
     if body is None:
@@ -205,6 +211,7 @@ def document_final_pass_after_toc(soup, resolve_references=True):
         substituting_empty_links(soup)
 
     warn_for_duplicated_ids(soup)
+
 
 def document_only_once(html_soup):
     add_footnote_polyfill(html_soup)
@@ -246,7 +253,7 @@ def do_bib(soup, bibhere):
         cite = Tag(name='cite')
         s = 'Reference %s not found.' % ID
         cite.append(NavigableString(s))
-        cite.attrs['class'] = ['errored', 'error'] # XXX
+        cite.attrs['class'] = ['errored', 'error']  # XXX
         soup.append(cite)
         id2cite[ID] = cite
 
@@ -265,7 +272,7 @@ def do_bib(soup, bibhere):
 
         cite.attrs[LABEL_NAME] = '[%s]' % number
         cite.attrs[LABEL_SELF] = '[%s]' % number
-        cite.attrs[LABEL_NUMBER] =  number
+        cite.attrs[LABEL_NUMBER] = number
         cite.attrs[LABEL_WHAT] = 'Reference'
         cite.attrs[LABEL_WHAT_NUMBER_NAME] = '[%s]' % number
         cite.attrs[LABEL_WHAT_NUMBER] = '[%s]' % number
@@ -384,6 +391,8 @@ def reorganize_contents(body0, add_debug_comments=False):
             h1
 
     """
+    if True:
+        write_data_to_file(str(body0), 'before-reorg.html')
     reorganized = reorganize_by_parts(body0)
 
     # now dissolve all the elements of the type <div class='without-header-inside'>
@@ -393,6 +402,7 @@ def reorganize_contents(body0, add_debug_comments=False):
         dissolve(x)
 
     return reorganized
+
 
 def dissolve(x):
 
@@ -404,8 +414,10 @@ def dissolve(x):
 
     x.extract()
 
+
 ATTR_PREV = 'prev'
 ATTR_NEXT = 'next'
+
 
 def add_prev_next_links(filename2contents, only_for=None):
     new_one = OrderedDict()
@@ -424,7 +436,6 @@ def add_prev_next_links(filename2contents, only_for=None):
         a_next.attrs['class'] = 'link_next'
         a_next.append('next')
 
-
         S = Tag(name='div')
         S.attrs['class'] = ['super']
 
@@ -435,9 +446,8 @@ def add_prev_next_links(filename2contents, only_for=None):
         if id_next:
             nav1.append(a_next.__copy__())
         spacer = Tag(name='div')
-        spacer.attrs['style'] ='clear:both'
+        spacer.attrs['style'] = 'clear:both'
         nav1.append(spacer)
-
 
         add_class(contents, 'main-section-for-page')
 
@@ -447,7 +457,7 @@ def add_prev_next_links(filename2contents, only_for=None):
         from .source_info_imp import get_main_header
         actual_id = get_main_header(contents2)
 
-        if False: # just checking
+        if False:  # just checking
             e = contents2.find(id=actual_id)
             if e is not None:
                 pass
@@ -461,6 +471,7 @@ def add_prev_next_links(filename2contents, only_for=None):
         new_one[filename] = S
 
     return new_one
+
 
 def split_in_files(body, levels=['sec', 'part']):
     """
@@ -484,16 +495,16 @@ def split_in_files(body, levels=['sec', 'part']):
     filenames = []
     for i, section in enumerate(sections):
         if i < len(sections) - 1:
-            section.attrs[ATTR_NEXT] = sections[i+1].attrs['id']
+            section.attrs[ATTR_NEXT] = sections[i + 1].attrs['id']
         else:
             section.attrs[ATTR_NEXT] = ""
         if i == 0:
             section.attrs[ATTR_PREV] = ""
         else:
-            section.attrs[ATTR_PREV] = sections[i-1].attrs['id']
+            section.attrs[ATTR_PREV] = sections[i - 1].attrs['id']
 
         id_ = section.attrs['id']
-        id_sanitized = id_.replace(':', '_').replace('-','_').replace('_section','')
+        id_sanitized = id_.replace(':', '_').replace('-', '_').replace('_section', '').replace('/', '_')
 
 #         filename = '%03d_%s.html' % (i, id_sanitized)
         filename = '%s.html' % (id_sanitized)
@@ -533,38 +544,43 @@ def split_in_files(body, levels=['sec', 'part']):
     file2contents = OrderedDict([(name_for_first if k == first else k, v)
                                  for k, v in file2contents.items()])
 
-
     ids = []
     for i, (filename, section) in enumerate(file2contents.items()):
         ids.append(section.attrs['id'])
 
     for i, (filename, section) in enumerate(file2contents.items()):
         if i < len(ids) - 1:
-            section.attrs[ATTR_NEXT] = ids[i+1]
+            section.attrs[ATTR_NEXT] = ids[i + 1]
         else:
             section.attrs[ATTR_NEXT] = ""
         if i == 0:
             section.attrs[ATTR_PREV] = ""
         else:
-            section.attrs[ATTR_PREV] = ids[i-1]
+            section.attrs[ATTR_PREV] = ids[i - 1]
 
     return file2contents
+
 
 def get_id2filename(filename2contents):
     ignore_these = [
         'tocdiv', 'not-toc', 'disqus_thread',
         'disqus_section', 'dsq-count-scr', 'banner',
+        'MathJax_SVG_glyphs', 'MathJax_SVG_styles',
     ]
 
     id2filename = {}
+
     for filename, contents in filename2contents.items():
 
         for element in contents.findAll(id=True):
             id_ = element.attrs['id']
+
             if id_ in ignore_these:
                 continue
+
             if id_ in id2filename:
                 logger.error('double element with ID %s' % id_)
+
             id2filename[id_] = filename
 
         # also don't forget the id for the entire section
@@ -574,9 +590,11 @@ def get_id2filename(filename2contents):
 
     return id2filename
 
+
 def update_refs(filename2contents, id2filename):
     for filename, contents in filename2contents.items():
         update_refs_(filename, contents, id2filename)
+
 
 def update_refs_(filename, contents, id2filename):
     test_href = lambda x: x is not None and x.startswith('#')
@@ -584,7 +602,7 @@ def update_refs_(filename, contents, id2filename):
     for a in elements:
         href = a.attrs['href']
         assert href[0] == '#'
-        id_ = href[1:] # Todo, parse out "?"
+        id_ = href[1:]  # Todo, parse out "?"
         if id_ in id2filename:
             point_to_filename = id2filename[id_]
             if point_to_filename != filename:
@@ -616,12 +634,12 @@ def update_refs_(filename, contents, id2filename):
             logger.error('update_ref() for %r: no element with ID "%s".' % (filename, id_))
 
 
-
 def tag_like(t):
     t2 = Tag(name=t.name)
-    for k,v in t.attrs.items():
+    for k, v in t.attrs.items():
         t2.attrs[k] = v
     return t2
+
 
 def is_part_marker(x):
     if not isinstance(x, Tag):
@@ -630,8 +648,9 @@ def is_part_marker(x):
         return False
 
     id_ = x.attrs.get('id', '')
-    id_starts_with_part =  id_.startswith('part:')
+    id_starts_with_part = id_.startswith('part:')
     return id_starts_with_part
+
 
 def reorganize_by_parts(body):
     elements = body.contents
@@ -657,9 +676,12 @@ def reorganize_by_parts(body):
             res.append(S)
     return res
 
+
 def reorganize_by_chapters(section):
+
     def is_chapter_marker(x):
         return isinstance(x, Tag) and x.name == 'h1' and (not 'part' in x.attrs.get('id', ''))
+
     elements = section.contents
     sections = make_sections2(elements, is_chapter_marker, attrs={'level': 'sec-down'})
     res = tag_like(section)
@@ -684,9 +706,12 @@ def reorganize_by_chapters(section):
             res.append(S)
     return res
 
+
 def reorganize_by_section(section):
+
     def is_section_marker(x):
         return isinstance(x, Tag) and x.name == 'h2'
+
     elements = section.contents
     sections = make_sections2(elements, is_section_marker, attrs={'level': 'sub-down'})
     res = tag_like(section)
@@ -709,9 +734,12 @@ def reorganize_by_section(section):
 
     return res
 
+
 def reorganize_by_subsection(section):
+
     def is_section_marker(x):
         return isinstance(x, Tag) and x.name == 'h3'
+
     elements = section.contents
     sections = make_sections2(elements, is_section_marker, attrs={'level': 'subsub-down'})
     res = tag_like(section)
@@ -732,6 +760,7 @@ def reorganize_by_subsection(section):
             res.append(S)
 
     return res
+
 
 def copy_attributes_from_header(section, header):
     """
@@ -754,6 +783,7 @@ def copy_attributes_from_header(section, header):
         if a in header.attrs:
             section.attrs[a] = header.attrs[a]
 
+
 def make_sections2(elements, is_marker, copy=True, element_name='div', attrs={},
                    add_debug_comments=False):
 
@@ -762,6 +792,7 @@ def make_sections2(elements, is_marker, copy=True, element_name='div', attrs={},
             logger.debug(s)
 
     sections = []
+
     def make_new():
         x = Tag(name=element_name)
         for k, v in attrs.items():
@@ -793,6 +824,7 @@ def make_sections2(elements, is_marker, copy=True, element_name='div', attrs={},
                 (len(sections), is_marker.__name__))
     return sections
 
+
 def contains_something_else_than_space(element):
     for c in element.contents:
         if not isinstance(c, NavigableString):
@@ -800,7 +832,6 @@ def contains_something_else_than_space(element):
         if c.string.strip():
             return True
     return False
-
 
 
 def check_various_errors(d):
@@ -821,6 +852,7 @@ def check_various_errors(d):
 
 def debug(s):
     sys.stderr.write(str(s) + ' \n')
+
 
 jump_script = """
 id2fragment = {};
@@ -865,6 +897,7 @@ if(window.location.hash) {
 }
 """
 
+
 def create_link_base_js(id2filename):
     s = """
 
@@ -872,6 +905,7 @@ links = %s;
 
 """ % json.dumps(id2filename)
     return s
+
 
 def create_link_base(id2filename):
     ''' Returns a Tag <html> containing the page that is responsible to translate links '''
@@ -895,7 +929,6 @@ def create_link_base(id2filename):
     return html
 
 
-
 def do_remove_stuff(soup, remove_selectors, remove):
     all_selectors = []
     if remove is not None and remove != '':
@@ -916,8 +949,8 @@ def do_remove_stuff(soup, remove_selectors, remove):
             nd = len(list(x.descendants))
             logger.debug('removing %s with %s descendants' % (x.name, nd))
             if nd > 1000:
-                s =  str(x)[:300]
-                logger.debug(' it is %s' %s)
+                s = str(x)[:300]
+                logger.debug(' it is %s' % s)
             x.extract()
 
             all_removed += '\n\n' + '-' * 50 + ' chunk %d removed\n' % nremoved

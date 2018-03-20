@@ -620,6 +620,9 @@ ul.toc ul {
   margin: 0;
   padding: 0;
 }
+ul.toc li {
+  word-break: break-all;
+}
 .toc_a_for_part {
   display: block;
   font-weight: bold;
