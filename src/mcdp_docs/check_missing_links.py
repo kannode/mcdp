@@ -116,6 +116,8 @@ def check_if_any_href_is_invalid(soup):
 
             else:
                 if has_class(a, MCDPConstants.CLASS_IGNORE_IF_NOT_EXISTENT):
+                    del a.attrs['href']
+                    logger.warning('ignoring link %s' % a)
                     pass
                 else:
                     short = 'Ref. error'
