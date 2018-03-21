@@ -10,14 +10,13 @@ from mcdp import logger
 from mcdp_utils_misc import dir_from_package_name, get_mcdp_tmp_dir, memoize_simple
 from mcdp_utils_xml import bs, to_html_stripping_fragment
 
-
 __all__ = [
     'prerender_mathjax',
 ]
 
-
 TAG_DOLLAR = 'tag-dollar'
 which = 'code, mcdp-poset, mcdp-value, mcdp-fvalue, mcdp-rvalue, render'
+
 
 def escape_for_mathjax(soup):
     """ Escapes dollars in code
@@ -53,27 +52,29 @@ def get_prerender_js():
     assert os.path.exists(fn), fn
     return fn
 
+
 class PrerenderError(Exception):
     pass
+
 
 def prerender_mathjax(s0, symbols):
 
     if symbols:
         lines = symbols.split('\n')
         lines = [l for l in lines if l.strip()]
-        m = '$$' + "\n".join(lines) +'$$\n\n'
+        m = '$$' + "\n".join(lines) + '$$\n\n'
     else:
         m = ''
 
     STARTTAG = 'STARTHERE'
     ENDTAG = 'ENDHERE'
-    s = STARTTAG +  get_mathjax_preamble() + ENDTAG + m + s0
+    s = STARTTAG + get_mathjax_preamble() + ENDTAG + m + s0
 
     try:
         s = prerender_mathjax_(s)
-    except PrerenderError as e: # pragma: no cover
+    except PrerenderError as e:  # pragma: no cover
         ignore_circle_error = False
-        if 'CIRCLECI' in os.environ and ignore_circle_error:
+        if ('CIRCLECI' in os.environ) and ignore_circle_error:
             msg = 'Ignoring PrerenderError because of CircleCI: \n %s' % e
             logger.error(msg)
             return s0
@@ -108,10 +109,10 @@ def prerender_mathjax(s0, symbols):
 def get_mathjax_preamble():
     package = dir_from_package_name('mcdp_docs')
     fn = os.path.join(package, 'symbols.tex')
-    if not os.path.exists(fn): # pragma: no cover
+    if not os.path.exists(fn):  # pragma: no cover
         raise ValueError(fn)
     tex = open(fn).read()
-    f = '$$'+tex+'$$'
+    f = '$$' + tex + '$$'
     f += """
 <script type="text/x-mathjax-config">
     console.log('here!');
@@ -130,23 +131,23 @@ def get_nodejs_bin():
     """ Raises NodeNotFound (XXX) """
     tries = ['nodejs', 'node']
     try:
-        cmd= [tries[0], '--version']
+        cmd = [tries[0], '--version']
         _res = system_cmd_result(
                 os.getcwd(), cmd,
                 display_stdout=False,
                 display_stderr=False,
                 raise_on_error=True)
-        return tries[0]# pragma: no cover
+        return tries[0]  # pragma: no cover
     except CmdException as e:
         try:
-            cmd= [tries[1], '--version']
+            cmd = [tries[1], '--version']
             _res = system_cmd_result(
                     os.getcwd(), cmd,
                     display_stdout=False,
                     display_stderr=False,
                     raise_on_error=True)
             return tries[1]
-        except CmdException as e: # pragma: no cover
+        except CmdException as e:  # pragma: no cover
             msg = 'Node.js executable "node" or "nodejs" not found.'
             msg += '\nOn Ubuntu, it can be installed using:'
             msg += '\n\n\tsudo apt-get install -y nodejs'
@@ -178,7 +179,7 @@ def prerender_mathjax_(html):
 
         try:
             f_out = os.path.join(d, 'out.html')
-            cmd= [use, script, f_html, f_out]
+            cmd = [use, script, f_html, f_out]
             pwd = os.getcwd()
             res = system_cmd_result(
                     pwd, cmd,
@@ -186,7 +187,7 @@ def prerender_mathjax_(html):
                     display_stderr=False,
                     raise_on_error=False)
 
-            if res.ret:# pragma: no cover
+            if res.ret:  # pragma: no cover
                 if 'Error: Cannot find module' in res.stderr:
                     msg = 'You have to install the MathJax and/or jsdom libraries.'
                     msg += '\nOn Ubuntu, you can install them using:'
@@ -235,7 +236,7 @@ def prerender_mathjax_(html):
             data = to_html_stripping_fragment(soup)
 
             return data
-        except CmdException as e: # pragma: no cover
+        except CmdException as e:  # pragma: no cover
             raise e
     finally:
         shutil.rmtree(d)
