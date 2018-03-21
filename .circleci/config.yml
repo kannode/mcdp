@@ -5,6 +5,7 @@ jobs:
         - image: andreacensi/duckietown-xenial-kinetic:19
           environment:
               COLUMNS: 160
+              NODE_PATH: /root/project/node_modules
      parallelism: 4
      resource_class: large
      steps:
@@ -38,7 +39,7 @@ jobs:
 
                 # pip install pympler
 
-                apt install -y strace lsof iotop 
+                apt install -y strace lsof iotop
 
                 make python-module-stats
 
