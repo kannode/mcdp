@@ -189,8 +189,10 @@ def prerender_mathjax_(html):
 
             if res.ret:  # pragma: no cover
                 msg = 'Could not run this command:'
-                msg += "\n\n   " + " ".join(cmd)
-                msg += 'in directory %s' % pwd
+                msg += "\n\n   " + " ".join(cmd) + '\n'
+                msg += 'in directory %s\n' % pwd
+                msg += '\nEnvironment: %s' % os.environ
+                msg += '\n\n'
                 if 'Error: Cannot find module' in res.stderr:
                     msg += 'You have to install the MathJax and/or jsdom libraries.'
                     msg += '\nOn Ubuntu, you can install them using:'
