@@ -188,24 +188,27 @@ def prerender_mathjax_(html):
                     raise_on_error=False)
 
             if res.ret:  # pragma: no cover
+                msg = 'Could not run this command:'
+                msg += "\n\n   " + " ".join(cmd)
+                msg += 'in directory %s' % pwd
                 if 'Error: Cannot find module' in res.stderr:
-                    msg = 'You have to install the MathJax and/or jsdom libraries.'
+                    msg += 'You have to install the MathJax and/or jsdom libraries.'
                     msg += '\nOn Ubuntu, you can install them using:'
                     msg += '\n\n\tsudo apt-get install npm'
                     msg += '\n\n\tnpm install MathJax-node jsdom'
                     msg += '\n\n' + indent(res.stderr, '  |')
                     raise PrerenderError(msg)
 
-                if 'parse error' in res.stderr:
+                elif 'parse error' in res.stderr:
                     lines = [_ for _ in res.stderr.split('\n')
                              if 'parse error' in _ ]
                     assert lines
                     msg = 'LaTeX conversion errors:\n\n' + '\n'.join(lines)
                     raise PrerenderError(msg)
-
-                msg = 'Unknown error (ret = %d).' % res.ret
-                msg += '\n\n' + indent(res.stderr, '  |')
-                raise PrerenderError(msg)
+                else:
+                    msg += 'Unknown error (ret = %d).' % res.ret
+                    msg += '\n\n' + indent(res.stderr, '  |')
+                    raise PrerenderError(msg)
 
             with open(f_out) as f:
                 data = f.read()
