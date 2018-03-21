@@ -72,10 +72,11 @@ def prerender_mathjax(s0, symbols):
     try:
         s = prerender_mathjax_(s)
     except PrerenderError as e: # pragma: no cover
-        if 'CIRCLECI' in os.environ:
+        ignore_circle_error = False
+        if 'CIRCLECI' in os.environ and ignore_circle_error:
             msg = 'Ignoring PrerenderError because of CircleCI: \n %s' % e
             logger.error(msg)
-            return s
+            return s0
         else:
             raise
 
