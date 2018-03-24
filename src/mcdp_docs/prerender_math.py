@@ -9,9 +9,8 @@ from contracts import contract
 from contracts.utils import raise_wrapped, indent, raise_desc
 from mcdp import logger
 from mcdp_utils_misc import dir_from_package_name, get_mcdp_tmp_dir, memoize_simple
-from mcdp_utils_misc.fileutils import write_data_to_file
-from mcdp_utils_xml import bs, to_html_stripping_fragment
-from mcdp_utils_xml.parsing import bs_entire_document
+from mcdp_utils_misc import write_data_to_file
+from mcdp_utils_xml import bs, to_html_stripping_fragment, bs_entire_document
 
 __all__ = [
     'prerender_mathjax',

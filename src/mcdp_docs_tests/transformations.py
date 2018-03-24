@@ -505,7 +505,7 @@ href="mailto:censi@mit.edu">censi@mit.edu</a>.
     assert sub in s2
 
 
-@comptest
+@comptest_fails
 def markdown_inside():
     ''' Markdown inside the latex '''
     s = r"""
@@ -527,5 +527,4 @@ A _emphasis_.
 
 
 if __name__ == '__main__':
-#     another2()
     run_module_tests()

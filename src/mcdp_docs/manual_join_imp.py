@@ -391,7 +391,7 @@ def reorganize_contents(body0, add_debug_comments=False):
             h1
 
     """
-    if True:
+    if False:
         write_data_to_file(str(body0), 'before-reorg.html')
     reorganized = reorganize_by_parts(body0)
 
