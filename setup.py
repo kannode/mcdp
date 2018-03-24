@@ -15,6 +15,7 @@ def get_version(filename):
         raise ValueError(filename)
     return version
 
+
 version = get_version(filename='src/mcdp/branch_info.py')
 
 name = 'PyMCDP'
@@ -80,11 +81,11 @@ setup(name=name,
       ],
       # This avoids creating the egg file, which is a zip file, which makes our data
       # inaccessible by dir_from_package_name()
-      zip_safe = False,
+      zip_safe=False,
         # without this, the stuff is included but not installed
         include_package_data=True,
 
-      dependency_links  = [
+      dependency_links=[
           # 'https://github.com/AndreaCensi/contracts/archive/env_mcdp.zip#egg=PyContracts',
           # 'https://github.com/AndreaCensi/conf_tools/archive/env_fault.zip#egg=ConfTools',
           # 'https://github.com/AndreaCensi/quickapp/archive/env_fault.zip#egg=QuickApp',
@@ -112,6 +113,7 @@ setup(name=name,
             'mcdp-load-all = mcdp_hdb_mcdp:mcdp_load_all_main',
             'mcdp-split = mcdp_docs.split:split_main',
             'mcdp-docs-compose = mcdp_docs.composing:compose_main',
+            'mcdp-prerender = mcdp_docs.prerender_math:prerender_main',
         ]
       }
 )

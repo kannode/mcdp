@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 from tempfile import mkdtemp
 
 from system_cmd import CmdException, system_cmd_result
@@ -8,7 +9,9 @@ from contracts import contract
 from contracts.utils import raise_wrapped, indent, raise_desc
 from mcdp import logger
 from mcdp_utils_misc import dir_from_package_name, get_mcdp_tmp_dir, memoize_simple
+from mcdp_utils_misc.fileutils import write_data_to_file
 from mcdp_utils_xml import bs, to_html_stripping_fragment
+from mcdp_utils_xml.parsing import bs_entire_document
 
 __all__ = [
     'prerender_mathjax',
@@ -245,3 +248,17 @@ def prerender_mathjax_(html):
             raise e
     finally:
         shutil.rmtree(d)
+
+
+def prerender_main():
+    f0 = sys.argv[1]
+    f1 = sys.argv[2]
+    html = open(f0).read()
+    parsed = bs_entire_document(html)
+    body = parsed.html.body
+    body_string = str(body)
+    body2_string = prerender_mathjax_(body_string)
+    body2 = bs(body2_string)
+    parsed.html.body.replace_with(body2)
+    html2 = str(parsed)
+    write_data_to_file(html2, f1)
