@@ -355,6 +355,8 @@ def fix_duplicated_ids(basename2soup):
             # ignore the mathjax stuff
             if 'MathJax' in id_:  # or id_.startswith('MJ'):
                 continue
+            if id_.startswith('node') or id_.startswith('edge'):
+                continue
             # is this a new ID
             if not id_ in id2frag:
                 id2frag[id_] = basename

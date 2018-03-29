@@ -58,7 +58,7 @@ def tmpfile(suffix):
     temp_file.close()
 
 
-def read_file_encoded_as_utf8(filename):
+def read_data_from_file(filename):
     if not os.path.exists(filename):
         if os.path.lexists(filename):
             msg = 'The link %s does not exist.' % filename
@@ -68,6 +68,11 @@ def read_file_encoded_as_utf8(filename):
             msg = 'Could not find file %r' % filename
             msg += ' from directory %s' % os.getcwd()
             raise ValueError(filename)
+    with open(filename) as f:
+        return f.read()
+
+
+def read_file_encoded_as_utf8(filename):
     u = codecs.open(filename, encoding='utf-8').read()
     s = u.encode('utf-8')
     return s

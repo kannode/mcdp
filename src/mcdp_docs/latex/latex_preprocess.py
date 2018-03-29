@@ -446,7 +446,7 @@ def makefigure(inside, opt, asterisk):  # @UnusedVariable
                 msg = 'Subfigure labels should start with "subfig:"; found %r.' % (
                     label)
                 label = 'sub' + label
-                msg += 'I will change to %r.' % label
+                msg += ' I will change to %r.' % label
                 logger.debug(msg)
 
         # we need to make up an ID
@@ -822,7 +822,12 @@ def replace_environment(s, envname, classname, labelprefix, make_label_if_missin
             id_part = "id='%s' " % label
         else:
             if make_label_if_missing:
-                makeup_id = labelprefix + get_md5(inside)[:5]
+                if isinstance(labelprefix, tuple):
+                    usel = labelprefix[0]
+                else:
+                    usel = labelprefix
+
+                makeup_id = usel + get_md5(inside)[:5]
                 id_part = "id='%s'" % makeup_id
             else:
                 id_part = ''

@@ -13,6 +13,8 @@ from mcdp.exceptions import DPSyntaxError
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file
+from mcdp_utils_misc.fileutils import read_file_encoded_as_utf8, \
+    read_data_from_file
 from quickapp import QuickApp
 from reprep.utils import natsorted
 
@@ -264,7 +266,7 @@ def job_bib_contents(context, bib_files):
     # read all contents
     contents = ""
     for fn in bib_files:
-        contents += read_file_encoded_as_utf8(fn) + '\n\n'
+        contents += read_data_from_file(fn) + '\n\n'
     h = get_md5(contents)[:8]
     job_id = 'bibliography-' + h
     return context.comp(run_bibtex2html, contents, job_id=job_id)
