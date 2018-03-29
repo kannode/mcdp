@@ -264,7 +264,7 @@ def job_bib_contents(context, bib_files):
     # read all contents
     contents = ""
     for fn in bib_files:
-        contents += open(fn).read() + '\n\n'
+        contents += read_file_encoded_as_utf8(fn) + '\n\n'
     h = get_md5(contents)[:8]
     job_id = 'bibliography-' + h
     return context.comp(run_bibtex2html, contents, job_id=job_id)
