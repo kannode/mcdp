@@ -114,6 +114,7 @@ setup(name=name,
             'mcdp-split = mcdp_docs.split:split_main',
             'mcdp-docs-compose = mcdp_docs.composing:compose_main',
             'mcdp-prerender = mcdp_docs.prerender_math:prerender_main',
+            'mcdp-vols = mcdp_docs.vols.vols_main:vols_entry_main'
         ]
       }
 )

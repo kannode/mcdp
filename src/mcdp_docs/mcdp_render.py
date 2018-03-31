@@ -116,12 +116,6 @@ class Render(QuickAppBase):
             if options.pdf:
                 run_prince(html_filename)
 
-# def add_mathjax_call(s, preamble):
-#     soup = BeautifulSoup(s, 'lxml', from_encoding='utf-8')
-#     add_mathjax_preamble(soup, preamble)
-#     contents2 = str(s)
-#     return contents2
-
 
 def run_prince(html_filename):
     pdf = os.path.splitext(html_filename)[0] + '.pdf'

@@ -226,18 +226,6 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
     template = get_main_template(root_dir)
 
     references = OrderedDict()
-#     base_url = 'http://book.duckietown.org/master/duckiebook/pdoc'
-#     for extra_dir in extra_dirs:
-#         res = read_references(extra_dir, base_url, prefix='python:')
-#         references.update(res)
-
-#     extra = look_for_files(extra_dirs, "*.html")
-#
-#     for filename in extra:
-#         contents = open(filename).read()
-#         docname = os.path.basename(filename) + '_' + get_md5(filename)[:5]
-#         c = (('unused', docname), contents)
-#         files_contents.append(c)
 
     d = context.comp(manual_join, template=template, files_contents=files_contents,
                      stylesheet=stylesheet, remove=remove, references=references,

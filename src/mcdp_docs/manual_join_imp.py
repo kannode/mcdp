@@ -975,7 +975,6 @@ def generate_and_add_toc(soup, toc_selector='div#toc'):
     body = soup.find('body')
     toc = generate_toc(body)
 
-#     logger.info('TOC:\n' + str(toc))
     toc_ul = bs(toc).ul
     if toc_ul is None:
         # empty TOC

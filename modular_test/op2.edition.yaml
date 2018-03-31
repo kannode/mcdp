@@ -1,0 +1,118 @@
+init: |
+    set  out          destination
+    set  duckuments   ~/duckuments
+    render
+    
+op-manual-duckiebot: |
+    dep init
+    set short db-manual-duckiebot
+
+    source $(duckuments)/docs/atoms_20_setup_and_demo/17_setup_duckiebot_DB17-jwd
+    do prepare-manual
+
+op-manual-duckietown: |
+    dep init
+    set short db-manual-duckietown
+    source $(duckuments)/docs/atoms_20_setup_and_demo/18_setup_duckietown
+    do prepare-manual
+
+prepare-manual: |
+    echo set purl_prefix http://purl.org/dt/$(short)/
+    render
+    note_errors $(out)/errors.txt
+    par do prepare-manual-html
+    par do prepare-manual-pdf
+
+prepare-manual-html: |
+    append stylesheet style/duckietown.css
+    set mathjax 0
+    embed_css
+    add_edit_links
+    remove_status draft
+    extract_assets $(out)/$(short).html $(out)/$(short)/assets
+    split          $(out)/$(short).html $(out)/$(short)/assets
+    extract_links  $(out)/links.html
+
+prepare-manual-pdf: |
+    prince
+
+
+#
+# - make-part: reference
+#   title: Reference Material
+#   contents:
+#   - add: configuration-management
+#   - add: introduction_to_ros
+#   - add: pytorch-install
+#
+# # Add the entire part
+# - add: building-duckiebot-c0
+#   except: # except wheel-calibration
+#   - duckiebot-ubuntu-image
+#   - wheel-calibration
+#   - soldering-boards-c0
+#   # - acquiring-parts-c0
+#
+# - add: building-duckiebot-c1
+#
+# - make-part: appendix
+#   title: Appendix
+#   contents:
+#   - add: bibliography
+#   - add: last-modified
+#
+# - add: fall-2017-projects
+#
+# purl_prefix: http://purl.org/dt/fall2017/
+#
+# # Removes the sections that have status equal to draft
+# remove_status: [draft]
+# # remove_status: [] # don't remove anything
+# # remove_status: [draft, beta] # remove draft and beta
+#
+# # if show_removed is true, the removed sections names are kept in the output
+# # otherwise they disappear completely
+# # show_removed: true
+# show_removed: true
+#
+# output: out/fall2017/data/duckiebook.html
+#
+#
+#
+# out=out/op-manual/
+#
+# duckietown_css=style/duckietown.css
+#
+# clean:
+# 	rm -rf $(out)
+#
+# op-manual-html:
+# 	DISABLE_CONTRACTS=1 mcdp-render-manual \
+# 		--src docs/atoms_20_setup_and_demo/17_setup_duckiebot_DB17-jwd \
+# 		--stylesheet v_manual_split \
+# 		--mathjax 0 \
+# 		-o out/op-manual/html \
+# 		--output_file $(out)/data/1.html \
+# 		-c "config echo 1; config colorize 1; rparmake n=8"
+#
+# 	mkdir -p duckuments-dist/op-manual
+# 	python add_stylesheet.py out/op-manual/data/1.html $(duckietown_css)
+#
+# 	python -m mcdp_utils_xml.note_errors_inline $(out)/data/1.html 2>&1 | tee duckuments-dist/op-manual/errors.txt
+# 	python -m mcdp_docs.add_edit_links $(out)/data/localcss.html < $(out)/data/1.html
+# 	python -m mcdp_docs.embed_css $(out)/data/duckiebook.html < $(out)/data/localcss.html
+# 	python -m mcdp_docs.extract_assets  \
+# 		--input $(out)/data/duckiebook.html  \
+# 		--output duckuments-dist/op-manual/duckiebook.html \
+# 		--assets duckuments-dist/op-manual/duckiebook/assets
+#
+# 	$(MAKE) -f Makefile.single split
+#
+#
+# split:
+# 	mcdp-split \
+# 	   --filename duckuments-dist/op-manual/duckiebook.html  \
+# 	   --output_dir duckuments-dist/op-manual/duckiebook/ \
+# 	   -o $(out) \
+# 	   -c ' config echo 1; config colorize 1; rparmake n=2' \
+# 	   --mathjax

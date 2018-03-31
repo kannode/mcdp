@@ -73,7 +73,14 @@ def locate_files(directory, pattern, followlinks=True,
         dirnames[:] = [_ for _ in dirnames if accept_dirname_to_go_inside(root, _)]
         for f in files:
             if accept_filename_as_match(f):
+
                 filename = os.path.join(root, f)
+                if os.path.islink(filename):
+                    if not os.path.exists(filename):
+                        msg = 'Skipping dead link %s' % filename
+                        logger.warn(msg)
+                        continue
+
                 filenames.append(filename)
         for d in dirnames:
             if accept_dirname_as_match(d):
