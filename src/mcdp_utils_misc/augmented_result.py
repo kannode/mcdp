@@ -70,6 +70,22 @@ class AugmentedResult(object):
         self.result = None
         self.notes = []
         self.output = []
+        self.merged_desc = []
+
+    def __str__(self):
+        s = 'AugmentedResult'
+        d = OrderedDict()
+        d['desc'] = self.desc
+        errors = self.get_errors()
+        warnings = self.get_warnings()
+        d['errors'] = len(errors)
+        d['warnings'] = len(warnings)
+        d['output'] = len(self.output)
+        d['result'] = self.result.__repr__()
+        d['merged_desc'] = self.merged_desc
+        t = pretty_print_dict(d)
+        s += '\n\n' + indent(t, '   ')
+        return s
 
     def get_errors(self):
         return [_ for _ in self.notes if isinstance(_, NoteError)]
@@ -97,8 +113,8 @@ class AugmentedResult(object):
         msg = 'No error contained the string %r' % s
         raise AssertionError(msg)
 
-    def info(self, s):
-        self.log.append('info: %s' % s)
+#    def info(self, s):
+#        self.log.append('info: %s' % s)
 
     def set_result(self, x):
         self.result = x
@@ -113,7 +129,6 @@ class AugmentedResult(object):
 
     def summary(self):
         s = "AugmentedResult (%s)" % self.desc
-#         s += '\n' + indent(self.desc, ': ')
         if self.notes:
             d = OrderedDict()
             for i, note in enumerate(self.notes):
@@ -156,9 +171,9 @@ class AugmentedResult(object):
         logger.warning(msg)
         self.add_note(NoteWarning(msg, locations, stacklevel=1))
 
-    @contract(prefix='str|tuple')
+    @contract(other='isinstance(AugmentedResult)', prefix='str|unicode|tuple')
     def merge(self, other, prefix=()):
-        if isinstance(prefix, str):
+        if isinstance(prefix, (unicode, str)):
             prefix = (prefix,)
         check_isinstance(other, AugmentedResult)
         have = set()
@@ -171,3 +186,4 @@ class AugmentedResult(object):
                 self.notes.append(note2)
 
         self.output.extend(other.output)
+        self.merged_desc.append(other.desc)

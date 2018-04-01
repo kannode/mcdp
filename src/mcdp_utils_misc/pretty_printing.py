@@ -1,7 +1,7 @@
 from contracts.utils import indent
 
 
-def pretty_print_dict(d):
+def pretty_print_dict(d, MAX=None):
     lengths = [len(k) for k in d.keys()]
     if not lengths:
         return 'Empty.'
@@ -12,9 +12,14 @@ def pretty_print_dict(d):
             k = k.__repr__()
         k2 = k.rjust(klen)
         prefix = "%s: " % k2
-        s.append(indent(str(v), '', prefix))
+        v_s = str(v)
+        if MAX is not None:
+            if len(v_s) > MAX:
+                v_s = '[First %s chars] %s' % (MAX, v_s[:MAX])
+        s.append(indent(v_s, '', prefix))
     return "\n".join(s)
-        
+
+
 def pretty_print_dict_newlines(d):
     lengths = [len(k) for k in d.keys()]
     if not lengths:
@@ -26,6 +31,6 @@ def pretty_print_dict_newlines(d):
             k = k.__repr__()
         if s:
             s += '\n\n'
-        s +=  k
-        s += '\n\n' + indent(str(v), '  ') 
+        s += k
+        s += '\n\n' + indent(str(v), '  ')
     return s

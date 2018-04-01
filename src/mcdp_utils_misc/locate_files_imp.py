@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-@contract(returns='list(str)', directory='str',
+@contract(returns='list(str)', directory='str|unicode',
           pattern='str|list(str)', followlinks='bool')
 def locate_files(directory, pattern, followlinks=True,
                  include_directories=False,
@@ -26,6 +26,7 @@ def locate_files(directory, pattern, followlinks=True,
 
         normalize = uses realpath
     """
+    directory = str(directory)
     t0 = time.time()
     if ignore_patterns is None:
         ignore_patterns = MCDPConstants.locate_files_ignore_patterns

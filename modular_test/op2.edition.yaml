@@ -1,18 +1,27 @@
 init: |
-    set  out          destination
-    set  duckuments   ~/duckuments
-    render
-    
-op-manual-duckiebot: |
-    dep init
-    set short db-manual-duckiebot
+    set  out          path:$(pwd)/destination
+    set  duckuments   path:~/duckuments
+    resources $(duckuments)/docs/
 
+# tmp: |
+#     dep init
+#     source $(duckuments)/docs/atoms_20_setup_and_demo/17_setup_duckiebot_DB17-jwd
+
+manual-duckuments: |
+    dep init
+    set short manual-duckuments
+    source $(duckuments)/docs/atoms_10_duckietown_meta
+    do prepare-manual
+
+manual-duckiebot: |
+    dep init
+    set short manual-duckiebot
     source $(duckuments)/docs/atoms_20_setup_and_demo/17_setup_duckiebot_DB17-jwd
     do prepare-manual
 
-op-manual-duckietown: |
+manual-duckietown: |
     dep init
-    set short db-manual-duckietown
+    set short manual-duckietown
     source $(duckuments)/docs/atoms_20_setup_and_demo/18_setup_duckietown
     do prepare-manual
 

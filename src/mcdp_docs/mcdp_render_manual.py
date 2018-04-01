@@ -189,6 +189,7 @@ def manual_jobs(context, src_dirs, output_file, generate_pdf, stylesheet,
                 break
         else:
             msg = 'Could not find dir for %s in %s' % (filename, src_dirs)
+            logger.warning(msg)
 
         html_contents = context.comp(render_book, generate_pdf=generate_pdf,
                                      src_dirs=src_dirs,
@@ -295,6 +296,11 @@ def render_book(src_dirs, generate_pdf,
                 raise_errors,
                  filter_soup=None,
                 extra_css=None, symbols=None):
+    '''
+
+
+        main_file: debug information, leave as None
+    '''
     from mcdp_docs.pipeline import render_complete
 
     librarian = get_test_librarian()
@@ -306,6 +312,7 @@ def render_book(src_dirs, generate_pdf,
     library = MCDPLibrary(load_library_hooks=load_library_hooks)
 
     for src_dir in src_dirs:
+        src_dir = str(src_dir)
         library.add_search_dir(src_dir)
 
     d = tempfile.mkdtemp()
@@ -329,16 +336,17 @@ def render_book(src_dirs, generate_pdf,
         msg = 'Could not compile %s' % realpath
         raise_wrapped(DPSyntaxError, e, msg, compact=True)
 
-    doc = get_minimal_document(html_contents,
-                               add_markdown_css=True, extra_css=extra_css)
-    dirname = main_file + '.parts'
-    if dirname and not os.path.exists(dirname):
-        try:
-            os.makedirs(dirname)
-        except:
-            pass
-    fn = os.path.join(dirname, '%s.html' % out_part_basename)
-    write_data_to_file(doc, fn)
+    if main_file is not None:
+        doc = get_minimal_document(html_contents,
+                                   add_markdown_css=True, extra_css=extra_css)
+        dirname = main_file + '.parts'
+        if dirname and not os.path.exists(dirname):
+            try:
+                os.makedirs(dirname)
+            except:
+                pass
+        fn = os.path.join(dirname, '%s.html' % out_part_basename)
+        write_data_to_file(doc, fn)
 
     return html_contents
 

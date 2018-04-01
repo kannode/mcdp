@@ -240,8 +240,11 @@ def get_ext_for_mime(mime):
     return ext
 
 
-def embed_img_data(soup, resolve, raise_on_error, img_extensions=['png', 'jpg', 'jpeg', 'JPEG',
-                                                    'PNG', 'JPG', 'svg', 'SVG']):
+embed_img_data_extensions = ['png', 'jpg', 'jpeg', 'JPEG', 'PNG', 'JPG', 'svg', 'SVG']
+
+
+def embed_img_data(soup, resolve, raise_on_error,
+                   img_extensions=embed_img_data_extensions):
     """
         resolve: ref -> str  or None --- how to get the data
     """

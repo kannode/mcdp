@@ -191,8 +191,9 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
         if MCDPConstants.preprocess_style_using_less:
             run_lessc(soup)
         else:
-            logger.warning(
-                'preprocess_style_using_less=False might break the manual')
+#            logger.warning(
+#                'preprocess_style_using_less=False might break the manual')
+            pass
     fix_validation_problems(soup)
 
     strip_pre(soup)

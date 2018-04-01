@@ -1,13 +1,16 @@
 
-from mcdp_docs.vols.recipe import RecipeCommand
+from contracts import contract
+from mcdp_docs.vols.recipe import RecipeCommandStatic
+from mcdp_utils_misc.augmented_result import AugmentedResult
 
 
-class Dummy(RecipeCommand):
+class Dummy(RecipeCommandStatic):
 
     def __init__(self, line):
         self.line = line
 
-    def go(self, bs):
+    @contract(bs_aug=AugmentedResult)
+    def go(self, bs_aug):  #@UnusedVariable
         print('Dummy %s' % self.line)
 
     def __str__(self):

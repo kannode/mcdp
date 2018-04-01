@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
-import codecs
 from contextlib import contextmanager
+from tempfile import mkdtemp, NamedTemporaryFile
+import codecs
 import os
 import shutil
-from tempfile import mkdtemp, NamedTemporaryFile
+
+import psutil
 
 from compmake.utils import friendly_path, make_sure_dir_exists
+from .memoize_simple_imp import memoize_simple
+
 from .path_utils import expand_all
 
 
+@memoize_simple
 def get_mcdp_tmp_dir():
     """ Returns *the* temp dir for this project.
 	Note that we need to customize with username, otherwise
@@ -26,8 +31,21 @@ def get_mcdp_tmp_dir():
     return d
 
 
+def check_good_size(path, min_free_gb=2):
+    usage = psutil.disk_usage(path)
+    in_gb = lambda x: x * 1.0 / (1024 * 1024 * 1024)
+    free_gb = in_gb(usage.free)
+    total_gb = in_gb(usage.total)
+
+    if free_gb < min_free_gb:
+        msg = 'Disk space on %s is low. This might stop compilation. \n\n' % path
+        msg += 'free %.2f GB of %.2f GB' % (free_gb, total_gb)
+        raise Exception(msg)
+
+
 def create_tmpdir(prefix='tmpdir'):
     mcdp_tmp_dir = get_mcdp_tmp_dir()
+    check_good_size(mcdp_tmp_dir, min_free_gb=2)
     d = mkdtemp(dir=mcdp_tmp_dir, prefix=prefix)
     return d
 
@@ -54,8 +72,10 @@ def tmpdir(prefix='tmpdir', erase=True, keep_on_exception=False):
 def tmpfile(suffix):
     ''' Yields the name of a temporary file '''
     temp_file = NamedTemporaryFile(suffix=suffix)
-    yield temp_file.name
-    temp_file.close()
+    try:
+        yield temp_file.name
+    finally:
+        temp_file.close()
 
 
 def read_data_from_file(filename):

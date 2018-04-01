@@ -1,3 +1,7 @@
+from abc import abstractmethod, ABCMeta
+
+from contracts import contract
+from mcdp_utils_misc.augmented_result import AugmentedResult
 
 
 class Recipe(object):
@@ -29,10 +33,24 @@ class Recipe(object):
 
 
 class RecipeCommand(object):
-
-    def go(self, bs):
-        pass
+    __metaclass__ = ABCMeta
 
     def set_original_file(self, fn):
         self.original_file = fn
+
+
+class RecipeCommandStatic(RecipeCommand):
+
+    @abstractmethod
+    @contract(bs_aug=AugmentedResult)
+    def go(self, bs_aug):
+        pass
+
+
+class RecipeCommandDynamic(RecipeCommand):
+
+    @abstractmethod
+    @contract(bs_aug=AugmentedResult)
+    def go_dynamic(self, context, bs_aug):
+        pass
 

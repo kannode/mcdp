@@ -1,7 +1,9 @@
-from mcdp_docs.vols.recipe import RecipeCommand
+from contracts import contract
+from mcdp_docs.vols.recipe import  RecipeCommandStatic
+from mcdp_utils_misc.augmented_result import AugmentedResult
 
 
-class GoCommand(RecipeCommand):
+class GoCommand(RecipeCommandStatic):
 
     def __init__(self, name):
         self.name = name
@@ -9,14 +11,15 @@ class GoCommand(RecipeCommand):
     def get_name(self):
         return self.name
 
-    def go(self, bs):
+    @contract(bs_aug=AugmentedResult)
+    def go(self, bs_aug):
         pass
 
     def __str__(self):
         return 'Execute recipe %r' % self.name
 
 
-class DepCommand(RecipeCommand):
+class DepCommand(RecipeCommandStatic):
 
     def __init__(self, name):
         self.name = name
@@ -24,7 +27,8 @@ class DepCommand(RecipeCommand):
     def get_name(self):
         return self.name
 
-    def go(self, bs):
+    @contract(bs_aug=AugmentedResult)
+    def go(self, bs_aug):
         pass
 
     def __str__(self):

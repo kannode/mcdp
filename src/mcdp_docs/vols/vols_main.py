@@ -3,6 +3,7 @@ import logging
 import os
 
 from compmake.plugins.console_banners import name
+from compmake.structures import Promise
 from contracts import contract
 from contracts.utils import indent
 from mcdp.logs import logger
@@ -12,11 +13,13 @@ from mcdp_docs.vols.cmd_go import GoCommand, DepCommand
 from mcdp_docs.vols.cmd_par import ParCommand
 from mcdp_docs.vols.cmd_render import RenderCommand
 from mcdp_docs.vols.cmd_set import SetCommand
-from mcdp_docs.vols.cmd_source import SourceCommand
-from mcdp_docs.vols.recipe import Recipe
+from mcdp_docs.vols.cmd_source import SourceCommand, ResourceCommand
+from mcdp_docs.vols.recipe import Recipe, RecipeCommandStatic, \
+    RecipeCommandDynamic
 from mcdp_docs.vols.structures import BuildStatus, ScriptException
 from mcdp_utils_misc import locate_files
 from mcdp_utils_misc import yaml_load
+from mcdp_utils_misc.augmented_result import AugmentedResult
 from quickapp import QuickApp
 
 
@@ -44,22 +47,23 @@ class Vols(QuickApp):
 
         options = self.get_options()
         spec = options.recipes.split(',')
-        use = expand_string(spec, recipes)
+        use = expand_string(spec, list(recipes))
         print('using: %s' % use)
 
         builder = Builder(recipes)
         for name in use:
-            bs = builder.build(context, name)
-            context.comp(describe_result, name, bs)
+            bs_aug = builder.build(context, name)
+            context.comp(describe_result, name, bs_aug)
 
 
-class Builder():
+class Builder(object):
 
     def __init__(self, recipes):
         self.recipes = recipes
         self.name2result = OrderedDict()
 
-    def build(self, context, name, bs0=None):
+    @contract(returns=Promise, bs_aug0='None|$AugmentedResult|$Promise')
+    def build(self, context, name, bs_aug0=None):
         if name in self.name2result:
             return self.name2result[name]
         print('building job %s' % name)
@@ -75,12 +79,14 @@ class Builder():
             deps2result[d] = self.build(context, d)
 
         c = context.child(str(name))
-        bs = bs0
+        bs_aug = bs_aug0
         for i, command in enumerate(recipe.commands):
-            bs = recipe_jobs(c, 'cmd%s' % (i), command, self.recipes, deps2result, bs)
+            name_ = '%s-cmd%s' % (name, i)
+            bs_aug = recipe_jobs(c, name_,
+                                 command, self.recipes, deps2result, bs_aug)
 
-        self.name2result[name] = bs
-        return bs
+        self.name2result[name] = bs_aug
+        return bs_aug
 
 
 def describe_result(name, bs):
@@ -88,53 +94,80 @@ def describe_result(name, bs):
     print bs
 
 
-def recipe_jobs(context, name, command, recipes, deps2result, bs0=None):
-    if bs0 is None:
-        bs0 = BuildStatus()
+@contract(returns=Promise)
+def recipe_jobs(context, name, command, recipes, deps2result, bs_aug0=None):
+    if bs_aug0 is None:
+        bs_aug0 = AugmentedResult()
+        bs_aug0.desc = 'First iteration of recipe_jobs(%s)' % name
+        bs_aug0.set_result(BuildStatus())
 
     if isinstance(command, ParCommand):
         partial = []
         for i, c in enumerate(command.commands):
-            partial_i = context.comp(recipe_job, c, bs0, deps2result, job_id=str(name) + '-%d' % i)
+            partial_i = context.comp_dynamic(recipe_job, c, bs_aug0, deps2result,
+                                             job_id=str(name) + '-%d' % i)
             partial.append(partial_i)
         return context.comp(merge_bs, partial)
     elif isinstance(command, GoCommand):
         builder = Builder(recipes)
-        res = builder.build(context, command.get_name(), bs0)
+        res = builder.build(context, command.get_name(), bs_aug0)
         return res
     else:
-        res = context.comp(recipe_job, command, bs0, deps2result, job_id=str(name))
+        res = context.comp_dynamic(recipe_job, command, bs_aug0, deps2result,
+                                   job_id=str(name))
         return res
 
 
+@contract(bs_list='list($AugmentedResult)', returns=AugmentedResult)
 def merge_bs(bs_list):
+    res_aug = AugmentedResult()
     res = BuildStatus()
-    for b in bs_list:
-        res.merge(b)
+    for b_aug in bs_list:
+        res.merge(b_aug.get_result())
+        res_aug.merge(b_aug)
     #print('Merged: %s' % res)
-    return res
+    res_aug.set_result(res)
+    return res_aug
 
 
-def recipe_job(command, bs, deps2result):
+@contract(bs_aug=AugmentedResult, returns='$AugmentedResult|$Promise')
+def recipe_job(context, command, bs_aug, deps2result):
+    bs = bs_aug.get_result()
+
     if isinstance(command, DepCommand):
         #print('merging results of %s' % command.get_name())
-        res = deps2result[command.get_name()]
+        res_aug = deps2result[command.get_name()]
+        res = res_aug.get_result()
         bs.merge(res)
-        return bs
+        bs_aug.merge(res_aug, prefix=command.get_name())
+        return bs_aug
     else:
         d0 = os.getcwd()
         d = os.path.dirname(command.original_file)
         os.chdir(d)
         try:
-            command.go(bs)
+            if isinstance(command, RecipeCommandStatic):
+                job_id = type(command).__name__
+                return context.comp(simple_apply, command, bs_aug, job_id=job_id)
+            elif isinstance(command, RecipeCommandDynamic):
+                return command.go_dynamic(context, bs_aug)
+            else:
+                assert False, command
         finally:
             os.chdir(d0)
-        return bs
+        assert False
+
+
+def simple_apply(command, bs_aug):
+    command.go(bs_aug)
+    print('After applying: %s' % bs_aug)
+    return bs_aug
 
 
 vols_entry_main = Vols.get_sys_main()
 
 
+@contract(line=unicode)
 def cmd_from_line(line):
     tokens = line.split()
     if tokens[0] == 'set':
@@ -156,6 +189,10 @@ def cmd_from_line(line):
     if tokens[0] == 'source':
         assert len(tokens) == 2
         return SourceCommand(tokens[1])
+
+    if tokens[0] == 'resources':
+        assert len(tokens) == 2
+        return ResourceCommand(tokens[1])
 
     if tokens[0] == 'echo':
         return Dummy(line)
@@ -194,9 +231,8 @@ def cmd_from_line(line):
     raise ValueError(msg)
 
 
-@contract(data=dict)
+@contract(data=unicode)
 def recipe_from_yaml(data):
-
     lines = [f.strip() for f in data.split('\n')]
     lines = [f for f in lines if f and not f.startswith('#')]
     commands = [cmd_from_line(f) for f in lines]
@@ -223,6 +259,7 @@ def load_recipes(dirname):
     for fn in files:
         data = yaml_load(open(fn).read())
         for k, v in data.items():
+            # todo: check v unicode
             recipes[k] = recipe_from_yaml(v)
             recipes[k].set_original_file(os.path.realpath(fn))
     return recipes
