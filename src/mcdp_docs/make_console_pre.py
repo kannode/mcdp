@@ -118,14 +118,15 @@ def mark_console_pres_defaults(soup):
 def replace_template(element):
     for t in element.children:
         if isinstance(t, NavigableString):
-            if MCDPConstants.placeholder_marker_start in t:
+            if MCDPConstants.placeholder_marker_start is not None:
+                if MCDPConstants.placeholder_marker_start in t:
 
-                if False:
-                    msg = "Do not copy and paste. "
-                    msg += 'I guarantee, only trouble will come from it.'
-                    element.attrs['oncopy'] = 'alert("%s");return false;' % msg
+                    if False:
+                        msg = "Do not copy and paste. "
+                        msg += 'I guarantee, only trouble will come from it.'
+                        element.attrs['oncopy'] = 'alert("%s");return false;' % msg
 
-                process_ns(t)
+                    process_ns(t)
         else:
             replace_template(t)
 

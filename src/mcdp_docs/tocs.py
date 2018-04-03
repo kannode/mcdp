@@ -52,9 +52,9 @@ def fix_header_id(header, globally_unique_id_part):
         else:
             if prefix is None:
                 if ID != 'booktitle':
-                    msg = ('Adding prefix %r to current id %r for %s.' %
-                           (default_prefix, ID, header.name))
-                    header.insert_before(Comment('Warning: ' + msg))
+                    # msg = ('Adding prefix %r to current id %r for %s.' %
+                    #        (default_prefix, ID, header.name))
+                    # header.insert_before(Comment('Warning: ' + msg))
                     header['id'] = default_prefix + ':' + ID
             else:
                 if prefix not in allowed_prefixes:

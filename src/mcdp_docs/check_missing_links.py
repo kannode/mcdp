@@ -29,12 +29,7 @@ def get_id2element(soup, att):
             duplicates.add(ID)
             other = id2element[ID]
             for e0 in [element, other]:
-#                 if not 'errored' in e0.attrs.get('class', ''):
                     note_error2(e0, 'Naming', 'More than one element with id %r.' % ID)
-#                     add_class(e0, 'errored')
-#                     w = Tag(name='span', attrs={'class':'duplicated-id'})
-#                     w.string =
-#                     e0.insert_after(w)
         id2element[element[att]] = element
 
     if duplicates:
@@ -50,7 +45,6 @@ def check_if_any_href_is_invalid(soup):
 
         if it is of the form "#frag?query" then query is stripped out
     '''
-    logger.debug('check_if_any_href_is_invalid')
 
     errors = []
     math_errors = []
@@ -83,12 +77,9 @@ def check_if_any_href_is_invalid(soup):
             else:
                 core = ID
 
-#             logger.debug('check_if_any_href_is_invalid: not found %r, core %r' % (ID, core))
-
             possible = ['part', 'sec', 'sub', 'subsub', 'fig', 'tab', 'code', 'app', 'appsub',
                         'appsubsub',
                         'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
-#                         'bib'
                         ]
             matches = []
             others = []
@@ -97,8 +88,6 @@ def check_if_any_href_is_invalid(soup):
                 others.append(why_not)
                 if why_not in id2element:
                     matches.append(why_not)
-
-#             logger.debug('others = %r, matches = %r' % (others, matches))
 
             if len(matches) > 1:
                 short = 'Ref. error'
@@ -117,11 +106,10 @@ def check_if_any_href_is_invalid(soup):
             else:
                 if has_class(a, MCDPConstants.CLASS_IGNORE_IF_NOT_EXISTENT):
                     del a.attrs['href']
-                    logger.warning('ignoring link %s' % a)
+                    # logger.warning('ignoring link %s' % a)
                     pass
                 else:
                     short = 'Ref. error'
-    #                 msg = 'Not found %r (also tried %s)' % (href, ", ".join(others))
                     msg = 'I do not know the link that is indicated by the link %r.' % href
                     note_error2(a, short, msg, ['href-invalid', 'href-invalid-missing'])
                     errors.append(msg)

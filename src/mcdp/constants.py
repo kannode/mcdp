@@ -208,5 +208,6 @@ class MCDPConstants(object):
     softy_mode = True
     preprocess_style_using_less = False
 
+    # Set to None to avoid
     placeholder_marker_start = '!['
     placeholder_marker_end = ']'

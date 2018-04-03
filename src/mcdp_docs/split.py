@@ -1,15 +1,18 @@
 from contextlib import contextmanager
+from multiprocessing import cpu_count
 import getpass
 import logging
-from multiprocessing import cpu_count
 import os
 import time
 
 from bs4.element import Tag
 
 from mcdp import logger
+from mcdp_docs.embed_css import embed_css_files
 from mcdp_utils_misc import get_md5, write_data_to_file, create_tmpdir
-from mcdp_utils_xml import bs, read_html_doc_from_file
+from mcdp_utils_xml import read_html_doc_from_file
+from mcdp_utils_xml.parsing import bs, bs_entire_document
+from mcdp_utils_xml.project_text import gettext
 from quickapp import QuickApp
 
 from .add_mathjax import add_mathjax_call, add_mathjax_preamble
@@ -47,15 +50,14 @@ def make_page(contents, head0, add_toc):
             tocdiv = Tag(name='div')
             tocdiv.attrs['id'] = 'tocdiv'
 
-#             toc = main_toc
-#             toc.extract()
-#             del toc.attrs['id']
             tocdiv.append(add_toc)
 
     section_name = get_first_header_title(contents)
     if section_name is not None:
-        title2 = bs(section_name)
-        title2.name = 'title'
+        section_name = section_name.replace('</code>', '</code> ')
+        section_name = gettext(bs(section_name))
+        title2 = Tag(name='title')
+        title2.append(section_name)
 
         title = head.find('title')
         if title is None:
@@ -81,39 +83,8 @@ def make_page(contents, head0, add_toc):
     return html
 
 
-#<<<<<<< HEAD
 def only_second_part(mathjax, preamble, html, id2filename, filename):
-#=======
-#def split_file(ifilename, directory, filename, mathjax, preamble, disqus, id2filename, assets_dir):
-#    with timeit('Reading input file...'):
-#        soup = read_html_doc_from_file(ifilename)
-#    body = soup.find('body')
-#    if body is None:
-#        msg = 'Could not find body element'
-#        raise Exception(msg)
-#    head0 = soup.html.head
-#    # extract the main toc if it is there
-#    main_toc = body.find(id='main_toc')
-#    if main_toc is None:
-#        msg = 'Could not find the element #main_toc.'
-#        raise ValueError(msg)
-#
-#    p = bs('<p><a href="index.html">Home</a></p>')
-#    main_toc.insert(0, p.p)
-#
-#    assert body is not None, soup
-#
-#    with timeit('Splitting in files...'):
-#        filename2contents = split_in_files(body)
-#
-#    with timeit('add_prev_next_links()...'):
-#        filename2contents = add_prev_next_links(filename2contents, only_for=[filename])
-#
-#    with timeit('make_page()'):
-#        contents = filename2contents[filename]
-#        html = make_page(contents, head0, main_toc)
-#
-#>>>>>>> nl
+
     if mathjax:
         if preamble is not None:
             with timeit('add_mathjax_preamble()'):
@@ -153,30 +124,33 @@ class Split(QuickApp):
         mathjax = self.options.mathjax
         preamble = self.options.preamble
 #         disqus = self.options.disqus
+        nworkers = self.options.workers
         logger.setLevel(logging.DEBUG)
 
-        if self.options.workers != 0:
-            n = self.options.workers
-        else:
-            n = max(1, cpu_count() - 2)
-        self.debug("Using n = %d workers" % n)
+        self.debug("Using n = %d workers" % nworkers)
 
         data = open(ifilename).read()
-        h = get_md5(data)[-4:]
-
-        jobs = []
-        for i in range(n):
-            promise = context.comp_dynamic(go, i, n, ifilename, mathjax, preamble, output_dir,
-                                           job_id='worker-%d-of-%d-%s' % (i, n, h))
-            jobs.append(promise.job_id)
-
-#         print('todo: delete %s' % jobs)
+        create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=nworkers)
 
 
-def go(context, worker_i, num_workers, ifilename, mathjax, preamble, output_dir):
-    with timeit("reading %s" % ifilename):
-        soup = read_html_doc_from_file(ifilename)
+def create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=0):
+    if nworkers == 0:
+        nworkers = max(1, cpu_count() - 2)
 
+    h = get_md5(data)[-4:]
+    jobs = []
+    for i in range(nworkers):
+        promise = context.comp_dynamic(go, i, nworkers, data, mathjax, preamble, output_dir,
+                                       job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
+        jobs.append(promise.job_id)
+    return jobs
+
+
+def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
+    with timeit("parsing"):
+#        soup = read_html_doc_from_file(ifilename)
+        soup = bs_entire_document(data)
+        embed_css_files(soup)
     # extract the main toc if it is there
 
     with timeit("Extracting main_toc"):
@@ -208,12 +182,10 @@ def go(context, worker_i, num_workers, ifilename, mathjax, preamble, output_dir)
 
     with timeit("creating link.html and link.js"):
         id2filename = get_id2filename(filename2contents)
-#<<<<<<< HEAD
+
         linkbase = 'link.html'  # do not change (it's used by http://purl.org/dth)
         linkbasejs = 'link.js'
-#=======
-#        linkbase = 'link.html'  # do not change (it's used by http://purl.org/dth)
-#>>>>>>> nl
+
         lb = create_link_base(id2filename)
         write_data_to_file(str(lb), os.path.join(output_dir, linkbase))
 
@@ -254,13 +226,11 @@ def go(context, worker_i, num_workers, ifilename, mathjax, preamble, output_dir)
     for i, (filename, contents) in enumerate(filename2contents.items()):
         if (i % num_workers != worker_i):
             continue
-        # contents_hash = get_md5(str(contents) + str(preamble))[:8]
-        # job_id = '%s-%s-%s' % (filename, links_hash, contents_hash)
 
-#<<<<<<< HEAD
         # Trick: we add the main_toc, and then ... (look below)
         with timeit('make_page'):
             html = make_page(contents, head0, main_toc)
+
         with timeit('main_toc copy'):
             main_toc = main_toc.__copy__()
 
@@ -340,7 +310,6 @@ def remove_spurious(output_dir, filenames):
                 OTHER = ''
 
             data = spurious.replace('OTHER', OTHER)
-#             print data
             write_data_to_file(data, fn)
 
 

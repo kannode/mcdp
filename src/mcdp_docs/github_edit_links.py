@@ -68,7 +68,7 @@ def get_repo_information(repo_root):
 
         Raises RepoInfoException.
     """
-
+    print('Creating a Repo object for root %s' % repo_root)
     gitrepo = Repo(repo_root)
     try:
         try:
@@ -95,6 +95,9 @@ def get_repo_information(repo_root):
         org, repo = org_repo_from_url(url)
     except NotImplementedError:
         org, repo = None, None
+
+    # avoid expensive garbage collection
+    gitrepo.git = None
     return dict(branch=branch, commit=commit, org=org, repo=repo)
 
 

@@ -1,19 +1,20 @@
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
 
-
 __all__ = [
     'project_html',
 ]
+
 
 def project_html(html):
     doc = BeautifulSoup(html, 'lxml', from_encoding='utf-8')
     res = gettext(doc, 0)
     return res
 
-def gettext(element, n):
+
+def gettext(element, n=0):
     # print('%d %s element %r' % (n, '  ' * n, element.string))
-    
+
     if isinstance(element, NavigableString):
         string = element.string
         if string is None:
@@ -24,5 +25,5 @@ def gettext(element, n):
         out = ''
         for child in element.children:
             out += gettext(child, n + 1)
-     
+
         return out
