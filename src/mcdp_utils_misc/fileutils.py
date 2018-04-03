@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-import codecs
 from contextlib import contextmanager
+from tempfile import mkdtemp, NamedTemporaryFile
+import codecs
 import os
 import shutil
-from tempfile import mkdtemp, NamedTemporaryFile
 
 from compmake.utils import friendly_path, make_sure_dir_exists
+from contracts import contract
+
 from .path_utils import expand_all
 
 
@@ -78,6 +80,7 @@ def read_file_encoded_as_utf8(filename):
     return s
 
 
+@contract(data=str)
 def write_data_to_file(data, filename, quiet=False):
     """
         Writes the data to the given filename.
@@ -85,9 +88,11 @@ def write_data_to_file(data, filename, quiet=False):
 
     """
     from mcdp import logger
+
     if not isinstance(data, str):
         msg = 'Expected "data" to be a string, not %s.' % type(data).__name__
         raise ValueError(msg)
+
     if len(filename) > 256:
         msg = 'Invalid argument filename: too long. Did you confuse it with data?'
         raise ValueError(msg)
@@ -99,12 +104,14 @@ def write_data_to_file(data, filename, quiet=False):
         current = open(filename).read()
         if current == data:
             if not 'assets' in filename:
-                logger.debug('already up to date %s' % friendly_path(filename))
+                if not quiet:
+                    logger.debug('already up to date %s' % friendly_path(filename))
             return
 
     with open(filename, 'w') as f:
         f.write(data)
 
     if not quiet:
-        logger.debug('Written to: %s' % friendly_path(filename))
+        size = '%.1fMB' % (len(data) / (1024 * 1024))
+        logger.debug('Written %s to: %s' % (size, friendly_path(filename)))
 

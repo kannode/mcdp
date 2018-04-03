@@ -7,9 +7,10 @@ import time
 from mcdp.logs import logger_performance
 
 __all__ = [
-    'timeit', 
+    'timeit',
     'timeit_wall',
 ]
+
 
 @contextmanager
 def timeit(desc, minimum=None, logger=None):
@@ -32,7 +33,7 @@ level = 0
 def timeit_wall(desc, minimum=None, logger=None):
     logger = logger or logger_performance
     global level
-    pref = '   ' * level + ' timeit'
+    pref = '   ' * level + str(level) + ' timeit'
     stacklevel = 3  # because of contextmanager
     msg0 = ('%s %s ...' % (pref, desc))
     if minimum is None:
@@ -43,7 +44,7 @@ def timeit_wall(desc, minimum=None, logger=None):
         level += 1
         yield
     except:
-        msg = '%s result: aborted' % (pref)
+        msg = '%s %s: aborted' % (pref, desc)
         log_wrap(logger, msg, logging.DEBUG, stacklevel=stacklevel)
         raise
     finally:
@@ -52,7 +53,7 @@ def timeit_wall(desc, minimum=None, logger=None):
     t1 = time.time()
     delta = t1 - t0
 
-    msg = '%s result: %.2f s (>= %s)' % (pref, delta, minimum)
+    msg = '%s %s: %.2f s (>= %s)' % (pref, desc, delta, minimum)
 
     if minimum is not None:
         if delta < minimum:
@@ -63,7 +64,7 @@ def timeit_wall(desc, minimum=None, logger=None):
     else:
         log_wrap(logger, msg, logging.DEBUG, stacklevel=stacklevel)
 
-    
+
 def log_wrap(logger, msg, level, stacklevel=1):
     # copied from warning stdlib, with adding function name
     try:

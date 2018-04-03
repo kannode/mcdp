@@ -60,13 +60,13 @@ def extract_assets_from_file(fi, fo, assets_dir):
     def savefile(filename_hint, data):
         """ must return the url (might be equal to filename) """
         where = os.path.join(assets_dir, filename_hint)
-        write_data_to_file(data, where)
+        write_data_to_file(data, where, quiet=True)
         relative = os.path.relpath(where, os.path.dirname(fo))
         return relative
 
     extract_img_to_file(soup, savefile)
 
-    write_html_doc_to_file(soup, fo)
+    write_html_doc_to_file(soup, fo, quiet=True)
     if False:
         s1 = os.path.getsize(fo)
         inmb = lambda x: '%.1f MB' % (x / (1024.0 * 1024))

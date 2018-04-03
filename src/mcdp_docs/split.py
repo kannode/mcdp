@@ -3,13 +3,13 @@ from multiprocessing import cpu_count
 import getpass
 import logging
 import os
-import time
 
 from bs4.element import Tag
 
 from mcdp import logger
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_utils_misc import get_md5, write_data_to_file, create_tmpdir
+from mcdp_utils_misc.timing import timeit_wall
 from mcdp_utils_xml import read_html_doc_from_file
 from mcdp_utils_xml.parsing import bs, bs_entire_document
 from mcdp_utils_xml.project_text import gettext
@@ -24,17 +24,26 @@ from .source_info_imp import get_first_header_title
 show_timing = False
 
 if getpass.getuser() == 'andrea':
-    show_timing = True
     show_timing = False
+    pass
+#    show_timing = False
 
+if show_timing:
+    timeit = timeit_wall
+else:
 
-@contextmanager
-def timeit(s):
-    t0 = time.clock()
-    yield
-    delta = time.clock() - t0
-    if show_timing:
-        logger.debug('%10d ms: %s' % (1000 * delta, s))
+    @contextmanager
+    def timeit(s):
+        yield
+
+#
+#@contextmanager
+#def timeit(s):
+#    t0 = time.clock()
+#    yield
+#    delta = time.clock() - t0
+#    if show_timing:
+#        logger.debug('%10d ms: %s' % (1000 * delta, s))
 
 
 def make_page(contents, head0, add_toc):
@@ -46,10 +55,10 @@ def make_page(contents, head0, add_toc):
     body = Tag(name='body')
 
     with timeit('make_page() / copy toc'):
-        if add_toc:
+        if add_toc is not None:
             tocdiv = Tag(name='div')
             tocdiv.attrs['id'] = 'tocdiv'
-
+#            tocdiv.append("TOCHERE")
             tocdiv.append(add_toc)
 
     section_name = get_first_header_title(contents)
@@ -76,9 +85,10 @@ def make_page(contents, head0, add_toc):
     html.append(body)
 
     # delete the original one
-    main_toc = contents.find(id='main_toc')
-    if main_toc is not None:
-        main_toc.extract()
+    if False:
+        main_toc = contents.find(id='main_toc')
+        if main_toc is not None:
+            main_toc.extract()
 
     return html
 
@@ -142,8 +152,16 @@ def create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=0):
     for i in range(nworkers):
         promise = context.comp_dynamic(go, i, nworkers, data, mathjax, preamble, output_dir,
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
-        jobs.append(promise.job_id)
-    return jobs
+        jobs.append(promise)
+
+    return context.comp(notification, jobs, output_dir)
+
+
+def notification(_jobs, output_dir):
+    main = os.path.join(output_dir, 'index.html')
+    msg = '\n \n      *** The HTML version is ready at %s *** ' % main
+    msg += '\n \n \nPlease wait a few more seconds for the PDF version.'
+    logger.info(msg)
 
 
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
@@ -187,10 +205,10 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
         linkbasejs = 'link.js'
 
         lb = create_link_base(id2filename)
-        write_data_to_file(str(lb), os.path.join(output_dir, linkbase))
+        write_data_to_file(str(lb), os.path.join(output_dir, linkbase), quiet=True)
 
         linkjs = create_link_base_js(id2filename)
-        write_data_to_file(str(linkjs), os.path.join(output_dir, linkbasejs))
+        write_data_to_file(str(linkjs), os.path.join(output_dir, linkbasejs), quiet=True)
 
     if preamble:
         preamble = open(preamble).read()
@@ -213,7 +231,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
 #         links_hash = "nohash"
 #
 #     logger.debug('hash data: %r' % data)
-    logger.debug('hash value: %r' % links_hash)
+#    logger.debug('hash value: %r' % links_hash)
 
     head0 = soup.html.head
 
@@ -223,23 +241,36 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
     tmpd = create_tmpdir()
 
     n = len(filename2contents)
+    with timeit('main_toc copy'):
+        main_toc0 = main_toc.__copy__()
+
+        main_toc0_s = str(main_toc0)
+        with open('toc0.html', 'w') as f:
+            f.write(main_toc0_s)
+#        main_toc0_pickle = pickle.dumps(main_toc)
+
+    asset_jobs = []
     for i, (filename, contents) in enumerate(filename2contents.items()):
         if (i % num_workers != worker_i):
             continue
+
+#        with timeit('main_toc copy'):
+#            main_toc = main_toc0.__copy__()
+        with timeit('main_toc copy hack'):
+            main_toc = bs(main_toc0_s)
+#        with timeit('main_toc copy pickle'):
+#            main_toc = cPickle.loads(main_toc0_pickle)
 
         # Trick: we add the main_toc, and then ... (look below)
         with timeit('make_page'):
             html = make_page(contents, head0, main_toc)
 
-        with timeit('main_toc copy'):
-            main_toc = main_toc.__copy__()
-
-        logger.debug('%d/%d: %s' % (i, n, filename))
+#        logger.debug('%d/%d: %s' % (i, n, filename))
         with timeit("direct job"):
             result = only_second_part(
                          mathjax, preamble, html, id2filename, filename)
 
-            # ... we remove it. In this way we don't have to copy it
+            # ... we remove it. In this way we don't have to copy it every time...
             main_toc.extract()
 
             fn = os.path.join(output_dir, filename)
@@ -248,28 +279,19 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
             write_data_to_file(result, fn0, quiet=True)
 
             h = get_md5(result)[:8]
-            context.comp(extract_assets_from_file, fn0, fn, assets_dir,
+            r = context.comp(extract_assets_from_file, fn0, fn, assets_dir,
                          job_id='assets-%s' % h)
-#=======
-#        ids_to_use = []
-#        for k in list(id2filename):
-#            if not 'autoid' in k:
-#                ids_to_use.append(k)
-#        ids_to_use = sorted(ids_to_use)
-#
-#        pointed_to = []
-#        for k in ids_to_use:
-#            f = id2filename[k]
-#            if not f in pointed_to:
-#                pointed_to.append(f)
-#
-#        data = ",".join(pointed_to)
-#        links_hash = get_md5(data)[:8]
-#        if self.options.faster_but_imprecise:
-#            links_hash = "nohash"
-#>>>>>>> nl
+            asset_jobs.append(r)
+    return context.comp(wait_assets, asset_jobs)
 
 
+def wait_assets(asset_jobs):
+    # Wait that they are done
+    pass
+
+
+#def quick_copy(main_toc):
+#    return bs(str(main_toc))
 def identity(x):
     return x
 
@@ -310,7 +332,7 @@ def remove_spurious(output_dir, filenames):
                 OTHER = ''
 
             data = spurious.replace('OTHER', OTHER)
-            write_data_to_file(data, fn)
+            write_data_to_file(data, fn, quiet=True)
 
 
 spurious = """

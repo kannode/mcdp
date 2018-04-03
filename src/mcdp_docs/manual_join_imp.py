@@ -12,6 +12,7 @@ from contracts.utils import raise_desc, indent, check_isinstance
 from mcdp.logs import logger
 from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_misc.fileutils import write_data_to_file
+from mcdp_utils_misc.timing import timeit_wall as timeit
 from mcdp_utils_xml import add_class, bs, copy_contents_into
 
 from .footnote_javascript import add_footnote_polyfill
@@ -66,132 +67,162 @@ def manual_join(template, files_contents,
         just before generating the toc
     """
     check_isinstance(files_contents, list)
+    with timeit('manual_join'):
 
-    files_contents = [ DocToJoin(*_) for _ in files_contents ]
+        files_contents = [ DocToJoin(*_) for _ in files_contents ]
 
-    template0 = template
-    template = replace_macros(template)
+        # cannot use bs because entire document
+        with timeit('parsing template'):
+            template0 = template
+            template = replace_macros(template)
+            template_soup = BeautifulSoup(template, 'lxml', from_encoding='utf-8')
+            d = template_soup
+            if d.html is None:
+                s = "Invalid template"
+                raise_desc(ValueError, s, template0=template0)
 
-    # cannot use bs because entire document
-    template_soup = BeautifulSoup(template, 'lxml', from_encoding='utf-8')
-    d = template_soup
-    if d.html is None:
-        s = "Invalid template"
-        raise_desc(ValueError, s, template0=template0)
+        with timeit('adding head'):
+            assert d.html is not None
+            assert '<html' in str(d)
+            head = d.find('head')
+            assert head is not None
+            for x in get_manual_css_frag().contents:
+                head.append(x.__copy__())
 
-    assert d.html is not None
-    assert '<html' in str(d)
-    head = d.find('head')
-    assert head is not None
-    for x in get_manual_css_frag().contents:
-        head.append(x.__copy__())
+        with timeit('adding stylesheet'):
+            if stylesheet is not None:
+                link = Tag(name='link')
+                link['rel'] = 'stylesheet'
+                link['type'] = 'text/css'
+                from mcdp_report.html import get_css_filename
+                link['href'] = get_css_filename('compiled/%s' % stylesheet)
+                head.append(link)
 
-    if stylesheet is not None:
-        link = Tag(name='link')
-        link['rel'] = 'stylesheet'
-        link['type'] = 'text/css'
-        from mcdp_report.html import get_css_filename
-        link['href'] = get_css_filename('compiled/%s' % stylesheet)
-        head.append(link)
+        with timeit('making basename2soup'):
+            basename2soup = OrderedDict()
+            for doc_to_join in files_contents:
+                if doc_to_join.docname in basename2soup:
+                    msg = 'Repeated docname %r' % doc_to_join.docname
+                    raise ValueError(msg)
+                from .latex.latex_preprocess import assert_not_inside
+                assert_not_inside(doc_to_join.contents, '<fragment')
+                assert_not_inside(doc_to_join.contents, 'DOCTYPE')
 
-    basename2soup = OrderedDict()
-    for doc_to_join in files_contents:
-        if doc_to_join.docname in basename2soup:
-            msg = 'Repeated docname %r' % doc_to_join.docname
-            raise ValueError(msg)
-        from .latex.latex_preprocess import assert_not_inside
-        assert_not_inside(doc_to_join.contents, '<fragment')
-        assert_not_inside(doc_to_join.contents, 'DOCTYPE')
+                frag = bs(doc_to_join.contents)
+                basename2soup[doc_to_join.docname] = frag
 
-        frag = bs(doc_to_join.contents)
-        basename2soup[doc_to_join.docname] = frag
+        with timeit('fix_duplicate_ids'):
+            fix_duplicated_ids(basename2soup)
 
-    fix_duplicated_ids(basename2soup)
+        with timeit('copy contents'):
+            body = d.find('body')
+            add_comments = False
 
-    body = d.find('body')
-    add_comments = False
-    for docname, content in basename2soup.items():
-#         logger.debug('docname %r -> %s KB' % (docname, len(data) / 1024))
-        if add_comments:
-            body.append(NavigableString('\n\n'))
-            body.append(Comment('Beginning of document dump of %r' % docname))
-            body.append(NavigableString('\n\n'))
+            for docname, content in basename2soup.items():
+                if add_comments:
+                    body.append(NavigableString('\n\n'))
+                    body.append(Comment('Beginning of document dump of %r' % docname))
+                    body.append(NavigableString('\n\n'))
 
-        copy_contents_into(content, body)
+#                with timeit('copying for %s' % docname):
+                try_faster = True
+                if try_faster:
+                    for e in list(content.children):
+                        body.append(e.extract())
+                else:
+                    copy_contents_into(content, body)
 
-        f = body.find('fragment')
-        if f:
-            msg = 'I found a <fragment> in the manual after %r' % docname
-            msg += '\n\n' + indent(str(content), '> ')
-            raise Exception(msg)
+#                f = body.find('fragment')
+#                if f:
+#                    msg = 'I found a <fragment> in the manual after %r' % docname
+#                    msg += '\n\n' + indent(str(content), '> ')
+#                    raise Exception(msg)
 
-        if add_comments:
-            body.append(NavigableString('\n\n'))
-            body.append(Comment('End of document dump of %r' % docname))
-            body.append(NavigableString('\n\n'))
+                if add_comments:
+                    body.append(NavigableString('\n\n'))
+                    body.append(Comment('End of document dump of %r' % docname))
+                    body.append(NavigableString('\n\n'))
 
-    extract_bibtex_blocks(d)
-    logger.info('external bib')
+        with timeit('extract_bibtex_blocks'):
+            extract_bibtex_blocks(d)
 
-    ID_PUT_BIB_HERE = MCDPManualConstants.ID_PUT_BIB_HERE
+        with timeit('ID_PUT_BIB_HERE'):
 
-    bibhere = d.find('div', id=ID_PUT_BIB_HERE)
-    if bibhere is None:
-        logger.warning(('Could not find #%s in document. '
-                       'Adding one at end of document.') % ID_PUT_BIB_HERE)
-        bibhere = Tag(name='div')
-        bibhere.attrs['id'] = ID_PUT_BIB_HERE
-        d.find('body').append(bibhere)
+            ID_PUT_BIB_HERE = MCDPManualConstants.ID_PUT_BIB_HERE
 
-    do_bib(d, bibhere)
+            bibhere = d.find('div', id=ID_PUT_BIB_HERE)
+            if bibhere is None:
+                logger.warning(('Could not find #%s in document. '
+                               'Adding one at end of document.') % ID_PUT_BIB_HERE)
+                bibhere = Tag(name='div')
+                bibhere.attrs['id'] = ID_PUT_BIB_HERE
+                d.find('body').append(bibhere)
 
-    if hook_before_final_pass is not None:
-        hook_before_final_pass(soup=d)
+            do_bib(d, bibhere)
 
-    document_final_pass_before_toc(d, remove, remove_selectors)
+        with timeit('hook_before_final_pass'):
+            if hook_before_final_pass is not None:
+                hook_before_final_pass(soup=d)
 
-    if hook_before_toc is not None:
-        hook_before_toc(soup=d)
+        with timeit('document_final_pass_before_toc'):
+            document_final_pass_before_toc(d, remove, remove_selectors)
 
-    generate_and_add_toc(d)
+        with timeit('hook_before_toc'):
+            if hook_before_toc is not None:
+                hook_before_toc(soup=d)
 
-    document_final_pass_after_toc(soup=d, resolve_references=resolve_references)
+        with timeit('generate_and_add_toc'):
+            generate_and_add_toc(d)
 
-    if extra_css is not None:
-        logger.info('adding extra CSS')
-        add_extra_css(d, extra_css)
+        with timeit('document_final_pass_after_toc'):
+            document_final_pass_after_toc(soup=d, resolve_references=resolve_references)
 
-    document_only_once(d)
+        if extra_css is not None:
+            logger.info('adding extra CSS')
+            add_extra_css(d, extra_css)
 
-    for a in d.select('[href]'):
-        href = a.attrs['href']
-        if href in references:
-            r = references[href]
-            a.attrs['href'] = r.url
-            if not a.children:  # empty
-                a.append(r.title)
+        with timeit('document_only_once'):
+            document_only_once(d)
 
-    logger.info('converting to string')
-    # do not use to_html_stripping_fragment - this is a complete doc
-    res = unicode(d)
-    res = res.encode('utf8')
-    logger.info('done - %d bytes' % len(res))
-    return res
+        with timeit('another A pass'):
+            for a in d.select('a[href]'):
+                href = a.attrs['href']
+                if href in references:
+                    r = references[href]
+                    a.attrs['href'] = r.url
+                    if not a.children:  # empty
+                        a.append(r.title)
+
+        # do not use to_html_stripping_fragment - this is a complete doc
+
+        with timeit('converting to string'):
+            res = unicode(d)
+        with timeit('encoding'):
+            res = res.encode('utf8')
+        logger.info('done - %.1f MB' % (len(res) / (1024 * 1024.0)))
+        return res
 
 
 def document_final_pass_before_toc(soup, remove, remove_selectors):
     logger.info('reorganizing contents in <sections>')
 
-    body = soup.find('body')
-    if body is None:
-        msg = 'Cannot find <body>:\n%s' % indent(str(soup)[:1000], '|')
-        raise ValueError(msg)
-    body2 = reorganize_contents(body)
+    with timeit('find body'):
+        body = soup.find('body')
+        if body is None:
+            msg = 'Cannot find <body>:\n%s' % indent(str(soup)[:1000], '|')
+            raise ValueError(msg)
+
+    with timeit('reorganize_contents'):
+        body2 = reorganize_contents(body)
+
     body.replace_with(body2)
 
     # Removing stuff
-    do_remove_stuff(body2, remove_selectors, remove)
-    move_things_around(soup=soup)
+    with timeit('remove stuff'):
+        do_remove_stuff(body2, remove_selectors, remove)
+
+    with timeit('move_things_around'):
+        move_things_around(soup=soup)
 
 
 def document_final_pass_after_toc(soup, resolve_references=True):
@@ -395,13 +426,17 @@ def reorganize_contents(body0, add_debug_comments=False):
     """
     if False:
         write_data_to_file(str(body0), 'before-reorg.html')
-    reorganized = reorganize_by_parts(body0)
+
+    with timeit('reorganize_by_parts'):
+        reorganized = reorganize_by_parts(body0)
+
+    with timeit('dissolving'):
 
     # now dissolve all the elements of the type <div class='without-header-inside'>
-    options = ['without-header-inside', 'with-header-inside']
-    for x in reorganized.find_all('div', attrs={'class':
-                                               lambda x: x is not None and x in options}):
-        dissolve(x)
+        options = ['without-header-inside', 'with-header-inside']
+        for x in reorganized.find_all('div', attrs={'class':
+                                                   lambda x: x is not None and x in options}):
+            dissolve(x)
 
     return reorganized
 
@@ -581,8 +616,9 @@ def get_id2filename(filename2contents):
                 continue
 
             if id_ in id2filename:
-                if id_.startswith('MathJax'):
-                    pass
+                for x in ['node', 'clust', 'edge', 'graph', 'MathJax']:
+                    if id_.startswith(x):
+                        break
                 else:
                     logger.error('double element with ID %s' % id_)
 #                    logger.error(str(element.parent()))
@@ -659,28 +695,31 @@ def is_part_marker(x):
 
 
 def reorganize_by_parts(body):
-    elements = body.contents
-    sections = make_sections2(elements, is_part_marker, attrs={'level': 'part-down'})
-    res = tag_like(body)
+    elements = list(body.contents)
+    with timeit('reorganize_by_parts:make_sections'):
+        sections = make_sections2(elements, is_part_marker, attrs={'level': 'part-down'})
 
-    for header, section in sections:
-        if not header:
-            S = Tag(name='section')
-            S.attrs['level'] = 'part'
-            S.attrs['class'] = 'without-header-inside'
-            section2 = reorganize_by_chapters(section)
-            S.append(section2)
-            res.append(S)
-        else:
-            S = Tag(name='section')
-            S.attrs['level'] = 'part'
-            S.attrs['class'] = 'with-header-inside'
-            S.append(header)
-            section2 = reorganize_by_chapters(section)
-            S.append(section2)
-            copy_attributes_from_header(S, header)
-            res.append(S)
-    return res
+    with timeit('reorganize_by_parts:copying'):
+        res = tag_like(body)
+
+        for header, section in sections:
+            if not header:
+                S = Tag(name='section')
+                S.attrs['level'] = 'part'
+                S.attrs['class'] = 'without-header-inside'
+                section2 = reorganize_by_chapters(section)
+                S.append(section2)
+                res.append(S)
+            else:
+                S = Tag(name='section')
+                S.attrs['level'] = 'part'
+                S.attrs['class'] = 'with-header-inside'
+                S.append(header)
+                section2 = reorganize_by_chapters(section)
+                S.append(section2)
+                copy_attributes_from_header(S, header)
+                res.append(S)
+        return res
 
 
 def reorganize_by_chapters(section):
@@ -688,7 +727,7 @@ def reorganize_by_chapters(section):
     def is_chapter_marker(x):
         return isinstance(x, Tag) and x.name == 'h1' and (not 'part' in x.attrs.get('id', ''))
 
-    elements = section.contents
+    elements = list(section.contents)
     sections = make_sections2(elements, is_chapter_marker, attrs={'level': 'sec-down'})
     res = tag_like(section)
     for header, section in sections:
@@ -718,7 +757,7 @@ def reorganize_by_section(section):
     def is_section_marker(x):
         return isinstance(x, Tag) and x.name == 'h2'
 
-    elements = section.contents
+    elements = list(section.contents)
     sections = make_sections2(elements, is_section_marker, attrs={'level': 'sub-down'})
     res = tag_like(section)
     for header, section in sections:
@@ -746,7 +785,7 @@ def reorganize_by_subsection(section):
     def is_section_marker(x):
         return isinstance(x, Tag) and x.name == 'h3'
 
-    elements = section.contents
+    elements = list(section.contents)
     sections = make_sections2(elements, is_section_marker, attrs={'level': 'subsub-down'})
     res = tag_like(section)
     for header, section in sections:
@@ -790,7 +829,7 @@ def copy_attributes_from_header(section, header):
             section.attrs[a] = header.attrs[a]
 
 
-def make_sections2(elements, is_marker, copy=True, element_name='div', attrs={},
+def make_sections2(elements, is_marker, copy=False, element_name='div', attrs={},
                    add_debug_comments=False):
 
     def debug(s):

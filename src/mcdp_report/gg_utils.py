@@ -215,6 +215,45 @@ def gg_get_format(gg, data_format):
         raise ValueError('No known format %r.' % data_format)
 
 
+def resolve_references_to_images(soup, library, raise_errors):
+
+    def resolve_to_realpath(href):
+        ''' Returns the realpath of the resource'''
+        #print('resolving %r' % href)
+        if href.startswith('http'):
+            msg = 'I am not able to download external resources, such as:'
+            msg += '\n  ' + href
+            logger.error(msg)
+            return None
+
+        if '/' in href:
+            href = os.path.basename(href)
+
+        try:
+            f = library._get_file_data(href)
+        except DPSemanticError as e:
+            msg = 'Could not find file %r.' % href
+            logger.error(msg)
+            logger.error(str(e))
+            return None
+
+        realpath = f['realpath']
+        data = f['data']
+
+        check_not_lfs_pointer(realpath, data)
+        return f
+
+    density = MCDPConstants.pdf_to_png_dpi  # dots per inch
+
+    from mcdp_report.embedded_images import embed_img_data, embed_pdf_images
+
+    embed_img_data(soup, resolve_to_realpath, raise_on_error=raise_errors,
+                   embed=False)  # assume link
+
+    # convert and embed PDF
+    embed_pdf_images(soup, resolve_to_realpath, density, raise_on_error=raise_errors)
+
+
 def embed_images_from_library2(soup, library, raise_errors):
     """ Resolves images from library """
 
@@ -243,14 +282,14 @@ def embed_images_from_library2(soup, library, raise_errors):
 
         check_not_lfs_pointer(f['realpath'], data)
         # realpath = f['realpath']
-        return data
+        return f
 
     density = MCDPConstants.pdf_to_png_dpi  # dots per inch
 
     from mcdp_report.embedded_images import embed_img_data, embed_pdf_images
 
     embed_pdf_images(soup, resolve, density, raise_on_error=raise_errors)
-    embed_img_data(soup, resolve, raise_on_error=raise_errors)
+    embed_img_data(soup, resolve, raise_on_error=raise_errors, embed=True)
 
 
 def check_not_lfs_pointer(label, contents):

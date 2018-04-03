@@ -28,7 +28,7 @@ def embed_css_files(soup):
                 logger.error(msg)
                 raise Exception(msg)
             else:
-                logger.info('Embedding %r' % friendly_path(filename))
+#                logger.info('Embedding %r' % friendly_path(filename))
                 data = open(filename).read()
                 style = Tag(name='style')
                 style.attrs['type'] = 'text/css'

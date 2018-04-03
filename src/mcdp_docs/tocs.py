@@ -11,7 +11,6 @@ from mcdp_utils_xml import add_class, bs, note_error2
 from .manual_constants import MCDPManualConstants
 from .toc_number import render_number, number_styles
 
-
 figure_prefixes = ['fig', 'tab', 'subfig', 'code']
 cite_prefixes = ['bib']
 div_latex_prefixes = ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm']
@@ -29,6 +28,7 @@ class GlobalCounter:
 def fix_ids_and_add_missing(soup, globally_unique_id_part):
     for h in soup.findAll(['h1', 'h2', 'h3', 'h4']):
         fix_header_id(h, globally_unique_id_part)
+
 
 def fix_header_id(header, globally_unique_id_part):
     ID = header.get('id', None)
@@ -64,9 +64,9 @@ def fix_header_id(header, globally_unique_id_part):
                     header.insert_after(Comment('Error: ' + msg))
 
 
-
 class InvalidHeaders(ValueError):
     pass
+
 
 def get_things_to_index(soup):
     """
@@ -87,8 +87,8 @@ def get_things_to_index(soup):
         if h.name in ['h1', 'h2', 'h3', 'h4']:
             if not 'id' in h.attrs:
                 msg = 'This header does not have an ID set.'
-                msg +='\n header: ' + str(h)
-                msg +='\nThe function fix_ids_and_add_missing() adds missing IDs.'
+                msg += '\n header: ' + str(h)
+                msg += '\nThe function fix_ids_and_add_missing() adds missing IDs.'
                 raise InvalidHeaders(msg)
 
             h_id = h.attrs['id']
@@ -102,7 +102,7 @@ def get_things_to_index(soup):
                 else:
                     msg = 'I expected that this header would start with either part:,app:,sec:.'
                     msg += '\n' + str(h)
-                    msg +='\nThe function fix_ids_and_add_missing() adds missing IDs and fixes them.'
+                    msg += '\nThe function fix_ids_and_add_missing() adds missing IDs and fixes them.'
                     raise InvalidHeaders(msg)
             elif h.name == 'h2':
                 depth = 4
@@ -143,7 +143,7 @@ def get_things_to_index(soup):
             pass
 
 
-def generate_toc(soup, max_depth=None):
+def generate_toc(soup, max_depth=None, max_levels=2):
     stack = [Item(None, 0, 'root', 'root', [])]
 
     headers_depths = list(get_things_to_index(soup))
@@ -186,7 +186,7 @@ def generate_toc(soup, max_depth=None):
                'appsubsub',
                'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm']
     without_levels = root.copy_excluding_levels(exclude)
-    res = without_levels.to_html(root=True, max_levels=13)
+    res = without_levels.to_html(root=True, max_levels=max_levels)
     return res
 
 
@@ -232,7 +232,7 @@ class Item(object):
             tag=self.tag, depth=self.depth, name=self.name, _id=self.id, items=items)
         return item
 
-    def to_html(self, root, max_levels, ):
+    def to_html(self, root, max_levels,):
         s = u''
         if not root:
             s += (u"""<a class="toc_link toc_link-depth-%s number_name toc_a_for_%s" href="#%s"></a>""" %
@@ -255,6 +255,7 @@ class Item(object):
             yield item
             for item2 in item.depth_first_descendants():
                 yield item2
+
 
 Label = namedtuple('Label', 'what number label_self')
 
@@ -425,6 +426,7 @@ def number_items2(root):
                     for x in allattrs:
                         figcaption.attrs[x] = item.tag.attrs[x]
 
+
 LABEL_NAME = 'label-name'
 LABEL_NUMBER = 'label-number'
 LABEL_WHAT = 'label-what'
@@ -444,11 +446,12 @@ def render(s, counter_state):
         s = s.replace(k, v)
     return s
 
+
 def check_no_patently_wrong_links(soup):
     for a in soup.select('a[href]'):
         href = a.attrs['href']
         if href.startswith('#http:') or href.startswith('#https:'):
-            msg  = """
+            msg = """
 This link is invalid:
 
     URL = %s
@@ -492,6 +495,7 @@ Please remove the "#".
             """ % (href, href[1:])
             note_error2(a, 'syntax error', msg.lstrip())
 
+
 def substituting_empty_links(soup, raise_errors=False):
     '''
 
@@ -504,8 +508,6 @@ def substituting_empty_links(soup, raise_errors=False):
     '''
 
 #     logger.debug('substituting_empty_links')
-
-
 
 #     n = 0
     for le in get_empty_links_to_fragment(soup):
@@ -523,7 +525,7 @@ def substituting_empty_links(soup, raise_errors=False):
             continue
 
         if href.startswith('http:') or href.startswith('https:'):
-            msg  = """
+            msg = """
 This link text is empty:
 
     ELEMENT
@@ -697,6 +699,7 @@ def sub_link(a, element_id, element, raise_errors):
 
 def string_starts_with(prefixes, s):
     return any([s.startswith(_) for _ in prefixes])
+
 
 LinkElement = namedtuple('LinkElement', 'linker eid linked query')
 

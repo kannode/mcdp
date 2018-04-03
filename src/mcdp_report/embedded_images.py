@@ -240,10 +240,16 @@ def get_ext_for_mime(mime):
     return ext
 
 
-def embed_img_data(soup, resolve, raise_on_error, img_extensions=['png', 'jpg', 'jpeg', 'JPEG',
-                                                    'PNG', 'JPG', 'svg', 'SVG']):
+embed_img_data_extensions = ['png', 'jpg', 'jpeg', 'JPEG', 'PNG', 'JPG', 'svg', 'SVG']
+
+
+def embed_img_data(soup, resolve, raise_on_error, img_extensions=embed_img_data_extensions,
+                   embed=True):
     """
         resolve: ref -> str  or None --- how to get the data
+
+        if embed = True, embeds the data. Expects resolve to return the data.
+        if embed = False, just resolves the links. Expects resolve to return the path.
     """
 
     for tag in soup.select('img[src]'):
@@ -271,9 +277,19 @@ def embed_img_data(soup, resolve, raise_on_error, img_extensions=['png', 'jpg', 
                 else:
                     note_error2(tag, 'Resource error', msg)
                     continue
+            file_data = data['data']
+            realpath = data['realpath']
 
-            check_isinstance(data, str)
-            tag['src'] = data_encoded_for_src(data, ext)
+            check_isinstance(data, dict)
+            if embed:
+
+                tag['src'] = data_encoded_for_src(file_data, ext)
+            else:
+
+                if not os.path.exists(realpath):
+                    msg = 'Expecting a path from %r, but does not exist %s' % (href, realpath)
+                    raise Exception(msg)  # XXX
+                tag['src'] = realpath
             break
 
 
@@ -321,8 +337,8 @@ def embed_pdf_image(tag, resolve, density, raise_on_error=True):
         msg = 'I will not embed remote files, such as %s: ' % src
         logger.warning(msg)
 
-    data_pdf = resolve(src)
-    if data_pdf is None:
+    found = resolve(src)
+    if found is None:
         msg = 'Could not find PDF file %r.' % src
         if raise_on_error:
             raise Exception(msg)  # xxx
@@ -330,6 +346,8 @@ def embed_pdf_image(tag, resolve, density, raise_on_error=True):
             note_error2(tag, 'Resource error', msg, ['missing-image'])
             return
 
+    data_pdf = found['data']
+    _realpath = found['realpath']
     # convert PDF to PNG
     # density = pixels per inch
     try:

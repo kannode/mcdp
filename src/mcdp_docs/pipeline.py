@@ -47,6 +47,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
 
         filter_soup(library, soup)
     """
+    from mcdp_report.gg_utils import resolve_references_to_images
     s0 = s
     check_good_use_of_special_paragraphs(s0, realpath)
     raise_missing_image_errors = raise_errors
@@ -174,14 +175,19 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     fix_subfig_references(soup)
 
     library = get_library_from_document(soup, default_library=library)
-    from mcdp_docs.highlight import html_interpret
+
+    from .highlight import html_interpret
     html_interpret(library, soup, generate_pdf=generate_pdf,
                    raise_errors=raise_errors, realpath=realpath)
     if filter_soup is not None:
         filter_soup(library=library, soup=soup)
 
-    embed_images_from_library2(soup=soup, library=library,
-                               raise_errors=raise_missing_image_errors)
+    if False:
+        embed_images_from_library2(soup=soup, library=library,
+                                   raise_errors=raise_missing_image_errors)
+    else:
+        resolve_references_to_images(soup=soup, library=library,
+                                     raise_errors=raise_missing_image_errors)
     make_videos(soup=soup)
 
     if check_refs:
