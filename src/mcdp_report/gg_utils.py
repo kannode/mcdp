@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
-import codecs
 from copy import deepcopy
+import codecs
 import os
 import traceback
 
-from contracts import contract
-from contracts.utils import check_isinstance, raise_desc, indent
 from system_cmd import CmdException, system_cmd_result
 
+from contracts import contract
+from contracts.utils import check_isinstance, raise_desc, indent
 from mcdp import logger, MCDPConstants
 from mcdp.exceptions import mcdp_dev_warning, DPSemanticError
 from mcdp_utils_misc.fileutils import tmpfile
 from mcdp_utils_misc.string_utils import get_md5
 from mcdp_utils_misc.timing import timeit_wall
 from mcdp_utils_xml import bs
-import networkx as nx
 from reprep.constants import MIME_PDF, MIME_PLAIN, MIME_PNG, MIME_SVG
+import networkx as nx
 
 
 def graphviz_run(filename_dot, output, prog='dot'):
@@ -26,7 +26,7 @@ def graphviz_run(filename_dot, output, prog='dot'):
     encoder = suff
 
     cmd = [prog, '-T%s' % encoder, '-o', output, filename_dot]
-    
+
     with timeit_wall('running graphviz on %s' % filename_dot, 1.0):
         try:
             # print('running graphviz')
@@ -43,7 +43,7 @@ def graphviz_run(filename_dot, output, prog='dot'):
             with open(emergency, 'w') as f:
                 f.write(contents)
             raise
-    
+
 
 def gg_deepcopy(ggraph):
     try:
@@ -70,11 +70,13 @@ def graphvizgen_plot(ggraph, output, prog='dot'):
             print('Saved problematic dot as %r.' % filename)
             raise
 
+
 def nx_generic_graphviz_plot(G, output, prog='dot'):
     """ Converts to dot and writes on the file output """
     with tmpfile(".dot") as filename_dot:
         nx.write_dot(G, filename_dot)  # @UndefinedVariable
         graphviz_run(filename_dot, output, prog=prog)
+
 
 def get_dot_string(gg):
     with tmpfile(".dot") as filename_dot:
@@ -109,19 +111,19 @@ def gg_figure(r, name, ggraph, do_png=True, do_pdf=True, do_svg=True,
 
         prog = 'dot'
         try:
-                
+
             if do_png:
                 with f.data_file('graph', MIME_PNG) as filename:
                     graphviz_run(filename_dot, filename, prog=prog)
-    
+
             if do_pdf:
                 with f.data_file('graph_pdf', MIME_PDF) as filename:
                     graphviz_run(filename_dot, filename, prog=prog)
-    
+
             if do_svg:
                 with f.data_file('graph_svg', MIME_SVG) as filename:
                     graphviz_run(filename_dot, filename, prog=prog)
-                    
+
                     from mcdp_report.embedded_images import embed_svg_images
                     data = open(filename).read()
                     soup = bs(data)
@@ -129,8 +131,8 @@ def gg_figure(r, name, ggraph, do_png=True, do_pdf=True, do_svg=True,
                     # does not keep doctype: s = to_html_stripping_fragment(soup)
                     # this will keep the doctype
                     s = str(soup)
-                    s = s.replace('<fragment>','')
-                    s = s.replace('</fragment>','')
+                    s = s.replace('<fragment>', '')
+                    s = s.replace('</fragment>', '')
                     write_bytes_to_file_as_utf8(s, filename)
 
         except CmdException:
@@ -146,19 +148,21 @@ def gg_figure(r, name, ggraph, do_png=True, do_pdf=True, do_svg=True,
             with f.data_file('dot', MIME_PLAIN) as filename:
                 with open(filename, 'w') as f:
                     f.write(s)
-        
+
     return f
 
-    
+
 def write_bytes_to_file_as_utf8(s, filename):
     """ Accept a string s (internally using utf-8) and writes
         it to a file in UTF-8 (first converting to unicode, to do it properly)."""
     check_isinstance(s, bytes)
     u = unicode(s, 'utf-8')
     with codecs.open(filename, 'w', encoding='utf-8') as ff:
-        ff.write(u)     
+        ff.write(u)
+
 
 allowed_formats = ['png', 'pdf', 'svg', 'dot']
+
 
 @contract(returns='tuple')
 def gg_get_formats(gg, data_formats):
@@ -167,19 +171,18 @@ def gg_get_formats(gg, data_formats):
     mcdp_dev_warning('TODO: optimize gg_get_formats')
     for data_format in data_formats:
         if not data_format in allowed_formats:
-            msg = 'Invalid data format.' 
+            msg = 'Invalid data format.'
             raise_desc(ValueError, msg, data_formats=data_formats)
 
         if data_format == 'dot':
             d = get_dot_string(gg)
         else:
             d = gg_get_format(gg, data_format)
-            
+
         res.append(d)
     return tuple(res)
- 
-     
-    
+
+
 def gg_get_format(gg, data_format):
     from reprep import Report
     r = Report()
@@ -188,7 +191,7 @@ def gg_get_format(gg, data_format):
     do_pdf = data_format == 'pdf'
     do_svg = data_format == 'svg'
 
-    with timeit_wall('gg_figure %s' % data_format): 
+    with timeit_wall('gg_figure %s' % data_format):
         gg_figure(r, 'graph', gg, do_dot=do_dot,
                     do_png=do_png, do_pdf=do_pdf, do_svg=do_svg)
 
@@ -206,7 +209,7 @@ def gg_get_format(gg, data_format):
         if '<html>' in svg:
             msg = 'I did not expect a tag <html> in the SVG output'
             svg = indent(svg, '> ')
-            raise_desc(Exception, msg, svg=svg) 
+            raise_desc(Exception, msg, svg=svg)
         return svg
     else:
         raise ValueError('No known format %r.' % data_format)
@@ -214,44 +217,46 @@ def gg_get_format(gg, data_format):
 
 def embed_images_from_library2(soup, library, raise_errors):
     """ Resolves images from library """
-    
+
     def resolve(href):
         #print('resolving %r' % href)
         if href.startswith('http'):
             msg = 'I am not able to download external resources, such as:'
-            msg += '\n  '  + href
+            msg += '\n  ' + href
             logger.error(msg)
             return None
-        
+
+        if '/' in href:
+            href = os.path.basename(href)
         try:
             f = library._get_file_data(href)
         except DPSemanticError as e:
 #             if raise_errors:
 #                 raise
 #             else:
+
             msg = 'Could not find file %r.' % href
             logger.error(msg)
             logger.error(str(e))
             return None
         data = f['data']
-        
+
         check_not_lfs_pointer(f['realpath'], data)
         # realpath = f['realpath']
         return data
-            
-    density = MCDPConstants.pdf_to_png_dpi # dots per inch
-    
+
+    density = MCDPConstants.pdf_to_png_dpi  # dots per inch
+
     from mcdp_report.embedded_images import embed_img_data, embed_pdf_images
-    
+
     embed_pdf_images(soup, resolve, density, raise_on_error=raise_errors)
     embed_img_data(soup, resolve, raise_on_error=raise_errors)
-    
-         
+
 
 def check_not_lfs_pointer(label, contents):
     if 'git-lfs.github.com' in contents:
         msg = 'File %s is actually a git lfs pointer.' % label
         msg += '\nThis means that you have not installed Git LFS.'
         msg += '\nAfter that, perhaps you might recover using `git lfs pull`.'
-        raise Exception(msg )
-        
+        raise Exception(msg)
+

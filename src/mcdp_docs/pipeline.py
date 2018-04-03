@@ -187,12 +187,14 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     if check_refs:
         check_if_any_href_is_invalid(soup)
 
-    if getuser() == 'andrea':
-        if MCDPConstants.preprocess_style_using_less:
-            run_lessc(soup)
-        else:
-            logger.warning(
-                'preprocess_style_using_less=False might break the manual')
+    if False:
+        if getuser() == 'andrea':
+            if MCDPConstants.preprocess_style_using_less:
+                run_lessc(soup)
+            else:
+                logger.warning(
+                    'preprocess_style_using_less=False might break the manual')
+
     fix_validation_problems(soup)
 
     strip_pre(soup)
