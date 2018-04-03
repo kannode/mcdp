@@ -528,3 +528,4 @@ A _emphasis_.
 
 if __name__ == '__main__':
     run_module_tests()
+
