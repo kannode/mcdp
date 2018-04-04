@@ -99,7 +99,7 @@ def save_css(soup, fo, assets_dir):
         link.attrs['href'] = dest_rel
 
         style.replace_with(link)
-        print link
+#        print link
 
 
 def save_images_locally(soup, fo, assets_dir):
@@ -124,8 +124,8 @@ def save_images_locally(soup, fo, assets_dir):
 
             if not os.path.exists(dest_abs):
                 shutil.copy(src, dest_abs)
-            print('new link: %s' % dest_rel)
-            print('new res: %s' % dest_abs)
+#            print('new link: %s' % dest_rel)
+#            print('new res: %s' % dest_abs)
             tag.attrs['src'] = dest_rel
 
 
