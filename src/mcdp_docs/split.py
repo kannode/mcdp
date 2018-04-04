@@ -33,17 +33,8 @@ if show_timing:
 else:
 
     @contextmanager
-    def timeit(s):
+    def timeit(_s):
         yield
-
-#
-#@contextmanager
-#def timeit(s):
-#    t0 = time.clock()
-#    yield
-#    delta = time.clock() - t0
-#    if show_timing:
-#        logger.debug('%10d ms: %s' % (1000 * delta, s))
 
 
 def make_page(contents, head0, add_toc):
@@ -58,7 +49,6 @@ def make_page(contents, head0, add_toc):
         if add_toc is not None:
             tocdiv = Tag(name='div')
             tocdiv.attrs['id'] = 'tocdiv'
-#            tocdiv.append("TOCHERE")
             tocdiv.append(add_toc)
 
     section_name = get_first_header_title(contents)
@@ -70,9 +60,6 @@ def make_page(contents, head0, add_toc):
 
         title = head.find('title')
         if title is None:
-#             msg = 'Cannot find the "title" element'
-#             msg += '\n' + indent(str(head)[:500], 'head')
-#             raise Exception(msg)
             head.append(title2)
         else:
             title.replace_with(title2)
@@ -103,10 +90,6 @@ def only_second_part(mathjax, preamble, html, id2filename, filename):
         with timeit('add_mathjax_call'):
             add_mathjax_call(html)
 
-#     if disqus:
-#         with timeit('disqus'):
-#             append_disqus(filename, html)
-
     with timeit('update_refs_'):
         update_refs_(filename, html, id2filename)
 
@@ -133,7 +116,6 @@ class Split(QuickApp):
         output_dir = self.options.output_dir
         mathjax = self.options.mathjax
         preamble = self.options.preamble
-#         disqus = self.options.disqus
         nworkers = self.options.workers
         logger.setLevel(logging.DEBUG)
 
@@ -166,9 +148,9 @@ def notification(_jobs, output_dir):
 
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
     with timeit("parsing"):
-#        soup = read_html_doc_from_file(ifilename)
         soup = bs_entire_document(data)
         embed_css_files(soup)
+
     # extract the main toc if it is there
 
     with timeit("Extracting main_toc"):
@@ -226,7 +208,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
             pointed_to.append(f)
 
     data = ",".join(pointed_to)
-    links_hash = get_md5(data)[:8]
+#    links_hash = get_md5(data)[:8]
 #     if self.options.faster_but_imprecise:
 #         links_hash = "nohash"
 #
@@ -240,7 +222,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
 
     tmpd = create_tmpdir()
 
-    n = len(filename2contents)
+#    n = len(filename2contents)
     with timeit('main_toc copy'):
         main_toc0 = main_toc.__copy__()
 

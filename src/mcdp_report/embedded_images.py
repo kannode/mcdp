@@ -116,8 +116,6 @@ def extract_img_to_file(soup, savefile):
         Saves a file called "name.ong" with the data "data"
         in the same directory as where the soup will be.
 
-
-
     """
     # first do this, otherwise we cannot embed the stuff
 
