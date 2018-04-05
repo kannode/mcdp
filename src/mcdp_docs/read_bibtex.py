@@ -7,6 +7,7 @@ from system_cmd import system_cmd_result
 from contracts import contract
 from mcdp import logger
 from mcdp_utils_misc import tmpdir
+from mcdp_utils_misc.fileutils import write_data_to_file
 from mcdp_utils_xml import bs
 
 
