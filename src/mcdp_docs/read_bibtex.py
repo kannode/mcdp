@@ -2,9 +2,9 @@
 import os
 
 from bs4 import Tag, NavigableString, BeautifulSoup
-from contracts import contract
 from system_cmd import system_cmd_result
 
+from contracts import contract
 from mcdp import logger
 from mcdp_utils_misc import tmpdir
 from mcdp_utils_xml import bs
@@ -26,7 +26,8 @@ from mcdp_utils_xml import bs
 # </dd>
 @contract(contents='str', returns='str')
 def run_bibtex2html(contents):
-    with tmpdir(prefix='bibtex', erase=False, keep_on_exception=True) as d:
+    erase = True
+    with tmpdir(prefix='bibtex', erase=erase, keep_on_exception=True) as d:
         fn = os.path.join(d, 'input.bib')
         fno = os.path.join(d, 'out')
         fno1 = fno + '.html'
@@ -56,16 +57,14 @@ def run_bibtex2html(contents):
 
         out = process_bibtex2html_output(fixed, d)
 
-        with open(os.path.join(d, 'processed.html'), 'w') as f:
-            f.write(out)
-#        print('processed:\n' + out)
-        print('see also %s' % d)
+        write_data_to_file(out, os.path.join(d, 'processed.html'))
+
         return out
 
 
 def process_bibtex2html_output(bibtex2html_output, d):
-    """ 
-        From the bibtex2html output, get clean version. 
+    """
+        From the bibtex2html output, get clean version.
     """
 #    frag = bs(bibtex2html_output)
     frag = BeautifulSoup(bibtex2html_output, 'html.parser')
@@ -121,5 +120,4 @@ def extract_bibtex_blocks(soup):
         else:
             code.extract()
     return s
-
 

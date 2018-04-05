@@ -9,7 +9,6 @@ from mcdp_report.embedded_images import extract_img_to_file
 from mcdp_utils_misc import write_data_to_file
 from mcdp_utils_misc.string_utils import get_md5
 from mcdp_utils_xml import read_html_doc_from_file, write_html_doc_to_file
-from mcdp_utils_xml.project_text import gettext
 from quickapp import QuickAppBase
 
 from .logs import logger
