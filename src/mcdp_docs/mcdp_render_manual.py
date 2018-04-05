@@ -13,8 +13,7 @@ from mcdp.exceptions import DPSyntaxError
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file
-from mcdp_utils_misc.fileutils import read_file_encoded_as_utf8, \
-    read_data_from_file
+from mcdp_utils_misc.fileutils import read_data_from_file
 from quickapp import QuickApp
 from reprep.utils import natsorted
 
@@ -341,16 +340,17 @@ def render_book(src_dirs, generate_pdf,
         msg = 'Could not compile %s' % realpath
         raise_wrapped(DPSyntaxError, e, msg, compact=True)
 
-    doc = get_minimal_document(html_contents,
-                               add_markdown_css=True, extra_css=extra_css)
-    dirname = main_file + '.parts'
-    if dirname and not os.path.exists(dirname):
-        try:
-            os.makedirs(dirname)
-        except:
-            pass
-    fn = os.path.join(dirname, '%s.html' % out_part_basename)
-    write_data_to_file(doc, fn)
+    if False:  # write minimal doc
+        doc = get_minimal_document(html_contents,
+                                   add_markdown_css=True, extra_css=extra_css)
+        dirname = main_file + '.parts'
+        if dirname and not os.path.exists(dirname):
+            try:
+                os.makedirs(dirname)
+            except:
+                pass
+        fn = os.path.join(dirname, '%s.html' % out_part_basename)
+        write_data_to_file(doc, fn)
 
     return html_contents
 

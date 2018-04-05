@@ -220,7 +220,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
     if True:
         context.comp(remove_spurious, output_dir, list(filename2contents))
 
-    tmpd = create_tmpdir()
+#    tmpd = create_tmpdir()
 
 #    n = len(filename2contents)
     with timeit('main_toc copy'):
@@ -257,11 +257,11 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
 
             fn = os.path.join(output_dir, filename)
 
-            fn0 = os.path.join(tmpd, filename)
-            write_data_to_file(result, fn0, quiet=True)
+#            fn0 = os.path.join(tmpd, filename)
+#            write_data_to_file(result, fn0, quiet=True)
 
             h = get_md5(result)[:8]
-            r = context.comp(extract_assets_from_file, fn0, fn, assets_dir,
+            r = context.comp(extract_assets_from_file, result, fn, assets_dir,
                          job_id='assets-%s' % h)
             asset_jobs.append(r)
     return context.comp(wait_assets, asset_jobs)

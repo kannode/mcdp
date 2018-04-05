@@ -8,7 +8,8 @@ from mcdp_cli.utils_mkdir import mkdirs_thread_safe
 from mcdp_report.embedded_images import extract_img_to_file
 from mcdp_utils_misc import write_data_to_file
 from mcdp_utils_misc.string_utils import get_md5
-from mcdp_utils_xml import read_html_doc_from_file, write_html_doc_to_file
+from mcdp_utils_xml import  write_html_doc_to_file
+from mcdp_utils_xml.parsing import bs_entire_document
 from quickapp import QuickAppBase
 
 from .logs import logger
@@ -48,7 +49,7 @@ class ExtractAssets(QuickAppBase):
 extract_assets_main = ExtractAssets.get_sys_main()
 
 
-def extract_assets_from_file(fi, fo, assets_dir):
+def extract_assets_from_file(data, fo, assets_dir):
 #     logger.info('Extracting assets ___')
 #     logger.info('Input: %s' % fi)
 #     logger.info('Output: %s' % fo)
@@ -58,8 +59,9 @@ def extract_assets_from_file(fi, fo, assets_dir):
     if not os.path.exists(assets_dir):
         mkdirs_thread_safe(assets_dir)
 
-    soup = read_html_doc_from_file(fi)
-    s0 = os.path.getsize(fi)
+#    soup = read_html_doc_from_file(fi)
+    s0 = len(data)
+    soup = bs_entire_document(data)
 
     def savefile(filename_hint, data):
         """ must return the url (might be equal to filename) """
