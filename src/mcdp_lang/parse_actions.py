@@ -8,30 +8,31 @@ from nose.tools import assert_equal
 
 from contracts import contract
 from contracts.utils import raise_desc, raise_wrapped, check_isinstance, indent
-from mcdp_utils_misc.timing import timeit
-from mcdp_lang_utils import Where, line_and_col, location
 from mcdp import logger, MCDPConstants
+from mcdp.development import mcdp_dev_warning, do_extra_checks
 from mcdp.exceptions import (DPInternalError, DPSemanticError, DPSyntaxError,
                               MCDPExceptionWithWhere)
+from mcdp_lang_utils import Where, line_and_col, location
+from mcdp_lang_utils.where import format_where
+from mcdp_utils_misc.timing import timeit
 
+from .find_parsing_el import find_parsing_element
 from .fix_whitespace_imp import fix_whitespace
 from .namedtuple_tricks import get_copy_with_where, recursive_print
 from .parts import CDPLanguage
 from .pyparsing_bundled import ParseException, ParseFatalException
 from .utils import isnamedtupleinstance, parse_action
 from .utils_lists import make_list, unwrap_list
-from .find_parsing_el import find_parsing_element
-from mcdp.development import mcdp_dev_warning, do_extra_checks
-from mcdp_lang_utils.where import format_where
-
 
 CDP = CDPLanguage
+
 
 def copy_expr_remove_action(expr):
     """ Use this instead of copy() """
     e2 = expr.copy()
     e2.parseAction = []
     return e2
+
 
 @decorator
 def decorate_add_where(f, *args, **kwargs):
@@ -108,7 +109,9 @@ def raise_with_info(e, where, tb):
     args = (error, use_where, stack)
     raise type(e), args, tb
 
+
 def wheredecorator(b):
+
     def bb(tokens, loc, s):
         where = Where(s, loc)
         try:
@@ -138,10 +141,13 @@ def wheredecorator(b):
             res = get_copy_with_where(res, where=where)
 
         return res
+
     return bb
+
 
 def spa(x, b):
     bb = wheredecorator(b)
+
     @parse_action
     def p(tokens, loc, s):
         #print('spa(): parsing %s %r %r %r ' % (x, tokens, loc, s))
@@ -176,6 +182,7 @@ def spa(x, b):
         raise_desc(DPInternalError, msg, x=x, new_action=b)
 
     x.setParseAction(p)
+
 
 @parse_action
 def dp_model_statements_parse_action(tokens):
@@ -224,6 +231,7 @@ def plus_parse_action(tokens):
     res = CDP.PlusN(l, where=l.where)
     return res
 
+
 @parse_action
 @wheredecorator
 def rvalue_minus_parse_action(tokens):
@@ -252,6 +260,7 @@ def fvalue_minus_parse_action(tokens):
 #             return tokens.pop(i)
 #     return None
 
+
 @parse_action
 def space_product_parse_action(tokens):
     tokens = list(tokens[0])
@@ -278,6 +287,7 @@ def plus_inv_parse_action(tokens):
     ops = make_list(tokens)
     return CDP.InvPlus(ops, where=ops.where)
 
+
 def parse_wrap_filename(expr, filename):
     with open(filename) as f:
         contents = f.read()
@@ -285,6 +295,7 @@ def parse_wrap_filename(expr, filename):
         return parse_wrap(expr, contents)
     except MCDPExceptionWithWhere  as e:
         raise e.with_filename(filename)
+
 
 def translate_where(where0, string):
     """
@@ -315,6 +326,7 @@ def translate_where(where0, string):
     where = Where(string=string, character=character2, character_end=character_end2)
     return where
 
+
 def parse_wrap(expr, string):
 
     """
@@ -322,7 +334,6 @@ def parse_wrap(expr, string):
 
         transparent to MemoryError
     """
-
 
     from .refinement import namedtuple_visitor_ext
 
@@ -352,10 +363,10 @@ def parse_wrap(expr, string):
         with timeit(w, MCDPConstants.parsing_too_slow_threshold):
             expr.parseWithTabs()
 
-
             parsed = expr.parseString(string0, parseAll=True)  # [0]
+
             def transform(x, parents):  # @UnusedVariable
-                if x.where is None: # pragma: no cover
+                if x.where is None:  # pragma: no cover
                     msg = 'Where is None for this element'
                     raise_desc(DPInternalError, msg, x=recursive_print(x),
                                all=recursive_print(parsed[0]))
@@ -377,7 +388,7 @@ def parse_wrap(expr, string):
         where2 = translate_where(where1, string)
         s0 = e.__str__()
         check_isinstance(s0, bytes)
-        s = s0
+        s = 'Could not parse as %s:\n' % (expr) + s0
         e2 = DPSyntaxError(s, where=where2)
         raise DPSyntaxError, e2.args, sys.exc_info()[2]
 
@@ -397,13 +408,16 @@ def parse_wrap(expr, string):
         msg += '\n' + indent(string, 'string: ')
         raise_wrapped(DPInternalError, e, msg)
 
+
 def remove_comments(s):
     lines = s.split("\n")
+
     def remove_comment(line):
         if '#' in line:
             return line[:line.index('#')]
         else:
             return line
+
     return "\n".join(map(remove_comment, lines))
 
 
@@ -412,7 +426,7 @@ def parse_line(line):
     return parse_wrap(Syntax.line_expr, line)[0]
 
 
-@contract(name= CDP.DPName)
+@contract(name=CDP.DPName)
 def funshortcut1m(provides, fnames, prep_using, name):
     return CDP.FunShortcut1m(provides=provides,
                              fnames=fnames,
@@ -428,7 +442,7 @@ def resshortcut1m(requires, rnames, prep_for, name):
 
 def parse_pint_unit(tokens):
     tokens = list(tokens)
-    pint_string = " ".join(tokens) #_.encode('utf-8') for _ in tokens)
+    pint_string = " ".join(tokens)  #_.encode('utf-8') for _ in tokens)
     return CDP.RcompUnit(pint_string)
 
 

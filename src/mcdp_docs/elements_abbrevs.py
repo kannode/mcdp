@@ -16,15 +16,16 @@ def other_abbrevs(soup):
         <s> (strikeout!) -> <span> 
         
         <p>TODO:...</p> -> <div class="todo"><p><span>TODO:</span></p>
-    """ 
+    """
     from .task_markers import substitute_task_markers
-   
+
     other_abbrevs_mcdps(soup)
-#     other_abbrevs_envs(soup)
-    
+    #     other_abbrevs_envs(soup)
+
     substitute_task_markers(soup)
     substitute_special_paragraphs(soup)
-    
+
+
 def other_abbrevs_mcdps(soup):
     translate = {
         'v': 'mcdp-value',
@@ -33,12 +34,14 @@ def other_abbrevs_mcdps(soup):
         'pos': 'mcdp-poset',
         'poset': 'mcdp-poset',
         's': 'span',
-        
+
     }
     for k, v in translate.items():
         for e in soup.select(k):
             e.name = v
-#             
+
+
+#
 # def other_abbrevs_envs(soup):
 #     # This is not used yet
 #     translate = { 
@@ -54,13 +57,13 @@ def other_abbrevs_mcdps(soup):
 #             for k, v in attrs.items():
 #                 if not k in e.attrs:
 #                     e.attrs[k] = v
-                    
-    
+
+
 prefix2class = {
     'TODO: ': 'todo',
-    'TOWRITE: ': 'special-par-towrite',  
+    'TOWRITE: ': 'special-par-towrite',
     'Task: ': 'special-par-task',
-    'Remark: ': 'special-par-remark',  
+    'Remark: ': 'special-par-remark',
     'Note: ': 'special-par-note',
     'Symptom: ': 'special-par-symptom',
     'Resolution: ': 'special-par-resolution',
@@ -86,11 +89,12 @@ prefix2class = {
     'Motto: ': 'special-par-motto',
     'Recommended: ': 'special-par-recommended',
     'See also: ': 'special-par-see-also',
-    
+
     'Comment: ': 'comment',
     'Question: ': 'question',
     'Doubt: ': 'doubt',
-} 
+}
+
 
 def has_special_line_prefix(line):
     for prefix in prefix2class:
@@ -98,22 +102,24 @@ def has_special_line_prefix(line):
             return prefix
     return None
 
+
 def check_good_use_of_special_paragraphs(md, filename):
     lines = md.split('\n')
     for i in range(1, len(lines)):
         line = lines[i]
-        prev = lines[i-1]
-        
-        prefix = has_special_line_prefix(line)        
+        prev = lines[i - 1]
+
+        prefix = has_special_line_prefix(line)
         if prefix:
             if prev.strip():
                 msg = ('Wrong use of special paragraph indicator. You have '
                        'to leave an empty line before the special paragraph.')
-                c  = location(i, 1, md)
+                c = location(i, 1, md)
                 c_end = c + len(prefix)
                 where = Where(md, c, c_end).with_filename(filename)
                 raise DPSyntaxError(msg, where=where)
 
+        # noinspection PyUnreachableCode,PyUnreachableCode
         if False:
             def looks_like_list_item(s):
                 if s.startswith('--'):
@@ -121,24 +127,21 @@ def check_good_use_of_special_paragraphs(md, filename):
                 if s.startswith('**'):
                     return False
                 return s.startswith('-') or s.startswith('*')
-            
+
             if looks_like_list_item(line):
                 if prev.strip() and not looks_like_list_item(prev):
                     msg = ('Wrong use of list indicator. You have '
                            'to leave an empty line before the list.')
-                    c  = location(i, 1, md)
+                    c = location(i, 1, md)
                     c_end = c + 1
                     where = Where(md, c, c_end).with_filename(filename)
                     raise DPSyntaxError(msg, where=where)
-                
-                
+
 
 def substitute_special_paragraphs(soup):
-    
-    
     for prefix, klass in prefix2class.items():
         substitute_special_paragraph(soup, prefix, klass)
-        
+
     make_details = ['comment', 'question', 'doubt']
     for c in make_details:
         for e in list(soup.select('.%s' % c)):
@@ -150,9 +153,10 @@ def substitute_special_paragraphs(soup):
             rest = e.__copy__()
             details.append(rest)
             e.replace_with(details)
-            
+
+
 #             e.append('Found')
-        
+
 def substitute_special_paragraph(soup, prefix, klass):
     """ 
         Looks for paragraphs that start with a simple string with the given prefix. 
@@ -177,13 +181,13 @@ def substitute_special_paragraph(soup, prefix, klass):
 
         s = c.string
         starts = s.lower().startswith(prefix.lower())
-        if not starts: 
+        if not starts:
             continue
 
         without = s[len(prefix):]
         ns = NavigableString(without)
         c.replaceWith(ns)
-    
+
         div = Tag(name='div')
         add_class(div, klass + '-wrap')
         add_class(p, klass)
@@ -192,4 +196,3 @@ def substitute_special_paragraph(soup, prefix, klass):
         p.extract()
         div.append(p)
         parent.insert(i, div)
-

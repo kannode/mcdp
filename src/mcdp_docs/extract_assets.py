@@ -8,7 +8,7 @@ from mcdp_cli.utils_mkdir import mkdirs_thread_safe
 from mcdp_report.embedded_images import extract_img_to_file
 from mcdp_utils_misc import write_data_to_file
 from mcdp_utils_misc.string_utils import get_md5
-from mcdp_utils_xml import  write_html_doc_to_file
+from mcdp_utils_xml import write_html_doc_to_file
 from mcdp_utils_xml.parsing import bs_entire_document
 from quickapp import QuickAppBase
 
@@ -50,23 +50,16 @@ extract_assets_main = ExtractAssets.get_sys_main()
 
 
 def extract_assets_from_file(data, fo, assets_dir):
-#     logger.info('Extracting assets ___')
-#     logger.info('Input: %s' % fi)
-#     logger.info('Output: %s' % fo)
-#     logger.info('Using assets dir: %s' % assets_dir)
-
     make_sure_dir_exists(fo)
     if not os.path.exists(assets_dir):
         mkdirs_thread_safe(assets_dir)
 
-#    soup = read_html_doc_from_file(fi)
-    s0 = len(data)
     soup = bs_entire_document(data)
 
-    def savefile(filename_hint, data):
+    def savefile(filename_hint, data_):
         """ must return the url (might be equal to filename) """
         where = os.path.join(assets_dir, filename_hint)
-        write_data_to_file(data, where, quiet=True)
+        write_data_to_file(data_, where, quiet=True)
         relative = os.path.relpath(where, os.path.dirname(fo))
         return relative
 
@@ -87,7 +80,7 @@ def save_css(soup, fo, assets_dir):
     for style in soup.select('head style'):
         data = style.text.encode(errors='ignore')
         md5 = get_md5(data)
-        basename = 'style-%s.css' % (md5)
+        basename = 'style-%s.css' % md5
         dest_abs = os.path.join(assets_dir, basename)
         dest_rel = os.path.relpath(dest_abs, os.path.dirname(fo))
         if not os.path.exists(dest_abs):
@@ -100,7 +93,6 @@ def save_css(soup, fo, assets_dir):
         link.attrs['href'] = dest_rel
 
         style.replace_with(link)
-#        print link
 
 
 def save_images_locally(soup, fo, assets_dir):
@@ -125,8 +117,8 @@ def save_images_locally(soup, fo, assets_dir):
 
             if not os.path.exists(dest_abs):
                 shutil.copy(src, dest_abs)
-#            print('new link: %s' % dest_rel)
-#            print('new res: %s' % dest_abs)
+            #            print('new link: %s' % dest_rel)
+            #            print('new res: %s' % dest_abs)
             tag.attrs['src'] = dest_rel
 
 

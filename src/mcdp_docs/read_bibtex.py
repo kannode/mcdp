@@ -8,7 +8,6 @@ from contracts import contract
 from mcdp import logger
 from mcdp_utils_misc import tmpdir
 from mcdp_utils_misc.fileutils import write_data_to_file
-from mcdp_utils_xml import bs
 
 
 #
@@ -67,7 +66,6 @@ def process_bibtex2html_output(bibtex2html_output, d):
     """
         From the bibtex2html output, get clean version.
     """
-#    frag = bs(bibtex2html_output)
     frag = BeautifulSoup(bibtex2html_output, 'html.parser')
 
     with open(os.path.join(d, 'fixed_interpreted.html'), 'w') as f:
@@ -98,7 +96,7 @@ def process_bibtex2html_output(bibtex2html_output, d):
                     s = s.replace(']', '')
                     y = NavigableString(unicode(s, 'utf-8'))
                     x.replace_with(y)
-                    #print('string %r' % x.string)
+                    # print('string %r' % x.string)
                 if isinstance(x, Tag) and x.name == 'a' and x.string == 'bib':
                     x.extract()
         res.append(NavigableString('\n'))
@@ -121,4 +119,3 @@ def extract_bibtex_blocks(soup):
         else:
             code.extract()
     return s
-

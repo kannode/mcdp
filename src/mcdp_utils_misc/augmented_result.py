@@ -2,6 +2,8 @@ from collections import OrderedDict
 import copy
 import inspect
 
+from bs4.element import Tag
+
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
@@ -49,6 +51,50 @@ class Note(object):
             s = indent(s, p + '> ')
         return s
 
+    def as_html(self):
+        div = Tag(name='div')
+        div.attrs['class'] = 'note'
+        pre = Tag(name='pre')
+        if self.msg:
+            pre.append(self.msg)
+        else:
+            pre.append("No messages given.")
+        div.append(pre)
+
+        if self.locations:
+
+            if len(self.locations) > 1:
+                p = Tag(name='p')
+                p.append('These are the locations indicated:')
+                div.append(p)
+
+                dl = Tag(name='dl')
+
+                for k, v in self.locations.items():
+                    dt = Tag(name='dt')
+                    dt.append(k)
+                    dl.append(dt)
+
+                    dd = Tag(name='dd')
+                    dd.append(v.as_html())
+                    dl.append(dd)
+
+                div.append(dl)
+            else:
+                location = list(self.locations.values())[0]
+                div.append(location.as_html())
+        else:
+            p = Tag(name='p')
+            p.append("(No locations provided)")
+            div.append(p)
+
+        s = 'Created by function %s()' % self.created_function
+        s += ' in module %s.' % self.created_module
+        p = Tag(name='p')
+        p.append(s)
+        div.append(s)
+        return div
+
 
 class NoteError(Note):
     pass
@@ -70,6 +116,11 @@ class AugmentedResult(object):
         self.result = None
         self.notes = []
         self.output = []
+
+    def __str__(self):
+        ne = len(self.get_errors())
+        nw = len(self.get_warnings())
+        return 'AugmentedResult(%s err, %s warn, %r)' % (ne, nw, self.result)
 
     def get_errors(self):
         return [_ for _ in self.notes if isinstance(_, NoteError)]
@@ -99,6 +150,10 @@ class AugmentedResult(object):
 
     def info(self, s):
         self.log.append('info: %s' % s)
+
+    def has_result(self):
+        # XXX: this should change
+        return self.result is not None
 
     def set_result(self, x):
         self.result = x
@@ -130,10 +185,72 @@ class AugmentedResult(object):
             s += '\n' + '| (no notes found)'
         return s
 
+    def html_errors(self):
+        notes = self.get_errors()
+        body = Tag(name='body')
+        if not notes:
+            p = Tag(name='p')
+            p.append('There were no errors.')
+            body.append(p)
+        else:
+            p = Tag(name='p')
+            p.append('There were %d errors.' % len(notes))
+            body.append(p)
+
+            for i, note in enumerate(notes):
+                div = note.as_html()
+                div.attrs['class'] = 'error'
+                body.append(div)
+
+        body.append(self.get_html_style())
+        return str(body)
+
+    def get_html_style(self):
+        style = """
+        div.error, div.warning {
+            border-radius: 10px;
+            display: inline-block;
+            padding: 1em;
+
+            margin-bottom: 2em;
+            margin: 1em;
+        }
+        div.error {
+            border: solid 1px red;
+            color: darkred;
+        }
+        div.warning {
+            border: solid 1px orange;
+            color: darkorange;
+        }
+        """
+        s = Tag(name='style')
+        s.append(style)
+        return s
+
+    def html_warnings(self):
+        notes = self.get_warnings()
+        body = Tag(name='body')
+        if not notes:
+            p = Tag(name='p')
+            p.append('There were no warnings.')
+            body.append(p)
+        else:
+            p = Tag(name='p')
+            p.append('There were %d warnings.' % len(notes))
+            body.append(p)
+
+            for i, note in enumerate(notes):
+                div = note.as_html()
+                div.attrs['class'] = 'warning'
+                body.append(div)
+
+        body.append(self.get_html_style())
+        return str(body)
+
     def summary_only_errors(self):
         s = "AugmentedResult (%s)" % self.desc
         notes = self.get_errors()
-
         if notes:
             d = OrderedDict()
             for i, note in enumerate(notes):
@@ -141,7 +258,6 @@ class AugmentedResult(object):
             s += "\n" + indent(pretty_print_dict(d), '| ')
         else:
             s += '\n' + '| (no notes found)'
-
         return s
 
     @contract(note=Note)

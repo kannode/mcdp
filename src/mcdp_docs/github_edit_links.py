@@ -15,7 +15,7 @@ class NoRootRepo(Exception):
 
 @memoize_simple
 def get_repo_root(d):
-    ''' Returns the root of the repo root, or raise ValueError. '''
+    """ Returns the root of the repo root, or raise ValueError. """
     if os.path.exists(os.path.join(d, '.git')):
         return d
     else:
@@ -47,8 +47,8 @@ def add_edit_links(soup, filename):
     relpath = os.path.relpath(filename, repo_root)
 
     repo_base = 'https://github.com/%s/%s' % (org, repo)
-    blob_base = repo_base + '/blob/%s' % (branch)
-    edit_base = repo_base + '/edit/%s' % (branch)
+    blob_base = repo_base + '/blob/%s' % branch
+    edit_base = repo_base + '/edit/%s' % branch
 
     blob_url = blob_base + "/" + relpath
     edit_url = edit_base + "/" + relpath
@@ -68,7 +68,7 @@ def get_repo_information(repo_root):
 
         Raises RepoInfoException.
     """
-    print('Creating a Repo object for root %s' % repo_root)
+    # print('Creating a Repo object for root %s' % repo_root)
     gitrepo = Repo(repo_root)
     try:
         try:

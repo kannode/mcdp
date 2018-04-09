@@ -69,7 +69,7 @@ def manual_join(template, files_contents,
     check_isinstance(files_contents, list)
     with timeit('manual_join'):
 
-        files_contents = [ DocToJoin(*_) for _ in files_contents ]
+        files_contents = [DocToJoin(*_) for _ in files_contents]
 
         # cannot use bs because entire document
         with timeit('parsing template'):
@@ -124,7 +124,7 @@ def manual_join(template, files_contents,
                     body.append(Comment('Beginning of document dump of %r' % docname))
                     body.append(NavigableString('\n\n'))
 
-#                with timeit('copying for %s' % docname):
+                #                with timeit('copying for %s' % docname):
                 try_faster = True
                 if try_faster:
                     for e in list(content.children):
@@ -132,11 +132,11 @@ def manual_join(template, files_contents,
                 else:
                     copy_contents_into(content, body)
 
-#                f = body.find('fragment')
-#                if f:
-#                    msg = 'I found a <fragment> in the manual after %r' % docname
-#                    msg += '\n\n' + indent(str(content), '> ')
-#                    raise Exception(msg)
+                #                f = body.find('fragment')
+                #                if f:
+                #                    msg = 'I found a <fragment> in the manual after %r' % docname
+                #                    msg += '\n\n' + indent(str(content), '> ')
+                #                    raise Exception(msg)
 
                 if add_comments:
                     body.append(NavigableString('\n\n'))
@@ -153,7 +153,7 @@ def manual_join(template, files_contents,
             bibhere = d.find('div', id=ID_PUT_BIB_HERE)
             if bibhere is None:
                 logger.warning(('Could not find #%s in document. '
-                               'Adding one at end of document.') % ID_PUT_BIB_HERE)
+                                'Adding one at end of document.') % ID_PUT_BIB_HERE)
                 bibhere = Tag(name='div')
                 bibhere.attrs['id'] = ID_PUT_BIB_HERE
                 d.find('body').append(bibhere)
@@ -313,7 +313,7 @@ def do_bib(soup, bibhere):
         c = id2cite[ID]
         # remove it from parent
         c.extract()
-#         logger.debug('Extracting cite for %r: %s' % (ID, c))
+        #         logger.debug('Extracting cite for %r: %s' % (ID, c))
         # add to bibliography
         bibhere.append(c)
 
@@ -350,7 +350,7 @@ def warn_for_duplicated_ids(soup):
         if inside_svg:
             continue
 
-        #msg = ('ID %15s: found %s - numbering will be screwed up' % (ID, n))
+        # msg = ('ID %15s: found %s - numbering will be screwed up' % (ID, n))
         # logger.error(msg)
         problematic.append(ID)
 
@@ -364,19 +364,19 @@ def warn_for_duplicated_ids(soup):
 
         for i, e in enumerate(elements[1:]):
             e['id'] = e['id'] + '-duplicate-%d' % (i + 1)
-            #print('changing ID to %r' % e['id'])
+            # print('changing ID to %r' % e['id'])
     if problematic:
         logger.error('The following IDs were duplicated: %s' %
                      ", ".join(problematic))
         logger.error(
-            'I renamed some of them; references and numbering are screwed up')
+                'I renamed some of them; references and numbering are screwed up')
 
 
 def fix_duplicated_ids(basename2soup):
-    '''
+    """
         fragments is a list of soups that might have
         duplicated ids.
-    '''
+    """
     id2frag = {}
     tochange = []  # (i, from, to)
     for basename, fragment in basename2soup.items():
@@ -395,7 +395,7 @@ def fix_duplicated_ids(basename2soup):
                 if id2frag[id_] == basename:
                     # frome the same frag
                     logger.debug(
-                        'duplicated id %r inside frag %s' % (id_, basename))
+                            'duplicated id %r inside frag %s' % (id_, basename))
                 else:
                     # from another frag
                     # we need to rename all references in this fragment
@@ -403,7 +403,7 @@ def fix_duplicated_ids(basename2soup):
                     new_id = id_ + '-' + basename
                     element['id'] = new_id
                     tochange.append((basename, id_, new_id))
-    #logger.info(tochange)
+    # logger.info(tochange)
     for i, id_, new_id in tochange:
         fragment = basename2soup[i]
         for a in fragment.find_all(href="#" + id_):
@@ -424,25 +424,24 @@ def reorganize_contents(body0, add_debug_comments=False):
             h1
 
     """
-    if False:
-        write_data_to_file(str(body0), 'before-reorg.html')
+    # if False:
+        # write_data_to_file(str(body0), 'before-reorg.html')
 
     with timeit('reorganize_by_parts'):
         reorganized = reorganize_by_parts(body0)
 
     with timeit('dissolving'):
 
-    # now dissolve all the elements of the type <div class='without-header-inside'>
+        # now dissolve all the elements of the type <div class='without-header-inside'>
         options = ['without-header-inside', 'with-header-inside']
         for x in reorganized.find_all('div', attrs={'class':
-                                                   lambda x: x is not None and x in options}):
+                                                        lambda x: x is not None and x in options}):
             dissolve(x)
 
     return reorganized
 
 
 def dissolve(x):
-
     index = x.parent.index(x)
     for child in list(x.contents):
         child.extract()
@@ -522,11 +521,11 @@ def split_in_files(body, levels=['sec', 'part']):
     for section in body.select('section.with-header-inside'):
         level = section.attrs['level']
         if level in levels:
-            #section.extract()
+            # section.extract()
             sections.append(section)
 
     for i, section in enumerate(sections):
-        if not 'id' in section.attrs:
+        if 'id' not in section.attrs:
             section.attrs['id'] = 'page%d' % i
 
     filenames = []
@@ -543,16 +542,16 @@ def split_in_files(body, levels=['sec', 'part']):
         id_ = section.attrs['id']
         id_sanitized = id_.replace(':', '_').replace('-', '_').replace('_section', '').replace('/', '_')
 
-#         filename = '%03d_%s.html' % (i, id_sanitized)
-        filename = '%s.html' % (id_sanitized)
+        #         filename = '%03d_%s.html' % (i, id_sanitized)
+        filename = '%s.html' % id_sanitized
 
         if filename in filenames:
-            for i in xrange(1000):
-                filename = '%s-%d.html' % (id_sanitized, i)
-                if not filename in filenames:
+            for ii in xrange(1000):
+                filename = '%s-%d.html' % (id_sanitized, ii)
+                if filename not in filenames:
                     break
 
-        assert not filename in filenames
+        assert filename not in filenames
         filenames.append(filename)
 
     f0 = OrderedDict()
@@ -563,7 +562,7 @@ def split_in_files(body, levels=['sec', 'part']):
 
     for k, v in reversed(f0.items()):
         file2contents[k] = v
-#
+    #
     for filename, section in file2contents.items():
         if len(list(section.descendants)) < 2:
             del file2contents[filename]
@@ -621,7 +620,7 @@ def get_id2filename(filename2contents):
                         break
                 else:
                     logger.error('double element with ID %s' % id_)
-#                    logger.error(str(element.parent()))
+            #                    logger.error(str(element.parent()))
 
             id2filename[id_] = filename
 
@@ -640,7 +639,7 @@ def update_refs(filename2contents, id2filename):
 
 def update_refs_(filename, contents, id2filename):
     test_href = lambda x: x is not None and x.startswith('#')
-    elements = list(contents.find_all('a', attrs={'href':test_href}))
+    elements = list(contents.find_all('a', attrs={'href': test_href}))
     for a in elements:
         href = a.attrs['href']
         assert href[0] == '#'
@@ -653,7 +652,7 @@ def update_refs_(filename, contents, id2filename):
                 add_class(a, 'link-different-file')
             else:
                 # actually it doesn't change
-                new_href = '#%s' % (id_)
+                new_href = '#%s' % id_
                 a.attrs['href'] = new_href
                 add_class(a, 'link-same-file')
 
@@ -866,7 +865,7 @@ def make_sections2(elements, is_marker, copy=False, element_name='div', attrs={}
         sections.append((current_header, current_section))
 
     debug('make_sections: %s found using marker %s' %
-                (len(sections), is_marker.__name__))
+          (len(sections), is_marker.__name__))
     return sections
 
 
@@ -909,6 +908,8 @@ for(fragment in links) {
     if(i>0) {
         rest = fragment.substring(i+1);
         id2fragment[rest] = fragment;
+    } else {
+       id2fragment[fragment] = fragment;
     }
 }
 
@@ -953,7 +954,7 @@ links = %s;
 
 
 def create_link_base(id2filename):
-    ''' Returns a Tag <html> containing the page that is responsible to translate links '''
+    """ Returns a Tag <html> containing the page that is responsible to translate links """
     html = Tag(name='html')
     head = Tag(name='head')
     html.append(head)
@@ -968,9 +969,9 @@ def create_link_base(id2filename):
     script = Tag(name='script')
     script.append(jump_script)
     body.append(script)
-#     pre = Tag(name='pre')
-#     pre.append(str(id2filename))
-#     body.append(pre)
+    #     pre = Tag(name='pre')
+    #     pre.append(str(id2filename))
+    #     body.append(pre)
     return html
 
 
@@ -1014,7 +1015,7 @@ def generate_and_add_toc(soup, toc_selector='div#toc'):
     body = soup.find('body')
     toc = generate_toc(body)
 
-#     logger.info('TOC:\n' + str(toc))
+    #     logger.info('TOC:\n' + str(toc))
     toc_ul = bs(toc).ul
     if toc_ul is None:
         # empty TOC

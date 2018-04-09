@@ -4,7 +4,6 @@ from pygments.lexers import get_lexer_by_name
 from mcdp import logger
 from mcdp_utils_xml import add_class, bs
 
-
 try:
     import pygments  # @UnusedImport
 except ImportError:
@@ -12,7 +11,6 @@ except ImportError:
     msg += '\n\n    pip install --user pygments pygments_markdown_lexer'
     logger.error(msg)
     raise Exception(msg)
-    
 
 
 def strip_pre(soup):
@@ -32,22 +30,23 @@ def strip_pre(soup):
                 if s != s2:
                     element.attrs['trimmed'] = 1
                     s.replace_with(s2)
-            
-    
-def syntax_highlighting(soup):
-    
+
+
+def syntax_highlighting(soup, use_heuristics=False):
+
     from pygments import highlight
     from pygments.formatters import HtmlFormatter  # @UnresolvedImport
-    
+
     try:
         languages = [
             ('markdown', is_markdown, get_lexer_by_name('markdown', stripall=True)),
             ('python', is_python, get_lexer_by_name('python', stripall=True)),
             ('xml', is_xml, get_lexer_by_name('xml', stripall=True)),
-            ('yaml', is_yaml,get_lexer_by_name('yaml', stripall=True)),
+            ('yaml', is_yaml, get_lexer_by_name('yaml', stripall=True)),
             ('cmake', is_cmake, get_lexer_by_name('cmake', stripall=True)),
             ('bash', is_bash, get_lexer_by_name('bash', stripall=True)),
             ('latex', is_latex, get_lexer_by_name('latex', stripall=True)),
+            ('c++', is_cpp, get_lexer_by_name('c++', stripall=True)),
         ]
 
     except Exception as e:
@@ -57,22 +56,16 @@ def syntax_highlighting(soup):
         msg += '\n'
         msg += '\nOriginal error: %s' % str(e)
         raise Exception(msg)
-        
+
     formatter = HtmlFormatter(linenos=False, cssclass="source")
 
-#     styles = formatter.get_style_defs(arg='')
-#     style = Tag(name='style')
-#     style.append(styles)
-#     soup.append(style)
-    
-     
     codes = list(soup.select('code'))
-#     logger.info('codes: %s' % codes)
+
     for code in codes:
         if code.parent.name != 'pre':
             continue
         text = code.text
-        
+
         def subwith(name_, s):
             result = bs(s.encode('utf8'))
             result.name = 'div'
@@ -87,14 +80,15 @@ def syntax_highlighting(soup):
             except:
                 logger.debug(str(code.parent))
                 raise
-        
+
         for name, cond, lexer in languages:
-            if name in code.attrs.get('class','') or cond(code):
+            if name in code.attrs.get('class', '') or (use_heuristics and cond(code)):
                 result = highlight(text, lexer, formatter)
                 subwith(name, result)
                 break
-            
+
 #             logger.debug(indent(code.text, 'not python: '))
+
 
 def is_xml(e):
     assert e.name == 'code'
@@ -106,12 +100,14 @@ def is_xml(e):
     ok |= '<launch>' in t
     return ok
 
+
 def is_markdown(e):
     assert e.name == 'code'
     t = e.text
     ok = False
     ok = ok or '[](' in t
     return ok
+
 
 def is_python(e):
     assert e.name == 'code'
@@ -123,6 +119,7 @@ def is_python(e):
     ok = ok or 'generate_distutils_setup' in t
     ok = ok or 'from ' in t and ' import ' in t
     return ok
+
 
 def is_yaml(e):
     assert e.name == 'code'
@@ -139,6 +136,7 @@ def is_bash(e):
     ok = ok or '#!/bin/bash' in t
     return ok
 
+
 def is_cmake(e):
     assert e.name == 'code'
     t = e.text
@@ -149,9 +147,17 @@ def is_cmake(e):
     return ok
 
 
+def is_cpp(e):
+    assert e.name == 'code'
+    t = e.text
+    ok = False
+#    ok = ok or r'void' in t
+    return ok
+
+
 def is_latex(e):
     assert e.name == 'code'
     t = e.text
-    ok = False 
+    ok = False
     ok = ok or r'\begin{' in t
     return ok

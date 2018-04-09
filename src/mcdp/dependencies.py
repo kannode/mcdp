@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 """ Checks that all important dependencies are installed """
-from .logs import logger
 import traceback
+
+from .logs import logger
 
 __all__ = []
 
 
-def suggest_package(name): # pragma: no cover
+def suggest_package(name):  # pragma: no cover
     msg = """You could try installing the package using:
-    
+
     sudo apt-get install %s
 """ % name
     logger.info(msg)
-    
-try:    
+
+
+try:
     import decent_logs  # @UnusedImport
     import decent_params  # @UnusedImport
     import quickapp  # @UnusedImport
@@ -25,7 +27,7 @@ except ImportError as e:  # pragma: no cover
 try:
     import numpy
     numpy.seterr('raise')
-except ImportError as e: # pragma: no cover
+except ImportError as e:  # pragma: no cover
     logger.error(e)
     suggest_package('python-numpy')
     raise Exception('Numpy not available')
@@ -42,7 +44,7 @@ except ImportError as e:  # pragma: no cover
 
 try:
     import matplotlib  # @UnusedImport @NoMove
-except ImportError as e: # pragma: no cover
+except ImportError as e:  # pragma: no cover
     logger.error(e)
     suggest_package('python-matplotlib')
     msg = 'Matplotlib not available'
@@ -51,9 +53,8 @@ except ImportError as e: # pragma: no cover
 
 try:
     from ruamel import yaml  # @UnusedImport @NoMove
-except ImportError as e: # pragma: no cover
+except ImportError as e:  # pragma: no cover
     logger.error(e)
     msg = 'rueml.yaml package not available'
     logger.error(msg)
-    
-    
+

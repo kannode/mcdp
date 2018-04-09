@@ -94,7 +94,7 @@ def make_last_modified(files_contents, nmax=100):
 
 
 def get_first_header_title(soup):
-    ''' returns attribute label-name '''
+    """ returns attribute label-name """
     a = 'label-name'
     for e in soup.find_all(['h1', 'h2', 'h3']):
         if a in e.attrs:

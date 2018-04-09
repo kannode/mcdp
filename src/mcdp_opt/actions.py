@@ -10,14 +10,13 @@ from mocdp.comp.context import CFunction, CResource, Connection
 
 
 class Action(object):
-
     __metaclass__ = ABCMeta
 
     def __call__(self, opt, s):
         raise NotImplementedError(type(self))
 
-class ActionCreate(Action):
 
+class ActionCreate(Action):
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -67,8 +66,9 @@ class ActionCreate(Action):
     def call(self, opt, s):
         pass
 
+
 class ActionConnect(ActionCreate):
-    
+
     @contract(f=CFunction, r=CResource)
     def __init__(self, f, r):
         self.cfunction = f
@@ -92,11 +92,10 @@ class ActionConnect(ActionCreate):
 
         from mcdp_opt.optimization_state import OptimizationState
         s2 = OptimizationState(opt=opt, options=c.options,
-                                 context=context, executed=executed,
-                                 forbidden=forbidden, lower_bounds=lower_bounds,
-                                 ur=ur, creation_order=opt.get_next_creation())
+                               context=context, executed=executed,
+                               forbidden=forbidden, lower_bounds=lower_bounds,
+                               ur=ur, creation_order=opt.get_next_creation())
         return s2
-
 
     def __repr__(self):
         return "Connect(%s:%s->%s:%s)" % (self.cresource.dp, self.cresource.s,
@@ -104,14 +103,15 @@ class ActionConnect(ActionCreate):
 
     def __eq__(self, a):
         return isinstance(a, ActionAddNDP) and \
-            (a.cfunction, a.cresource) == (self.cfunction, self.cresource)
+               (a.cfunction, a.cresource) == (self.cfunction, self.cresource)
+
 
 class ActionAddNDP(ActionCreate):
     """ Instance id_ndp and connect to cresource """
 
     def __eq__(self, a):
         return isinstance(a, ActionAddNDP) and \
-            (a.id_ndp, a.fname, a.cresource) == (self.id_ndp, self.fname, self.cresource)
+               (a.id_ndp, a.fname, a.cresource) == (self.id_ndp, self.fname, self.cresource)
 
     @contract(id_ndp=str, fname=str, cresource=CResource)
     def __init__(self, id_ndp, fname, cresource):
@@ -163,25 +163,25 @@ class ActionAddNDP(ActionCreate):
 
         from mcdp_opt.optimization_state import OptimizationState
         s2 = OptimizationState(opt=opt, options=c.options,
-                                 context=context, executed=executed,
-                                 forbidden=forbidden, lower_bounds=lower_bounds, ur=ur,
-                                 creation_order=opt.get_next_creation())
+                               context=context, executed=executed,
+                               forbidden=forbidden, lower_bounds=lower_bounds, ur=ur,
+                               creation_order=opt.get_next_creation())
 
         s2.info('Parent: #%s' % c.creation_order)
         s2.info('Action: #%s' % self)
         return s2
-
 
     def __repr__(self):
         return "AddNDP(%s:%s provides %s:%s)" % (self.id_ndp, self.fname,
                                                  self.cresource.dp,
                                                  self.cresource.s)
 
+
 def get_new_lowerbounds(context, name, lower_bounds):
     connections = context.connections
     ndp = context.names[name]
     fnames = ndp.get_fnames()
-    
+
     def get_lb_for_fname(fname):
         cf = CFunction(name, fname)
         is_connected, cresource = get_connection_to_function(connections, cf)
@@ -191,14 +191,14 @@ def get_new_lowerbounds(context, name, lower_bounds):
             F = context.get_ftype(cf)
             lb = F.Us(F.get_minimal_elements())
 
-#         print('lb for %r: %s' % (fname, lb))
+        #         print('lb for %r: %s' % (fname, lb))
         return lb
 
     lbs = []
     for fname in fnames:
         lb = get_lb_for_fname(fname)
         lbs.append(lb)
-    
+
     if len(fnames) == 1:
         lbF = lbs[0]
     else:
@@ -207,7 +207,7 @@ def get_new_lowerbounds(context, name, lower_bounds):
     dp = ndp.get_dp()
 
     ur = dp.solveU(lbF)
-#     print('Solving with %s -> %s ' % (lbF, ur))
+    #     print('Solving with %s -> %s ' % (lbF, ur))
 
     lower_bounds_new = {}
     rnames = ndp.get_rnames()
@@ -222,12 +222,10 @@ def get_new_lowerbounds(context, name, lower_bounds):
 
     return lower_bounds_new
 
-    
+
 @contract(cfunction=CFunction, returns='tuple(*, $CFunction|None)')
 def get_connection_to_function(connections, cfunction):
     for c in connections:
         if c.dp2 == cfunction.dp and c.s2 == cfunction.s:
             return True, CResource(c.dp1, c.s1)
     return False, None
-
-    

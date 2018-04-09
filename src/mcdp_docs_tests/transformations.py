@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from comptests.registrar import comptest, run_module_tests, comptest_fails
 from contracts.utils import raise_desc, indent
+from mcdp_docs.mark.markd import render_markdown
 from mcdp_docs.mark.markdown_transform import censor_markdown_code_blocks
 from mcdp_docs.minimal_doc import get_minimal_document
 from mcdp_docs.pipeline import render_complete
@@ -524,6 +525,33 @@ A _emphasis_.
 
 """
     tryit(s, forbid=['**word**', '*emphasis*', '_emphasis_'])
+
+
+@comptest
+def codeblocks_in_quote():
+
+    s = r"""
+
+> This is a quote
+>
+> ```c++
+> f(x)
+> ```
+>
+> that contained a code block.
+
+"""
+    s2 = render_markdown(s, fix_blockquote_pre=False)
+    assert '<p><code>' in s2
+#<blockquote>
+#<p>This is a quote</p>
+#<p><code>c++
+#f(x)</code></p>
+#<p>that contained a code block.</p>
+#</blockquote>
+    s3 = render_markdown(s, fix_blockquote_pre=True)
+    assert '<p><code>' not in s3
+    assert '<pre><code>' in s3
 
 
 if __name__ == '__main__':

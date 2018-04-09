@@ -108,7 +108,7 @@ class MCDPConstants(object):
 
     # images used to look for icons for DPs
     exts_for_icons = ('png', 'jpg', 'PNG', 'JPG')  # 'jpeg', 'JPEG') # XXX
-#     exts_for_icons = ('png', 'jpg', 'PNG', 'JPG', 'jpeg', 'JPEG') # XXX
+    # exts_for_icons = ('png', 'jpg', 'PNG', 'JPG', 'jpeg', 'JPEG') # XXX
     # all images
     exts_images = exts_for_icons + ('svg', 'SVG', 'pdf', 'PDF')
 
@@ -211,3 +211,4 @@ class MCDPConstants(object):
     # Set to None to avoid
     placeholder_marker_start = '!['
     placeholder_marker_end = ']'
+    allow_tabs = True

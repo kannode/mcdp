@@ -14,7 +14,7 @@ from mcdp_utils_misc import get_md5
 from .latex_inside_equation_abbrevs import replace_inside_equations
 
 
-class LatexProcessingConstants():
+class LatexProcessingConstants:
     justignore = [
         'vfill', 'pagebreak', 'leavevmode', 'clearpage', 'hline',
         'hfill', 'quad', 'qquad', 'noindent',
@@ -854,7 +854,7 @@ def replace_captionsideleft(s):
         else:
             idpart = ""
         res = ('<figure class="captionsideleft caption_left"%s>' % idpart)
-        res += ('%s<figcaption></figcaption></figure>') % second
+        res += '%s<figcaption></figcaption></figure>' % second
 
         return res
 

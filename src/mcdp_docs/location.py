@@ -4,6 +4,8 @@ from collections import OrderedDict
 import inspect
 import os
 
+from bs4.element import Tag
+
 from compmake.utils.friendly_path_imp import friendly_path
 from contracts import contract
 from contracts.interface import location
@@ -30,6 +32,14 @@ class Location(object):
     @abstractmethod
     def get_stack(self):
         """ Returns the set of all locations, including this one. """
+
+    def as_html(self):
+        pre = Tag(name='pre')
+        code = Tag(name='code')
+        s = str(self)
+        code.append(s)
+        pre.append(code)
+        return pre
 
 
 class LocationInString(Location):
@@ -91,6 +101,54 @@ class LocalFile(Location):
         else:
             return [self]
 
+    def as_html(self):
+        div = Tag(name='div')
+        p = Tag(name='p')
+        p.append('Local file ')
+        a = Tag(name='a')
+        a.attrs['href'] = self.filename
+        a.append(self.filename)
+        p.append(a)
+        p.append('.')
+#        a = Tag(name='a')
+#        a.attrs['href'] = 'edit://' + self.filename
+#        a.append('edit')
+        p.append(a)
+
+        div.append(p)
+        div.append(self.github_info.as_html())
+        return div
+
+
+class HTMLIDLocation(Location):
+
+    def __init__(self, element_id):
+
+        self.element_id = element_id
+
+    def get_stack(self):
+        return [self]
+
+    def as_html(self):
+        div = Tag(name='div')
+        p = Tag(name='p')
+        p.append('Jump to ')
+        a = Tag(name='a')
+        a.attrs['href'] = 'link.html#%s' % self.element_id
+        a.append('element in output file')
+        p.append(a)
+        p.append('.')
+        div.append(p)
+
+        return div
+
+    def __repr__(self):
+        d = OrderedDict()
+        d['element_id'] = self.element_id
+        s = "HTMLIDLocation"
+        s += '\n' + indent(pretty_print_dict(d), '| ')
+        return s
+
 
 class SnippetLocation(Location):
 
@@ -99,6 +157,25 @@ class SnippetLocation(Location):
         self.original_file = original_file
         self.line = line
         self.element_id = element_id
+
+    def as_html(self):
+        div = Tag(name='div')
+        p = Tag(name='p')
+        p.append('Jump to ')
+        a = Tag(name='a')
+        a.attrs['href'] = 'link.html#%s' % self.element_id
+        a.append('element in output file')
+        p.append(a)
+        p.append('.')
+        div.append(p)
+
+        p = Tag(name='p')
+        p.append('It happened at line %s of:' % (self.line))
+        div.append(p)
+
+        div.append(self.original_file.as_html())
+
+        return div
 
     def __repr__(self):
         d = OrderedDict()
@@ -115,7 +192,7 @@ class SnippetLocation(Location):
 
 class GithubLocation(Location):
 
-    ''' Represents the location of a file in a Github repository. '''
+    """ Represents the location of a file in a Github repository. """
 
     def __init__(self, org, repo, path, blob_base, blob_url, branch, commit, edit_url):
         self.org = org
@@ -179,8 +256,8 @@ def get_github_location(filename):
     relpath = os.path.relpath(filename, repo_root)
 
     repo_base = 'https://github.com/%s/%s' % (org, repo)
-    blob_base = repo_base + '/blob/%s' % (branch)
-    edit_base = repo_base + '/edit/%s' % (branch)
+    blob_base = repo_base + '/blob/%s' % branch
+    edit_base = repo_base + '/edit/%s' % branch
 
     blob_url = blob_base + "/" + relpath
     edit_url = edit_base + "/" + relpath

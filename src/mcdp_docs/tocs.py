@@ -79,6 +79,7 @@ def get_things_to_index(soup):
     for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'figure', 'div', 'cite']):
 
         if formatter is None:
+            # noinspection PyProtectedMember
             formatter = h._formatter_for_name("html")
 
         if h.has_attr('notoc'):
@@ -155,7 +156,7 @@ def generate_toc(soup, max_depth=None, max_levels=2):
 
         item = Item(header, depth, using, header['id'], [])
 
-        while(stack[-1].depth >= depth):
+        while stack[-1].depth >= depth:
             stack.pop()
         stack[-1].items.append(item)
         stack.append(item)
@@ -497,7 +498,7 @@ Please remove the "#".
 
 
 def substituting_empty_links(soup, raise_errors=False):
-    '''
+    """
 
         default style is [](#sec:systems)  "Chapter 10"
 
@@ -505,7 +506,7 @@ def substituting_empty_links(soup, raise_errors=False):
 
             <a href='#sec:name' class='only_number'></a>
 
-    '''
+    """
 
 #     logger.debug('substituting_empty_links')
 

@@ -1,14 +1,13 @@
-from contextlib import contextmanager
-from multiprocessing import cpu_count
 import getpass
 import logging
 import os
+from contextlib import contextmanager
+from multiprocessing import cpu_count
 
 from bs4.element import Tag
-
 from mcdp import logger
 from mcdp_docs.embed_css import embed_css_files
-from mcdp_utils_misc import get_md5, write_data_to_file, create_tmpdir
+from mcdp_utils_misc import get_md5, write_data_to_file
 from mcdp_utils_misc.timing import timeit_wall
 from mcdp_utils_xml import read_html_doc_from_file
 from mcdp_utils_xml.parsing import bs, bs_entire_document
@@ -227,13 +226,13 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
         main_toc0 = main_toc.__copy__()
 
         main_toc0_s = str(main_toc0)
-        with open('toc0.html', 'w') as f:
-            f.write(main_toc0_s)
+        # with open('toc0.html', 'w') as f:
+        #     f.write(main_toc0_s)
 #        main_toc0_pickle = pickle.dumps(main_toc)
 
     asset_jobs = []
     for i, (filename, contents) in enumerate(filename2contents.items()):
-        if (i % num_workers != worker_i):
+        if i % num_workers != worker_i:
             continue
 
 #        with timeit('main_toc copy'):

@@ -29,7 +29,7 @@ def get_id2element(soup, att):
             duplicates.add(ID)
             other = id2element[ID]
             for e0 in [element, other]:
-                    note_error2(e0, 'Naming', 'More than one element with id %r.' % ID)
+                note_error2(e0, 'Naming', 'More than one element with id %r.' % ID)
         id2element[element[att]] = element
 
     if duplicates:
@@ -40,11 +40,10 @@ def get_id2element(soup, att):
 
 
 def check_if_any_href_is_invalid(soup):
-    '''
-         Checks if references are invalid and tries to correct them.
+    """
+        Checks if references are invalid and tries to correct them.
 
-        if it is of the form "#frag?query" then query is stripped out
-    '''
+    """
 
     errors = []
     math_errors = []
@@ -55,7 +54,7 @@ def check_if_any_href_is_invalid(soup):
 
     for a in soup.select('[href^="#"]'):
         href = a['href']
-        if a.has_attr('class') and  "mjx-svg-href" in a['class']:
+        if a.has_attr('class') and "mjx-svg-href" in a['class']:
             msg = 'Invalid math reference (sorry, no details): href = %s .' % href
             logger.warning(msg)
             a.insert_before(Comment('Error: %s' % msg))
@@ -67,7 +66,7 @@ def check_if_any_href_is_invalid(soup):
         if '?' in ID:
             ID = ID[:ID.index('?')]
 
-        if not ID in id2element:
+        if ID not in id2element:
             # try to fix it
 
             # if there is already a prefix, remove it
@@ -77,10 +76,11 @@ def check_if_any_href_is_invalid(soup):
             else:
                 core = ID
 
-            possible = ['part', 'sec', 'sub', 'subsub', 'fig', 'tab', 'code', 'app', 'appsub',
-                        'appsubsub',
-                        'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
-                        ]
+            possible = [
+                'part', 'sec', 'sub', 'subsub', 'par', 'app', 'appsub', 'appsubsub',
+                'fig', 'tab', 'code',
+                'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
+            ]
             matches = []
             others = []
             for possible_prefix in possible:
@@ -132,9 +132,8 @@ def fix_subfig_references(soup):
         name = a['href'][1:]
 
         alternative = 'sub' + name
-#         print('considering if it exists %r' % alternative)
+        #         print('considering if it exists %r' % alternative)
         if list(soup.select('#' + alternative)):
             newref = '#sub' + name
-#             logger.debug('changing ref %r to %r' % (a['href'],newref))
+            #             logger.debug('changing ref %r to %r' % (a['href'],newref))
             a['href'] = newref
-

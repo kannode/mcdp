@@ -67,7 +67,7 @@ def bs_entire_document(s):
     parsed = BeautifulSoup(s, 'lxml', from_encoding='utf-8')
     if parsed.find('body') is None:
         msg = 'The provided string was not an entire document.'
-        raise ValueError(msg, s=s[:200])
+        raise_desc(ValueError, msg, s=s[:200])
     return parsed
 
 

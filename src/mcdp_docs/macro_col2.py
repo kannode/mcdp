@@ -1,4 +1,4 @@
-'''
+"""
 
 This:
 
@@ -11,14 +11,14 @@ This:
 
 becomes
     <table class='col2'>
-        <tr><td> 
+        <tr><td>
             <a>
         </td><td>
             <b>
         <tr></tr>
     </table>
 
-'''
+"""
 import math
 import re
 

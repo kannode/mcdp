@@ -67,10 +67,11 @@ class CouldNotResolveRef(Exception):
     pass
 
 
+# noinspection PyProtectedMember
 def resolve_reference(ref, defaults):
 
     for k, v in defaults.items():
-        if getattr(ref, k, None) == None:
+        if getattr(ref, k, None) is None:
             ref = ref._replace(**{k:v})
 
     if ref.branch is None:

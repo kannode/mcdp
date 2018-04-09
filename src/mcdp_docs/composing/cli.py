@@ -19,7 +19,7 @@ from mcdp_utils_xml import add_class, get_classes, bs_entire_document
 from quickapp import QuickAppBase
 
 
-class ComposeConfig():
+class ComposeConfig:
     @contract(recipe=Recipe, input_=str, output=str)
     def __init__(self, recipe, input_, output, purl_prefix, remove_status, show_removed):
         check_isinstance(output, str)
@@ -119,7 +119,7 @@ def go(compose_config):
                         e.append(' [%s]' % status)
                 
                 p = Tag(name='p')
-                p.append("This section has been removed because it is in status %r. " % (status))
+                p.append("This section has been removed because it is in status %r. " % status)
                 a = Tag(name='a')
                 a.attrs['href'] = 'http://purl.org/dt/master/%s' % pure_id 
                 a.append("If you are feeling adventurous, you can read it on master.")

@@ -9,15 +9,15 @@ from .manual_constants import MCDPManualConstants
 
 __all__ = ['replace_macros']
 
-def replace_macros(s): 
-    ''' Replaces strings of the type @@{key} 
-    
+def replace_macros(s):
+    """ Replaces strings of the type @@{key}
+
         It looks in MCDPManualConstants.macros
-        
-        Also available 
-        
+
+        Also available
+
             @@{MCDPConstants.name}
-    '''   
+    """
     macros = MCDPManualConstants.macros
     class MyTemplate(Template):
         delimiter = '@@'

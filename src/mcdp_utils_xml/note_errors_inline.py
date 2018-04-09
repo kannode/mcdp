@@ -10,18 +10,18 @@ from mcdp_utils_xml import add_class
 from mcdp_utils_xml.parsing import bs
 
 # class to give to the <details> element
-ERROR_CLASS = 'error' 
+ERROR_CLASS = 'error'
 WARNING_CLASS = 'warning'
 
 
 def search_for_errors(soup):
-    ''' 
+    '''
         Returns a string summarizing all errors
-        marked by note_error() 
+        marked by note_error()
     '''
 
     s = ''
-    for element in soup.select('details.'+ERROR_CLASS):
+    for element in soup.select('details.' + ERROR_CLASS):
         summary = element.summary.text.encode('utf8')
         e2 = element.__copy__()
         e2.summary.extract()
@@ -42,6 +42,7 @@ if __name__ == '__main__':
     else:
         logger.info('No errors found.')
 
+
 def insert_inset(element, short, long_error, klasses=[]):
     """ Inserts an errored details after element """
     details = Tag(name='details')
@@ -51,7 +52,7 @@ def insert_inset(element, short, long_error, klasses=[]):
     details.append(summary)
     pre = Tag(name='pre')
 #     add_class(pre, 'error')
-    
+
     for c in klasses:
         add_class(pre, c)
         add_class(details, c)
@@ -59,6 +60,7 @@ def insert_inset(element, short, long_error, klasses=[]):
     pre.append(long_error)
     details.append(pre)
     element.insert_after(details)
+
 
 @contract(e=BaseException)
 def note_error(tag0, e):
@@ -68,6 +70,7 @@ def note_error(tag0, e):
     long_error = traceback.format_exc(e)
     insert_inset(tag0, short, long_error, [ERROR_CLASS, type(e).__name__])
 
+
 @contract(tag0=Tag, msg=bytes)
 def note_error_msg(tag0, msg):
     check_isinstance(msg, bytes)
@@ -76,19 +79,19 @@ def note_error_msg(tag0, msg):
     long_error = msg
     insert_inset(tag0, short, long_error, [ERROR_CLASS])
 
+
 def note_error2(element, short, long_error, other_classes=[]):
     if 'errored' in element.attrs.get('class', ''):
-        return 
+        return
     add_class(element, 'errored')
-    logger.error(short + '\n'+ long_error)
-    insert_inset(element, short, long_error, [ERROR_CLASS]  + other_classes)
+    logger.error(short + '\n' + long_error)
+    insert_inset(element, short, long_error, [ERROR_CLASS] + other_classes)
     parent = element.parent
     if not 'style' in parent.attrs:
-        parent.attrs['style']= 'display:inline;'
+        parent.attrs['style'] = 'display:inline;'
+
 
 def note_warning2(element, short, long_error, other_classes=[]):
     logger.warning(short + '\n' + long_error)
-    insert_inset(element, short, long_error, [WARNING_CLASS]  + other_classes)
-
-
+    insert_inset(element, short, long_error, [WARNING_CLASS] + other_classes)
 
