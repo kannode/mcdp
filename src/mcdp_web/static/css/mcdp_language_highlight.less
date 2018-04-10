@@ -1,16 +1,16 @@
 @import 'colors';
 
-
-span.Unit, span.Nat, span.Int, span.Rcomp  {
-    color: @unit-color;
+span.Unit, span.Nat, span.Int, span.Rcomp {
+  color: @unit-color;
 }
 
 span.ValueExpr, span.IntegerFraction, span.NatConstant, span.RcompConstant {
-    color: @misc-color;
+  color: @misc-color;
 }
 
-span.RcompUnit { color: @misc-color; }
-
+span.RcompUnit {
+  color: @misc-color;
+}
 
 span.MCDPKeyword,
 span.SubKeyword,
@@ -24,7 +24,7 @@ span.LoadKeyword,
 span.CodeKeyword,
 span.FromLibraryKeyword,
 span.leq, span.geq, span.OpKeyword, span.eq, span.plus, span.times, span.DPWrapToken,
-span.ImplementedbyKeyword , span.FromCatalogueKeyword, span.MCDPTypeKeywor,
+span.ImplementedbyKeyword, span.FromCatalogueKeyword, span.MCDPTypeKeywor,
 span.InstanceKeyword,
 span.CoproductWithNamesChooseKeyword,
 span.MCDPTypeKeyword,
@@ -95,70 +95,92 @@ span.AssertNonemptyKeyword,
 span.AssertEmptyKeyword,
 span.ConstantKeyword,
 span.BetweenKeyword,
-span.BetweenAndKeyword
-{
-    font-weight: bold;
-    color: @keyword-color;
-
-
+span.BetweenAndKeyword {
+  font-weight: bold;
+  color: @keyword-color;
 
 }
 
-span.MAPSTO { font-weight: bold; color: @rcolor;}
-span.MAPSFROM  { font-weight: bold; color: @fcolor;}
+span.MAPSTO {
+  font-weight: bold;
+  color: @rcolor;
+}
 
+span.MAPSFROM {
+  font-weight: bold;
+  color: @fcolor;
+}
 
-span.VName { color: blue; }
+span.VName {
+  color: blue;
+}
+
 /* constant */
-span.CName { color: #333;
-}
-span.SetNameRValue > span.RName { color: @rcolor; }
-span.SetNameFValue > span.FName { color: @fcolor; }
-
-span.SumResources > span.RName { color: @rcolor; }
-span.SumFunctions > span.FName { color: @fcolor; }
-
-span.DerivFunctionName { color: @fcolor; }
-span.DerivResourceName { color: @rcolor; }
-
-
-span.ProvideKeyword, span.RequireKeyword  {
-    font-weight: bold;
-
+span.CName {
+  color: #333;
 }
 
-span.ProductWithLabelsLabel, span.IndexLabel  {
-	color: #cc6600;
+span.SetNameRValue > span.RName {
+  color: @rcolor;
+}
+
+span.SetNameFValue > span.FName {
+  color: @fcolor;
+}
+
+span.SumResources > span.RName {
+  color: @rcolor;
+}
+
+span.SumFunctions > span.FName {
+  color: @fcolor;
+}
+
+span.DerivFunctionName {
+  color: @fcolor;
+}
+
+span.DerivResourceName {
+  color: @rcolor;
+}
+
+span.ProvideKeyword, span.RequireKeyword {
+  font-weight: bold;
+
+}
+
+span.ProductWithLabelsLabel, span.IndexLabel {
+  color: #cc6600;
 }
 
 /* f provided by s */
 span.ProvidedByKeyword,
 span.Function > span.FName {
-    color: @fcolor;
+  color: @fcolor;
 }
 
 /* f required by s */
 span.RequiredByKeyword,
 span.Resource > span.RName {
-    color: @rcolor;
+  color: @rcolor;
 }
 
 /* required rname - this is a function inside */
 span.RequiredKeyword,
 span.NewResource > span.RName {
-    color: @fcolor;
+  color: @fcolor;
 }
 
 /* provided fname - this is a resource inside */
 span.ProvidedKeyword,
 span.NewFunction > span.FName {
-    color: @rcolor;
+  color: @rcolor;
 }
 
 /* provides f [m] */
 
 span.ProvideKeyword {
-    color: @fcolor;
+  color: @fcolor;
 }
 
 span.FunStatement > span.FName,
@@ -167,9 +189,8 @@ span.FunShortcut1m > span.FName,
 span.FunShortcut2 > span.FName,
 span.FunShortcut3 > span.FName,
 span.FunShortcut4 > span.FName,
-span.FunShortcut5 > span.FName
-{
-    color: @fcolor;
+span.FunShortcut5 > span.FName {
+  color: @fcolor;
 }
 
 /* requires r [m] */
@@ -177,7 +198,7 @@ span.FunShortcut5 > span.FName
 /* requires r1, r2*/
 
 span.RequireKeyword {
-    color: @rcolor;
+  color: @rcolor;
 }
 
 span.ResStatement > span.RName,
@@ -187,151 +208,161 @@ span.ResShortcut2 > span.RName,
 span.ResShortcut3 > span.RName,
 span.ResShortcut4 > span.RName,
 span.ResShortcut5 > span.RName {
-    color: @rcolor;
+  color: @rcolor;
 }
 
 span.SetNameRValue > span.SetNameGenericVar {
-    color: @rcolor;
+  color: @rcolor;
 }
+
 span.SetNameFValue > span.SetNameGenericVar {
-    color: @fcolor;
+  color: @fcolor;
 }
+
 /* There is a bug that prevents this from working correctly. */
 /* span.ImpName { color: #cc6600; } */
-span.FuncName { color: #cc6600 ; }
-
+span.FuncName {
+  color: #cc6600;
+}
 
 span.DPName, span.NDPName, span.PosetName, span.TemplateName,
 span.TemplateParamName,
 span.FinitePosetElement,
-span.SingleElementPosetTag
-{
-    color: #a0a;
+span.SingleElementPosetTag {
+  color: #a0a;
 }
 
 span.DPTypeName, span.DPVariableRef {
-    color:  #00f;
-    font-weight: bold;
+  color: #00f;
+  font-weight: bold;
 }
 
 span.comment {
-    color: grey;
+  color: grey;
 }
 
 span.line-gutter {
-    margin-right: 1em;
-    color: grey;
+  margin-right: 1em;
+  color: grey;
 }
 
 span.PlaceholderLabel {
-    color: grey;
-    /*font-style: italic;*/
+  color: grey;
+  /*font-style: italic;*/
 }
 
-
 span.CommentModel {
-    color: purple ;
-    font-weight: bold;
+  color: purple;
+  font-weight: bold;
 }
 
 span.CommentFun {
-    color: @fcolor;
-    font-weight: bold;
+  color: @fcolor;
+  font-weight: bold;
 }
 
 span.CommentRes {
-    color: @rcolor;
-    font-weight: bold;
+  color: @rcolor;
+  font-weight: bold;
 }
-
 
 /* Special case: ≤ does not look good in regular font Courier */
 span.leq, span.geq, span.OpenBraceKeyword, span.CloseBraceKeyword {
-    /*font-family: Courier, monospace;*/
-    font-weight: bold;
+  /*font-family: Courier, monospace;*/
+  font-weight: bold;
 }
-
 
 span.leq, span.geq {
-    font-family: "FreeSerif";
-    // font-size: 75%;
-    font-weight: normal !important;
-}
-span.sum {
-    font-family: "FreeSerif";
-    font-weight: bold;
+  font-family: "FreeSerif";
+  // font-size: 75%;
+  font-weight: normal !important;
 }
 
+span.sum {
+  font-family: "FreeSerif";
+  font-weight: bold;
+}
 
 span.semantic_error {
-    background-color: pink;
+  background-color: pink;
 
 }
 
 span.language_warning {
-    background-color: yellow !important;
+  background-color: yellow !important;
 }
 
-
 span.suggestion {
-    background-color: white;
+  background-color: white;
 }
 
 span.has_tooltip {
-    /*border: solid 1px red;*/
+  /*border: solid 1px red;*/
 }
+
 div.tooltip {
-    position: absolute;
-    visibility: hidden;
+  position: absolute;
+  visibility: hidden;
 }
-span.has_tooltip:hover div.tooltip  {
-    visibility: visible;
-    background-color: yellow !important;
-    padding: 5px;
+
+span.has_tooltip:hover div.tooltip {
+  visibility: visible;
+  background-color: yellow !important;
+  padding: 5px;
 }
 
 span.indentation {
-    border-left: solid 10px white !important;
-    margin-left: -10px !important;
+  border-left: solid 10px white !important;
+  margin-left: -10px !important;
 }
 
 @media screen {
-    /* unsupported by prince */
-    pre, code { tab-size: 4; }
+  /* unsupported by prince */
+  pre, code {
+    tab-size: 4;
+  }
 }
 
 code.keyword {
-    color: #00a;
-    font-weight: bold;
+  color: #00a;
+  font-weight: bold;
 }
 
 /* allow for manual */
-code.FName { color: @fcolor; }
-code.RName { color: @rcolor; }
+code.FName {
+  color: @fcolor;
+}
 
+code.RName {
+  color: @rcolor;
+}
 
-span.ImpName { color: @icolor; }
+span.ImpName {
+  color: @icolor;
+}
 
 code.fvalue {
-    span.ValueExpr, span.RcompUnit {
-        color: @fcolor;
-    }
+  span.ValueExpr, span.RcompUnit {
+    color: @fcolor;
+  }
 }
+
 code.rvalue {
-    span.ValueExpr, span.RcompUnit {
-        color: @rcolor;
-    }
+  span.ValueExpr, span.RcompUnit {
+    color: @rcolor;
+  }
 }
 
 /* for catalogue */
 .CatalogueFun span.ValueExpr,
-.CatalogueFun span.RcompUnit
- { color: @fcolor !important; }
+.CatalogueFun span.RcompUnit {
+  color: @fcolor !important;
+}
+
 .CatalogueRes span.ValueExpr,
-.CatalogueRes span.RcompUnit
-{ color: @rcolor !important; }
-
-
+.CatalogueRes span.RcompUnit {
+  color: @rcolor !important;
+}
 
 //
 // span[class*='Shortcut'] + span[class*='Shortcut'] :first-child{
@@ -340,9 +371,8 @@ code.rvalue {
 //     margin-top: 7pt;
 // }
 
-
 span.CommentFun, .CommentRes {
-    // // border: solid;
-    // display: inline-block;
-    // margin-bottom: 3pt;
+  // // border: solid;
+  // display: inline-block;
+  // margin-bottom: 3pt;
 }

@@ -1,40 +1,40 @@
 
 body {
-	/*padding-left: 3em;*/
-	/*width: 50em;*/
+  /*padding-left: 3em;*/
+  /*width: 50em;*/
 }
 
 pre {
-	background-color: #eee;
-	white-space: pre-wrap;
-	margin-left: 2em;
-	/*margin-top: 2em;*/
-	padding: 10px;
-	border-radius: 10px ;
-	/*display: inline-block;*/
+  background-color: #eee;
+  white-space: pre-wrap;
+  margin-left: 2em;
+  /*margin-top: 2em;*/
+  padding: 10px;
+  border-radius: 10px;
+  /*display: inline-block;*/
 
-	margin-right: 1em;
+  margin-right: 1em;
 
-	/*white-space: pre-wrap;                 /* CSS3 browsers  */
-	/*white-space: -moz-pre-wrap !important; /* 1999+ Mozilla  */
-	/*white-space: -pre-wrap;                /* Opera 4 thru 6 */
-	/*white-space: -o-pre-wrap;              /* Opera 7 and up */
-	/*word-wrap: break-word;                 /* IE 5.5+ and up */
+  /*white-space: pre-wrap;                 /* CSS3 browsers  */
+  /*white-space: -moz-pre-wrap !important; /* 1999+ Mozilla  */
+  /*white-space: -pre-wrap;                /* Opera 4 thru 6 */
+  /*white-space: -o-pre-wrap;              /* Opera 7 and up */
+  /*word-wrap: break-word;                 /* IE 5.5+ and up */
 }
 
 @media screen {
-	pre {
-		box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-	}
+  pre {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  }
 }
 
 details.error {
-	display: inline;
-	border: solid 1px red;
-	padding: 3px;
-	font-size: 80%;
-	margin-right: 2px;
-	margin-left: 2px;
+  display: inline;
+  border: solid 1px red;
+  padding: 3px;
+  font-size: 80%;
+  margin-right: 2px;
+  margin-left: 2px;
 }
 
 details.error summary {
@@ -42,82 +42,101 @@ details.error summary {
 }
 
 details.warning {
-	display: inline;
-	border: solid 1px orange;
-	padding: 3px;
-	font-size: 80%;
-	margin-right: 2px;
-	margin-left: 2px;
+  display: inline;
+  border: solid 1px orange;
+  padding: 3px;
+  font-size: 80%;
+  margin-right: 2px;
+  margin-left: 2px;
 }
 
 details.warning summary {
-	color: orange
+  color: orange
 }
 
-
-
 pre.error, pre.DPSemanticError, pre.DPSyntaxError {
-	color: darkred;
-	// font-weight: bold;
-	// font-size: 70%;
-	white-space: pre-wrap;
+  color: darkred;
+  // font-weight: bold;
+  // font-size: 70%;
+  white-space: pre-wrap;
 }
 
 summary::-webkit-details-marker {
   display: none;
   // font-size: smaller;
 }
+
 details.comment, details.doubt, details.question {
-	font-family: sans-serif;
-	font-size: 80%;
+  font-family: sans-serif;
+  font-size: 80%;
 
-	summary {
+  summary {
 
-		display: inline-block;
-			font-size:smaller;
-			padding: 2px;
-			// border: solid 1px blue;
-	}
-	margin-top: 1.1em;
-	margin-bottom: 1em;
+    display: inline-block;
+    font-size: smaller;
+    padding: 2px;
+    // border: solid 1px blue;
+  }
+  margin-top: 1.1em;
+  margin-bottom: 1em;
 }
 
 @color-question: #dbfce0;
 @color-doubt: pink;
 @color-comment: #dbe8fc;
 
-details.comment summary { color: black; background-color: @color-comment; }
-details[open].comment { background-color: @color-comment; }
-details.doubt summary { color: black; background-color: @color-doubt; }
-details[open].doubt { background-color: @color-doubt; }
-details.question summary { color: black; background-color: @color-question; }
-details[open].question { background-color: @color-question; }
+details.comment summary {
+  color: black;
+  background-color: @color-comment;
+}
+
+details[open].comment {
+  background-color: @color-comment;
+}
+
+details.doubt summary {
+  color: black;
+  background-color: @color-doubt;
+}
+
+details[open].doubt {
+  background-color: @color-doubt;
+}
+
+details.question summary {
+  color: black;
+  background-color: @color-question;
+}
+
+details[open].question {
+  background-color: @color-question;
+}
 
 @media print {
 
-	details.question {
-		background-color: @color-question;
-	}
-	details.comment {
-		background-color: @color-comment;
-	}
-	details.doubt {
-		background-color: @color-doubt;
-	}
-}
+  details.question {
+    background-color: @color-question;
+  }
 
+  details.comment {
+    background-color: @color-comment;
+  }
+
+  details.doubt {
+    background-color: @color-doubt;
+  }
+}
 
 details summary::before {
-	content: '+';
-	margin-right: 3pt;
+  content: '+';
+  margin-right: 3pt;
 }
+
 details[open] summary::before {
-	// display: none;
-	content: '-';
-	margin-right: 3pt;
+  // display: none;
+  content: '-';
+  margin-right: 3pt;
 }
-
-
 
 .ndp_graph_expand,
 .ndp_graph_enclosed,
@@ -125,134 +144,153 @@ details[open] summary::before {
 .ndp_graph_templatized,
 .ndp_graph_templatized_labeled,
 .template_graph_enclosed {
-	max-width: 100%;
-	/*height: auto;*/
+  max-width: 100%;
+  /*height: auto;*/
 }
 
-	/* This screws up wkhtomlpdf */
+/* This screws up wkhtomlpdf */
 @media screen {
 
-.ndp_graph_expand,
-.ndp_graph_enclosed,
-.ndp_graph_normal,
-.ndp_graph_templatized,
-.ndp_graph_templatized_labeled,
-.template_graph_enclosed {
-	height: auto;
-}
-
+  .ndp_graph_expand,
+  .ndp_graph_enclosed,
+  .ndp_graph_normal,
+  .ndp_graph_templatized,
+  .ndp_graph_templatized_labeled,
+  .template_graph_enclosed {
+    height: auto;
+  }
 
 }
 
 span.label_outside {
-	display: block;
-	font-size: 6pt;
-	letter-spacing: 0.4pt;
-	font-family:  "Andale Mono", monospace;
-	text-align: left;
-	padding-left: 1em;
-	padding-bottom: 2pt;
-	font-weight: bold;
-	color: gray;
+  display: block;
+  font-size: 6pt;
+  letter-spacing: 0.4pt;
+  font-family: "Andale Mono", monospace;
+  text-align: left;
+  padding-left: 1em;
+  padding-bottom: 2pt;
+  font-weight: bold;
+  color: gray;
 }
-span.label_outside + * {
-	page-break-before: avoid;
-}
-pre span.label_inside {
-	display: none;
 
-	float: right;
-	font-style:italic;
-	border-radius: 10px ;
-	/*border: solid 1px black; */
-	background-color: #eee;
-	padding: 5px;
-	padding-left: 1em;
-	padding-right: 1em;
-	margin-top: -1.8em;
-	margin-right: 1em;
+span.label_outside + * {
+  page-break-before: avoid;
+}
+
+pre span.label_inside {
+  display: none;
+
+  float: right;
+  font-style: italic;
+  border-radius: 10px;
+  /*border: solid 1px black; */
+  background-color: #eee;
+  padding: 5px;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: -1.8em;
+  margin-right: 1em;
 }
 
 /*svg text {color: red !important;}
 svg { border: solid 1px red; }*/
 
-
-td br.added_before_pre {display: none;}
+td br.added_before_pre {
+  display: none;
+}
 
 /* sometimes we want to text-align: left; the entire pre */
-pre { text-align: left; }
-
+pre {
+  text-align: left;
+}
 
 pre.console {
-	background-color: black;
-	color: #ccf;
-	display: inline-block;
+  background-color: black;
+  color: #ccf;
+  display: inline-block;
 }
 
 @command_color: #cff;
 pre.console .console_sign {
   color: #cfc;
 }
+
 pre.console .program {
   color: @command_color;
 }
+
 pre.console .program_option {
 }
+
 pre.console .program_command {
   color: @command_color;
 }
 
-
-
 /*ol + h4, ul + h4 {color: red;}*/
-h4::after { content: ':'; }
+h4::after {
+  content: ':';
+}
+
 /*ul { margin-bottom: 1em; border: solid; clear: left; margin-left:0; }
 li {border: solid 1px red;}
 */
 h4 {
-	font-size: 100%;
-	font-style: italic;
-	font-weight: normal;
+  font-size: 100%;
+  font-style: italic;
+  font-weight: normal;
 
-	margin-top: 0.5em;
-	/*float: left;
-	clear: left;
+  margin-top: 0.5em;
+  /*float: left;
+  clear: left;
 
-	margin: 0; padding: 0;
-	margin-right: 0.34em;*/
+  margin: 0; padding: 0;
+  margin-right: 0.34em;*/
 
-    /*
-    font-size: 1em; margin: 1em 0;
+  /*
+  font-size: 1em; margin: 1em 0;
 
 
-	display: run-in;
-	 float: left;
-    clear: both;*/
-    /*margin: 0 0.5em 0 0;*/
-    /*border : solid;*/
+  display: run-in;
+   float: left;
+  clear: both;*/
+  /*margin: 0 0.5em 0 0;*/
+  /*border : solid;*/
 }
 
 /*h4 + p {display: inline-block;}*/
 
 /* fix markdonw extra */
-div.latex_env p { display: inline; }
-div.latex_env { margin-top: 0.5em; margin-bottom: 0.5em; }
+div.latex_env p {
+  display: inline;
+}
+
+div.latex_env {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
 
 //
 // Errors
 //
 .errored {
-    /*border: solid 2px red !important;*/
-    /*padding: 3px !important;*/
-    /*background-color: red;*/
+  /*border: solid 2px red !important;*/
+  /*padding: 3px !important;*/
+  /*background-color: red;*/
 }
+
 .duplicated-id {
-    color: red;
+  color: red;
 }
+
 .href-invalid {
-    color: red;
+  color: red;
 }
+
 .href-replaced {
-    background-color: yellow;
+  background-color: yellow;
 }
-.error { color: red; }
+
+.error {
+  color: red;
+}

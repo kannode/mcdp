@@ -1,10 +1,11 @@
+from contextlib import contextmanager
+from multiprocessing import cpu_count
 import getpass
 import logging
 import os
-from contextlib import contextmanager
-from multiprocessing import cpu_count
 
 from bs4.element import Tag
+
 from mcdp import logger
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_utils_misc import get_md5, write_data_to_file
@@ -48,6 +49,12 @@ def make_page(contents, head0, add_toc):
         if add_toc is not None:
             tocdiv = Tag(name='div')
             tocdiv.attrs['id'] = 'tocdiv'
+            a = Tag(name='a')
+            a.append('Home')
+            a.attrs['href'] = 'index.html'
+            p = Tag(name='p')
+            p.append(a)
+            tocdiv.append(p)
             tocdiv.append(add_toc)
 
     section_name = get_first_header_title(contents)
@@ -140,7 +147,7 @@ def create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=0):
 
 def notification(_jobs, output_dir):
     main = os.path.join(output_dir, 'index.html')
-    msg = '\n \n      *** The HTML version is ready at %s *** ' % main
+    msg = '\n \n      The HTML version is ready at %s ' % main
     msg += '\n \n \nPlease wait a few more seconds for the PDF version.'
     logger.info(msg)
 
@@ -281,7 +288,7 @@ split_main = Split.get_sys_main()
 
 
 def remove_spurious(output_dir, filenames):
-    ignore = ['link.html']
+    ignore = ['link.html', 'errors.html', 'warnings.html']
     found = os.listdir(output_dir)
     for f in found:
         if not f.endswith('.html'): continue

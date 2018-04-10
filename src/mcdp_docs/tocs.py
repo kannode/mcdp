@@ -236,8 +236,13 @@ class Item(object):
     def to_html(self, root, max_levels,):
         s = u''
         if not root:
-            s += (u"""<a class="toc_link toc_link-depth-%s number_name toc_a_for_%s" href="#%s"></a>""" %
-                  (self.depth, self.header_level, self.id))
+            if 'nonumber' in self.tag.attrs:
+                CLASS = MCDPManualConstants.CLASS_ONLY_NAME
+            else:
+                CLASS = MCDPManualConstants.CLASS_NUMBER_NAME
+
+            s += (u"""<a class="toc_link toc_link-depth-%s %s toc_a_for_%s" href="#%s"></a>""" %
+                  (self.depth, CLASS, self.header_level, self.id))
 
         if max_levels and self.items:
             s += '<ul class="toc_ul-depth-%s toc_ul_for_%s">' % (
@@ -626,22 +631,24 @@ def sub_link(a, element_id, element, raise_errors):
 #         classes.append(le.query)
 
     if 'toc_link' in classes:
-        s = Tag(name='span')
-        s.string = label_what
-        add_class(s, 'toc_what')
-        a.append(s)
 
-        a.append(' ')
+        if not CLASS_ONLY_NAME in classes:
+            s = Tag(name='span')
+            s.string = label_what
+            add_class(s, 'toc_what')
+            a.append(s)
 
-        s = Tag(name='span')
-        s.string = label_number
-        add_class(s, 'toc_number')
-        a.append(s)
+            a.append(' ')
 
-        s = Tag(name='span')
-        s.string = ' - '
-        add_class(s, 'toc_sep')
-        a.append(s)
+            s = Tag(name='span')
+            s.string = label_number
+            add_class(s, 'toc_number')
+            a.append(s)
+
+            s = Tag(name='span')
+            s.string = ' - '
+            add_class(s, 'toc_sep')
+            a.append(s)
 
         if label_name is not None and '<' in label_name:
             contents = bs(label_name)

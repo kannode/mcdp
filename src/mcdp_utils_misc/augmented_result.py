@@ -15,7 +15,8 @@ class Note(object):
 
     def __init__(self, msg, locations=None, stacklevel=0, prefix=()):
         self.msg = msg
-        if locations is None: locations = OrderedDict()
+        if locations is None:
+            locations = OrderedDict()
         self.locations = OrderedDict(locations)
         stack = inspect.stack()
         self.created_function = stack[1 + stacklevel][3]
@@ -281,7 +282,7 @@ class AugmentedResult(object):
         for n in self.notes:
             have.add(n.msg)
         for note in other.notes:
-            if not note.msg in have:
+            if note.msg not in have:
                 note2 = copy.deepcopy(note)
                 note2.prefix = prefix + note2.prefix
                 self.notes.append(note2)

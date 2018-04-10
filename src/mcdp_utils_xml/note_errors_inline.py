@@ -88,7 +88,8 @@ def note_error2(element, short, long_error, other_classes=[]):
     insert_inset(element, short, long_error, [ERROR_CLASS] + other_classes)
     parent = element.parent
     if not 'style' in parent.attrs:
-        parent.attrs['style'] = 'display:inline;'
+        if parent.name != 'blockquote':
+            parent.attrs['style'] = 'display: inline;'
 
 
 def note_warning2(element, short, long_error, other_classes=[]):

@@ -116,7 +116,8 @@ class LocalFile(Location):
         p.append(a)
 
         div.append(p)
-        div.append(self.github_info.as_html())
+        if self.github_info is not None:
+            div.append(self.github_info.as_html())
         return div
 
 
@@ -306,4 +307,3 @@ def location_from_stack(level):
     lf = LocalFile(filename)
     res = LocationInString(where, lf)
     return res
-

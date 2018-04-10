@@ -1,33 +1,65 @@
 
 .border {
-    border: solid 1pt blue;
-}
-
-
-@page {
-    @left-top    { .border; }
-    @left-middle { .border; }
-    @left-bottom  { .border; }
-    @right-top     { .border; }
-    @right-middle  { .border; }
-    @right-bottom { .border; }
-
-    @top-left-corner{ .border; }
-    @top-left { .border; }
-    @top-center { .border; }
-    @top-right { .border; }
-    @top-right-corner { .border; }
-
-    @bottom-left-corner { .border; }
-    @bottom-left { .border; }
-    @bottom-center { .border; }
-    @bottom-right { .border; }
-    @bottom-right-corner { .border; }
+  border: solid 1pt blue;
 }
 
 @page {
-    border: solid 0.5pt grey;
+  @left-top {
+    .border;
+  }
+  @left-middle {
+    .border;
+  }
+  @left-bottom {
+    .border;
+  }
+  @right-top {
+    .border;
+  }
+  @right-middle {
+    .border;
+  }
+  @right-bottom {
+    .border;
+  }
+
+  @top-left-corner {
+    .border;
+  }
+  @top-left {
+    .border;
+  }
+  @top-center {
+    .border;
+  }
+  @top-right {
+    .border;
+  }
+  @top-right-corner {
+    .border;
+  }
+
+  @bottom-left-corner {
+    .border;
+  }
+  @bottom-left {
+    .border;
+  }
+  @bottom-center {
+    .border;
+  }
+  @bottom-right {
+    .border;
+  }
+  @bottom-right-corner {
+    .border;
+  }
 }
+
+@page {
+  border: solid 0.5pt grey;
+}
+
 //
 // @page {
 //     @left-top { content: 'LT';  }

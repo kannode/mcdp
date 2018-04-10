@@ -540,7 +540,7 @@ img.video-vimeo-thumbnail-deadtree {
   color: #b5ffbb;
 }
 .syntax_highlight .il {
-  color: #666666 ;
+  color: #666666;
 }
 .syntax_highlight .p {
   color: #009ae8;
@@ -626,7 +626,8 @@ ul.toc li {
 .toc_a_for_part {
   display: block;
   font-weight: bold;
-  text-align: center;
+  font-size: 120%;
+  padding-top: 1em;
   color: black !important;
 }
 /*prince-text-replace: "ffi" "\fb03" "fi" "\fb01" "ffl" "\fb04" "fl" "\fb02" "ff" "\fb00";*/
@@ -688,7 +689,7 @@ pre {
   margin-left: 2em;
   /*margin-top: 2em;*/
   padding: 10px;
-  border-radius: 10px ;
+  border-radius: 10px;
   /*display: inline-block;*/
   margin-right: 1em;
   /*white-space: pre-wrap;                 /* CSS3 browsers  */
@@ -823,7 +824,7 @@ pre span.label_inside {
   display: none;
   float: right;
   font-style: italic;
-  border-radius: 10px ;
+  border-radius: 10px;
   /*border: solid 1px black; */
   background-color: #eee;
   padding: 5px;
@@ -868,17 +869,17 @@ h4 {
   font-weight: normal;
   margin-top: 0.5em;
   /*float: left;
-	clear: left;
+  clear: left;
 
-	margin: 0; padding: 0;
-	margin-right: 0.34em;*/
+  margin: 0; padding: 0;
+  margin-right: 0.34em;*/
   /*
-    font-size: 1em; margin: 1em 0;
+  font-size: 1em; margin: 1em 0;
 
 
-	display: run-in;
-	 float: left;
-    clear: both;*/
+  display: run-in;
+   float: left;
+  clear: both;*/
   /*margin: 0 0.5em 0 0;*/
   /*border : solid;*/
 }
@@ -1124,7 +1125,7 @@ span.SetNameFValue > span.SetNameGenericVar {
 /* There is a bug that prevents this from working correctly. */
 /* span.ImpName { color: #cc6600; } */
 span.FuncName {
-  color: #cc6600 ;
+  color: #cc6600;
 }
 span.DPName,
 span.NDPName,
@@ -1152,7 +1153,7 @@ span.PlaceholderLabel {
   /*font-style: italic;*/
 }
 span.CommentModel {
-  color: purple ;
+  color: purple;
   font-weight: bold;
 }
 span.CommentFun {
@@ -1470,6 +1471,15 @@ p + pre,
 pre + p {
   margin-top: 0.7em;
 }
+ul + pre,
+ol + pre,
+h1 + pre,
+h2 + pre,
+h3 + pre,
+h4 + pre,
+h5 + pre {
+  margin-top: 0.7em;
+}
 pre + br + pre {
   margin-top: 0.3em;
   /*border: solid 1px red;*/
@@ -1480,7 +1490,7 @@ div.example-usage {
   background-color: #e8ffe8;
   border-radius: 4px !important;
   padding: 6pt;
-  margin-top: 1em ;
+  margin-top: 1em;
   margin-bottom: 1em;
 }
 div.example-usage::before {
