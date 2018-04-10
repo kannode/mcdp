@@ -309,11 +309,14 @@ def remove_spurious(output_dir, filenames):
                 id_ = e.attrs['id'].replace(':section', '')
                 from mcdp_docs.composing.cli import remove_prefix
 
-                if not 'autoid' in id_:
-                    id_ = remove_prefix(id_)
-                    url = 'http://purl.org/dt/master/' + id_
-                    OTHER = '<p>Maybe try this link to find the version on master (no guarantees): <a href="%s">%s</a></p>' % (url, url)
-                    OTHER += '\n<p>If that does not work, the section was renamed.</p>'
+                if False:
+                    if not 'autoid' in id_:
+                        id_ = remove_prefix(id_)
+                        url = 'http://purl.org/dt/master/' + id_
+                        OTHER = '<p>Maybe try this link to find the version on master (no guarantees): <a href="%s">%s</a></p>' % (url, url)
+                        OTHER += '\n<p>If that does not work, the section was renamed.</p>'
+                    else:
+                        OTHER = ''
                 else:
                     OTHER = ''
             else:
@@ -332,7 +335,7 @@ spurious = """
 <p>This file is a spurious remain from earlier compilation.</p>
 
 <p>If you are reached this file, it means that somebody is not using PURLs
-to link to parts of the book.</p>
+to link to parts of the materials.</p>
 
 OTHER
 
