@@ -197,8 +197,10 @@ def manual_join(template, files_contents,
 
         with timeit('converting to string'):
             res = unicode(d)
+
         with timeit('encoding'):
             res = res.encode('utf8')
+
         logger.info('done - %.1f MB' % (len(res) / (1024 * 1024.0)))
         return res
 

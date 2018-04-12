@@ -210,6 +210,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
 
     if MCDPManualConstants.enforce_status_attribute:
         check_status_codes(soup, realpath)
+
     if MCDPManualConstants.enforce_lang_attribute:
         check_lang_codes(soup)
 
