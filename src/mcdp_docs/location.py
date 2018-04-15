@@ -206,7 +206,9 @@ class SnippetLocation(Location):
         return div
 
     def __repr__(self):
-        s = 'At line %d of:' % self.line
+        s = 'In element #%s.' % self.element_id
+
+        s += '\n\nAt line %d of:' % self.line
 
         s += '\n\n' + str(self.original_file)
         return s
