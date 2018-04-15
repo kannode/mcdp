@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from abc import ABCMeta, abstractmethod
-from collections import OrderedDict
 import inspect
 import os
+from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 
 from bs4.element import Tag
-
-from compmake.utils.friendly_path_imp import friendly_path
 from contracts import contract
 from contracts.interface import location
 from contracts.utils import indent
@@ -18,7 +16,6 @@ from .github_edit_links import get_repo_root, get_repo_information
 
 
 class Location(object):
-
     __metaclass__ = ABCMeta
     """
 
@@ -50,11 +47,22 @@ class LocationInString(Location):
         self.parent = parent
 
     def __repr__(self):
-        s2 = indent(str(self.where), '  ')
-        s2 += '\n\n' + str(self.parent)
-        s = 'Location in string'
-        s += '\n\n' + indent(s2, '| ')
+        s = 'Location in string:'
+        s += '\n\n' + indent(str(self.where), '  ')
+        s += '\n\n' + str(self.parent)
         return s
+
+    def as_html(self):
+        div = Tag(name='div')
+        pre = Tag(name='pre')
+        code = Tag(name='code')
+        code.append(str(self.where))
+        pre.append(code)
+        div.append(pre)
+
+        div.append(self.parent.as_html())
+
+        return div
 
     def get_stack(self):
         return [self] + self.parent.get_stack()
@@ -67,12 +75,13 @@ class LocationUnknown(Location):
         self.caller_location = None  # location_from_stack(level)
 
     def __repr__(self):
-        return "LocationUnknown"
-#         d = OrderedDict()
-#         d['caller'] = self.caller_location
-#         s = "LocationUnknown"
-#         s += '\n' + indent(pretty_print_dict(d), '| ')
-#         return s
+        return "Location unknown"
+
+    #         d = OrderedDict()
+    #         d['caller'] = self.caller_location
+    #         s = "LocationUnknown"
+    #         s += '\n' + indent(pretty_print_dict(d), '| ')
+    #         return s
 
     def get_stack(self):
         return [self]
@@ -85,15 +94,20 @@ class LocalFile(Location):
         self.github_info = get_github_location(filename)
 
     def __repr__(self):
-        d = OrderedDict()
-        d['filename'] = friendly_path(self.filename)
+        s = "In local file %s" % self.filename
         if self.github_info is not None:
-            d['github'] = self.github_info
-        else:
-            d['github'] = '(not available)'
-        s = "LocalFile"
-        s += '\n' + indent(pretty_print_dict(d), '| ')
+            s += '\n\n' + str(self.github_info)
         return s
+
+        # d = OrderedDict()
+        # d['filename'] = friendly_path(self.filename)
+        # if self.github_info is not None:
+        #     d['github'] = self.github_info
+        # else:
+        #     d['github'] = '(not available)'
+        # s = "LocalFile"
+        # s += '\n' + indent(pretty_print_dict(d), '| ')
+        # return s
 
     def get_stack(self):
         if self.github_info is not None:
@@ -110,9 +124,9 @@ class LocalFile(Location):
         a.append(self.filename)
         p.append(a)
         p.append('.')
-#        a = Tag(name='a')
-#        a.attrs['href'] = 'edit://' + self.filename
-#        a.append('edit')
+        #        a = Tag(name='a')
+        #        a.attrs['href'] = 'edit://' + self.filename
+        #        a.append('edit')
         p.append(a)
 
         div.append(p)
@@ -124,7 +138,6 @@ class LocalFile(Location):
 class HTMLIDLocation(Location):
 
     def __init__(self, element_id):
-
         self.element_id = element_id
 
     def get_stack(self):
@@ -171,7 +184,7 @@ class SnippetLocation(Location):
         div.append(p)
 
         p = Tag(name='p')
-        p.append('It happened at line %s of:' % (self.line))
+        p.append('It happened at line %s of:' % self.line)
         div.append(p)
 
         div.append(self.original_file.as_html())
@@ -179,21 +192,29 @@ class SnippetLocation(Location):
         return div
 
     def __repr__(self):
-        d = OrderedDict()
-        d['line'] = self.line
-        d['element_id'] = self.element_id
-        d['original_file'] = self.original_file
-        s = "SnippetLocation"
-        s += '\n' + indent(pretty_print_dict(d), '| ')
+        s = 'At line %d of:' % self.line
+
+        s += '\n\n' + str(self.original_file)
         return s
+
+        # d = OrderedDict()
+        # d['line'] = self.line
+        # d['element_id'] = self.element_id
+        # d['original_file'] = self.original_file
+        # s = "SnippetLocation"
+        # s += '\n' + indent(pretty_print_dict(d), '| ')
+        # return s
 
     def get_stack(self):
         return [self] + self.original_file.get_stack()
 
 
 class GithubLocation(Location):
+    """
+        Represents the location of a file in a Github repository.
 
-    """ Represents the location of a file in a Github repository. """
+
+    """
 
     def __init__(self, org, repo, path, blob_base, blob_url, branch, commit, edit_url):
         self.org = org
@@ -208,13 +229,13 @@ class GithubLocation(Location):
     def __repr__(self):
         d = OrderedDict()
 
-        d['org'] = self.org
-        d['repo'] = self.repo
-        d['path'] = self.path
-#         d['blob_url'] = self.blob_url
-#         d['edit_url'] = self.edit_url
-        d['commit'] = self.commit
+        # d['org'] = self.org
+        d['repo'] = '%s/%s' % (self.org, self.repo)
         d['branch'] = self.branch
+        d['path'] = self.path
+        #         d['blob_url'] = self.blob_url
+        #         d['edit_url'] = self.edit_url
+        d['commit'] = self.commit
 
         s = "GithubLocation"
         s += '\n' + indent(pretty_print_dict(d), '| ')
@@ -238,7 +259,6 @@ class GithubLocation(Location):
 
 @contract(returns='$GithubLocation|None')
 def get_github_location(filename):
-
     try:
         repo_root = get_repo_root(filename)
     except NoRootRepo:

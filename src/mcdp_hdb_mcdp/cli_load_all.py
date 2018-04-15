@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-from collections import namedtuple
-from copy import deepcopy
 import os
 import shutil
 import time
-
-from quickapp import QuickApp
+from collections import namedtuple
+from copy import deepcopy
 
 from contracts import contract
 from contracts.utils import indent
@@ -13,26 +11,18 @@ from mcdp.exceptions import MCDPException, DPSyntaxError, DPSemanticError, \
     DPNotImplementedError
 from mcdp.logs import logger
 from mcdp_hdb_mcdp.host_cache import HostCache
+from mcdp_hdb_mcdp.host_instance import HostInstance
+from mcdp_hdb_mcdp.library_view import TheContext
 from mcdp_lang.annotations import gives_syntax_error, gives_semantic_error, \
     gives_not_implemented_error
 from mcdp_library.specs_def import specs
 from mcdp_utils_misc import create_tmpdir
-
-from .host_instance import HostInstance
-from .library_view import TheContext
-
-from mcdp_hdb_mcdp.host_instance import HostInstance
-from mcdp_hdb_mcdp.library_view import TheContext
-from mcdp_library.specs_def import specs
-from mcdp_library_tests.tests import gives_syntax_error, gives_semantic_error, \
-    gives_not_implemented_error
-from mcdp_utils_misc import create_tmpdir
 from quickapp import QuickApp
 
-
 __all__ = [
-    'load_all_main',
+    'mcdp_load_all_main',
 ]
+
 
 class LoadAll(QuickApp):
     """
@@ -45,7 +35,7 @@ class LoadAll(QuickApp):
     def define_options(self, params):
         params.add_string('dirname', short='-d', help='Directory for the repo.')
         params.add_string('filter', short='-f', help='Filter for this name.', default=None)
-        params.add_flag('errors_only',  help='Only show errored in the summary')
+        params.add_flag('errors_only', help='Only show errored in the summary')
 
     def define_jobs_context(self, context):
         options = self.get_options()
@@ -56,6 +46,7 @@ class LoadAll(QuickApp):
         outdir = os.path.join(options.output, 'results')
 
         define_load_all_jobs(context, dirname=dirname, outdir=outdir, name_filter=_filter, errors_only=errors_only)
+
 
 @contract(name_filter='None|str', errors_only=bool, outdir=str, dirname=str)
 def define_load_all_jobs(context, dirname, outdir, name_filter=None, errors_only=False):
@@ -72,7 +63,7 @@ def define_load_all_jobs(context, dirname, outdir, name_filter=None, errors_only
             # case insensitive
             if not name_filter.lower() in e.id.lower():
                 continue
-        c = context.comp(process, dirname, e, job_id = e.id)
+        c = context.comp(process, dirname, e, job_id=e.id)
         results[e.id] = (e, c)
     if not results:
         msg = 'Could not find anything to parse. (filter: %s)' % name_filter
@@ -82,15 +73,14 @@ def define_load_all_jobs(context, dirname, outdir, name_filter=None, errors_only
 
 
 def raise_if_any_error(results):
-
     errors = {}
 
     for rid, (_, r) in results.items():
         if r.error_type is not None:
             f = r.error_string.split('\n')[0]
             n = 150 - len(rid)
-            f = f [:n]
-            errors[rid] = (rid + ' | ' + r.error_type[:4] + ' | ' +f)
+            f = f[:n]
+            errors[rid] = (rid + ' | ' + r.error_type[:4] + ' | ' + f)
 
     expected = [
         'local-uav_energetics-pretty-models-batteries',
@@ -118,8 +108,9 @@ def raise_if_any_error(results):
         msg += "\n".join(sorted(errors))
         raise Exception(msg)
 
+
 def rmtree_only_contents(d):
-    ''' Removes all the contents but not the directory itself. '''
+    """ Removes all the contents but not the directory itself. """
 
     for the_file in os.listdir(d):
         file_path = os.path.join(d, the_file)
@@ -134,10 +125,10 @@ def rmtree_only_contents(d):
 
 def db_view_from_dirname(dirname):
     instance = 'instance'
-    upstream  = 'master'
+    upstream = 'master'
     root = create_tmpdir('root')
     repo_git = {}
-    repo_local = {'local':dirname}
+    repo_local = {'local': dirname}
     hi = HostInstance(instance, upstream, root, repo_git, repo_local)
 
     db_view = hi.db_view
@@ -185,8 +176,8 @@ def summary(results, out, errors_only):
                 if ms > 1000:
                     ctime = cyellow
                 else:
-                    ctime = lambda x:x
-                s += ctime('\n     %20s' % ok ) + '   ' + cok('%s   %s' % (e.thing_name, warnings))
+                    ctime = lambda x: x
+                s += ctime('\n     %20s' % ok) + '   ' + cok('%s   %s' % (e.thing_name, warnings))
 
         if result.error_type:
             fn = os.path.join(out, '%s.txt' % e.id)
@@ -197,13 +188,16 @@ def summary(results, out, errors_only):
     s += '\n'
 
     s += '\nNumber of errors: %d' % nerrors
-    import numpy as np
+
     s += '\nCPU median: %s ms' % (1000 * np.median(cpu))
     print(s)
     fn = os.path.join(out, 'stats.txt')
-    with open(fn,'w') as f:
+    with open(fn, 'w') as f:
         f.write(s)
     logger.info('wrote %s' % fn)
+
+
+import numpy as np
 
 
 def process(dirname, e):
@@ -301,7 +295,6 @@ def iterate_all(db_view):
 
 
 mcdp_load_all_main = LoadAll.get_sys_main()
-
 
 if __name__ == '__main__':
     mcdp_load_all_main()

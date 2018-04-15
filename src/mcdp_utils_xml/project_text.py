@@ -3,6 +3,7 @@ from bs4.element import NavigableString
 
 __all__ = [
     'project_html',
+    'gettext',
 ]
 
 
@@ -27,3 +28,18 @@ def gettext(element, n=0):
             out += gettext(child, n + 1)
 
         return out
+
+
+def gettext_repr(element):
+    """
+        Return a string that is good for viewing.
+
+        Adds newlines after <p>.
+    """
+    element = element.__copy__()
+    for p in list(element.select('p')):
+        p.insert_after('\n\n')
+    s = gettext(element)
+    s = s.replace('\n\n\n', '\n\n')
+    s = s.replace('\n\n\n', '\n\n')
+    return s

@@ -1,9 +1,8 @@
-from collections import OrderedDict
 import copy
 import inspect
+from collections import OrderedDict
 
 from bs4.element import Tag
-
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
@@ -31,7 +30,11 @@ class Note(object):
             s += "\n\n" + indent(self.msg, '  ') + '\n'
         else:
             s += '\n\n   (No messages given) \n'
-        if self.locations:
+        if not self.locations:
+            s += '\n(No locations provided)'
+        elif len(self.locations) == 1:
+            s += str(list(self.locations.values())[0])
+        else:
             s += '\nThese are the locations indicated:\n'
             locations = OrderedDict()
             from mcdp_docs.location import LocationUnknown
@@ -41,11 +44,11 @@ class Note(object):
                 else:
                     locations[k] = v
             s += '\n' + indent(pretty_print_dict(locations), '  ')
-        else:
-            s += '\n(No locations provided)'
+
+
         s += '\n\nCreated by function %s()' % self.created_function
         s += '\n   in module %s' % self.created_module
-#         s += '\n   in file %s' % self.created_file
+        #         s += '\n   in file %s' % self.created_file
         # TODO: use Location
         if self.prefix:
             p = "/".join(self.prefix)
@@ -169,7 +172,7 @@ class AugmentedResult(object):
 
     def summary(self):
         s = "AugmentedResult (%s)" % self.desc
-#         s += '\n' + indent(self.desc, ': ')
+        #         s += '\n' + indent(self.desc, ': ')
         if self.notes:
             d = OrderedDict()
             for i, note in enumerate(self.notes):

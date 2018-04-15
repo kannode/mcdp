@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from collections import OrderedDict, namedtuple
 import json
 import sys
+from collections import OrderedDict, namedtuple
+from contextlib import contextmanager
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment, Tag, NavigableString
-
 from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
 from mcdp.logs import logger
 from mcdp_docs.manual_constants import MCDPManualConstants
-from mcdp_utils_misc.fileutils import write_data_to_file
 from mcdp_utils_misc.timing import timeit_wall as timeit
 from mcdp_utils_xml import add_class, bs, copy_contents_into
 
@@ -20,8 +19,8 @@ from .macros import replace_macros
 from .minimal_doc import add_extra_css
 from .moving_copying_deleting import move_things_around
 from .read_bibtex import extract_bibtex_blocks
-from .tocs import generate_toc, substituting_empty_links, LABEL_WHAT_NUMBER, \
-    LABEL_WHAT_NUMBER_NAME, LABEL_WHAT, LABEL_NUMBER, LABEL_NAME, LABEL_SELF
+from .tocs import generate_toc, substituting_empty_links, LABEL_WHAT_NUMBER, LABEL_WHAT_NUMBER_NAME, LABEL_WHAT, \
+    LABEL_NUMBER, LABEL_NAME, LABEL_SELF
 
 
 def get_manual_css_frag():
@@ -53,9 +52,11 @@ def manual_join(template, files_contents,
                 stylesheet, remove=None, extra_css=None,
                 remove_selectors=None,
                 hook_before_toc=None,
-                references={},
+                references=None,
                 resolve_references=True,
-                hook_before_final_pass=None):
+                hook_before_final_pass=None,
+                require_toc_placeholder=False,
+                aug=None):
     """
         files_contents: a list of tuples that can be cast to DocToJoin:
         where the string is a unique one to be used for job naming.
@@ -66,7 +67,14 @@ def manual_join(template, files_contents,
         hook_before_toc if not None is called with hook_before_toc(soup=soup)
         just before generating the toc
     """
+    if references is None:
+        references = {}
     check_isinstance(files_contents, list)
+
+    @contextmanager
+    def timeit(_):
+        yield
+
     with timeit('manual_join'):
 
         files_contents = [DocToJoin(*_) for _ in files_contents]
@@ -152,8 +160,9 @@ def manual_join(template, files_contents,
 
             bibhere = d.find('div', id=ID_PUT_BIB_HERE)
             if bibhere is None:
-                logger.warning(('Could not find #%s in document. '
-                                'Adding one at end of document.') % ID_PUT_BIB_HERE)
+                msg = ('Could not find #%s in document. '
+                       'Adding one at end of document.') % ID_PUT_BIB_HERE
+                aug.note_warning(msg)
                 bibhere = Tag(name='div')
                 bibhere.attrs['id'] = ID_PUT_BIB_HERE
                 d.find('body').append(bibhere)
@@ -172,7 +181,16 @@ def manual_join(template, files_contents,
                 hook_before_toc(soup=d)
 
         with timeit('generate_and_add_toc'):
-            generate_and_add_toc(d)
+            try:
+                generate_and_add_toc(d, raise_error=True)
+            except NoTocPlaceholder as e:
+                if require_toc_placeholder:
+                    msg = 'Could not find toc placeholder: %s' % e
+                    logger.error(msg)
+                    if aug is not None:
+                        aug.note_error(msg)
+                    else:
+                        raise Exception(msg)
 
         with timeit('document_final_pass_after_toc'):
             document_final_pass_after_toc(soup=d, resolve_references=resolve_references)
@@ -427,13 +445,12 @@ def reorganize_contents(body0, add_debug_comments=False):
 
     """
     # if False:
-        # write_data_to_file(str(body0), 'before-reorg.html')
+    # write_data_to_file(str(body0), 'before-reorg.html')
 
     with timeit('reorganize_by_parts'):
         reorganized = reorganize_by_parts(body0)
 
     with timeit('dissolving'):
-
         # now dissolve all the elements of the type <div class='without-header-inside'>
         options = ['without-header-inside', 'with-header-inside']
         for x in reorganized.find_all('div', attrs={'class':
@@ -724,7 +741,6 @@ def reorganize_by_parts(body):
 
 
 def reorganize_by_chapters(section):
-
     def is_chapter_marker(x):
         return isinstance(x, Tag) and x.name == 'h1' and (not 'part' in x.attrs.get('id', ''))
 
@@ -754,7 +770,6 @@ def reorganize_by_chapters(section):
 
 
 def reorganize_by_section(section):
-
     def is_section_marker(x):
         return isinstance(x, Tag) and x.name == 'h2'
 
@@ -782,7 +797,6 @@ def reorganize_by_section(section):
 
 
 def reorganize_by_subsection(section):
-
     def is_section_marker(x):
         return isinstance(x, Tag) and x.name == 'h3'
 
@@ -832,7 +846,6 @@ def copy_attributes_from_header(section, header):
 
 def make_sections2(elements, is_marker, copy=False, element_name='div', attrs={},
                    add_debug_comments=False):
-
     def debug(s):
         if False:
             logger.debug(s)
@@ -1007,12 +1020,17 @@ def do_remove_stuff(soup, remove_selectors, remove):
 
         logger.info('Removed %d elements of selector %r' % (nremoved, remove))
 
-    if all_removed:
-        with open('parts-removed.html', 'w') as f:
-            f.write(all_removed)
+    # TODO: write somewhere else
+    # if all_removed:
+    #     with open('parts-removed.html', 'w') as f:
+    #         f.write(all_removed)
 
 
-def generate_and_add_toc(soup, toc_selector='div#toc'):
+class NoTocPlaceholder(Exception):
+    pass
+
+
+def generate_and_add_toc(soup, raise_error=False):
     logger.info('adding toc')
     body = soup.find('body')
     toc = generate_toc(body)
@@ -1028,11 +1046,14 @@ def generate_and_add_toc(soup, toc_selector='div#toc'):
         toc_ul.extract()
         assert toc_ul.name == 'ul'
         toc_ul['class'] = 'toc'
-        toc_ul['id'] = 'main_toc'
+        toc_ul['id'] = MCDPManualConstants.MAIN_TOC_ID
 
+        toc_selector = MCDPManualConstants.TOC_PLACEHOLDER_SELECTOR
         tocs = list(body.select(toc_selector))
         if not tocs:
             msg = 'Cannot find any element of type %r to put TOC inside.' % toc_selector
+            if raise_error:
+                raise NoTocPlaceholder(msg)
             logger.warning(msg)
         else:
             toc_place = tocs[0]

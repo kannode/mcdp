@@ -8,7 +8,6 @@ class MCDPManualConstants(object):
 
     activate_tilde_as_nbsp = False
 
-
     pdf_metadata = 'pdf_metadata.txt'
     pdf_metadata_template = pdf_metadata + '.in'
     main_template = '00_main_template.html'
@@ -45,9 +44,17 @@ class MCDPManualConstants(object):
 
     CLASS_ONLY_NUMBER = 'only_number'
     CLASS_ONLY_NAME = 'only_name'
-    CLASS_NUMBER_NAME ='number_name'
+    CLASS_NUMBER_NAME = 'number_name'
 
     ID_PUT_BIB_HERE = 'put-bibliography-here'
+
+    # This is the TOC placeholder
+    TOC_PLACEHOLDER_SELECTOR = 'div#toc'
+    # this is what we generate (and splits looks for)
+    MAIN_TOC_ID = 'main_toc'
+
+
+
 
     enable_syntax_higlighting = True
     enforce_status_attribute = True

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from collections import namedtuple
 import time
+from collections import namedtuple
 
-from bs4.element import Tag
 import git
-
+from bs4.element import Tag
 from contracts.utils import check_isinstance
 from mcdp_docs.github_edit_links import NoRootRepo
 from mcdp_utils_misc import memoize_simple
@@ -41,7 +40,7 @@ def get_source_info(filename):
     author = commit.author
     last_modified = time.gmtime(commit.committed_date)
     commit = commit.hexsha
-    #print('%s last modified by %s on %s ' % (filename, author, last_modified))
+    # print('%s last modified by %s on %s ' % (filename, author, last_modified))
     return SourceInfo(commit=commit, author=author, last_modified=last_modified)
 
 
@@ -49,7 +48,7 @@ def make_last_modified(files_contents, nmax=100):
     files_contents = [DocToJoin(*x) for x in files_contents]
     files_contents = [_ for _ in files_contents if _.source_info]
 
-    files_contents = list(sorted(files_contents, key=lambda x:x.source_info.last_modified,
+    files_contents = list(sorted(files_contents, key=lambda x: x.source_info.last_modified,
                                  reverse=True))
 
     r = Tag(name='fragment')
@@ -66,7 +65,7 @@ def make_last_modified(files_contents, nmax=100):
         li = Tag(name='li')
         when = d.source_info.last_modified
         when_s = time.strftime("%a, %b %d", when)
-#          %H:%M
+        #          %H:%M
         li.append(when_s)
         li.append(': ')
 
@@ -89,7 +88,7 @@ def make_last_modified(files_contents, nmax=100):
 
     r.append(ul)
     s = to_html_stripping_fragment(r)
-#     print s
+    #     print s
     return s
 
 
@@ -108,10 +107,9 @@ def get_main_header(tag):
         Returns the first h1,h2,h3 with ID set.
     """
     check_isinstance(tag, Tag)
-#    check_isinstance(s, (str, unicode))
-#    soup = bs(s)
+    #    check_isinstance(s, (str, unicode))
+    #    soup = bs(s)
     for e in tag.find_all(['h1', 'h2', 'h3']):
         if 'id' in e.attrs:
             return e.attrs['id']
     return None
-
