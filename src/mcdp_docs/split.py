@@ -6,9 +6,12 @@ import os
 
 from bs4.element import Tag
 
+from contracts import contract
 from mcdp import logger
 from mcdp_docs.embed_css import embed_css_files
+from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_misc import get_md5, write_data_to_file
+from mcdp_utils_misc.augmented_result import AugmentedResult
 from mcdp_utils_misc.timing import timeit_wall
 from mcdp_utils_xml import read_html_doc_from_file
 from mcdp_utils_xml.parsing import bs, bs_entire_document
@@ -79,7 +82,7 @@ def make_page(contents, head0, add_toc):
 
     # delete the original one
     if False:
-        main_toc = contents.find(id='main_toc')
+        main_toc = contents.find(id=MCDPManualConstants.MAIN_TOC_ID)
         if main_toc is not None:
             main_toc.extract()
 
@@ -87,7 +90,6 @@ def make_page(contents, head0, add_toc):
 
 
 def only_second_part(mathjax, preamble, html, id2filename, filename):
-
     if mathjax:
         if preamble is not None:
             with timeit('add_mathjax_preamble()'):
@@ -135,6 +137,17 @@ def create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=0):
     if nworkers == 0:
         nworkers = max(1, cpu_count() - 2)
 
+    res = AugmentedResult()
+
+    # XXX: do it better
+    if MCDPManualConstants.MAIN_TOC_ID not in data:
+        msg = 'Could not find main toc (id #%s)' % MCDPManualConstants.MAIN_TOC_ID
+        # logger.error(msg)
+        res.note_error(msg)
+
+        place = '<div id="%s">TOC NOT FOUND</div>\n' % MCDPManualConstants.MAIN_TOC_ID
+        data = data.replace('<body>', '<body>' + place)
+
     h = get_md5(data)[-4:]
     jobs = []
     for i in range(nworkers):
@@ -142,28 +155,33 @@ def create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=0):
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
         jobs.append(promise)
 
-    return context.comp(notification, jobs, output_dir)
+    return context.comp(notification, res, jobs, output_dir)
 
 
-def notification(_jobs, output_dir):
+def notification(aug, jobs_aug, output_dir):
+    for job_aug in jobs_aug:
+        aug.merge(job_aug)
     main = os.path.join(output_dir, 'index.html')
     msg = '\n \n      The HTML version is ready at %s ' % main
     msg += '\n \n \nPlease wait a few more seconds for the PDF version.'
     logger.info(msg)
+    return aug
 
 
+@contract(returns=AugmentedResult)
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
+    res = AugmentedResult()
     with timeit("parsing"):
         soup = bs_entire_document(data)
         embed_css_files(soup)
 
     # extract the main toc if it is there
 
-    with timeit("Extracting main_toc"):
-        main_toc = soup.find(id='main_toc')
+    with timeit("Extracting m"):
+        main_toc = soup.find(id=MCDPManualConstants.MAIN_TOC_ID)
 
         if main_toc is None:
-            msg = 'Could not find the element #main_toc.'
+            msg = 'Could not find the element #%s.' % MCDPManualConstants.MAIN_TOC_ID
             raise ValueError(msg)
 
         main_toc = main_toc.__copy__()
@@ -214,71 +232,62 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
             pointed_to.append(f)
 
     data = ",".join(pointed_to)
-#    links_hash = get_md5(data)[:8]
-#     if self.options.faster_but_imprecise:
-#         links_hash = "nohash"
-#
-#     logger.debug('hash data: %r' % data)
-#    logger.debug('hash value: %r' % links_hash)
-
     head0 = soup.html.head
 
     if True:
         context.comp(remove_spurious, output_dir, list(filename2contents))
 
-#    tmpd = create_tmpdir()
-
-#    n = len(filename2contents)
     with timeit('main_toc copy'):
         main_toc0 = main_toc.__copy__()
 
         main_toc0_s = str(main_toc0)
         # with open('toc0.html', 'w') as f:
         #     f.write(main_toc0_s)
-#        main_toc0_pickle = pickle.dumps(main_toc)
+    #        main_toc0_pickle = pickle.dumps(main_toc)
 
     asset_jobs = []
     for i, (filename, contents) in enumerate(filename2contents.items()):
         if i % num_workers != worker_i:
             continue
 
-#        with timeit('main_toc copy'):
-#            main_toc = main_toc0.__copy__()
+        #        with timeit('main_toc copy'):
+        #            main_toc = main_toc0.__copy__()
         with timeit('main_toc copy hack'):
             main_toc = bs(main_toc0_s)
-#        with timeit('main_toc copy pickle'):
-#            main_toc = cPickle.loads(main_toc0_pickle)
+        #        with timeit('main_toc copy pickle'):
+        #            main_toc = cPickle.loads(main_toc0_pickle)
 
         # Trick: we add the main_toc, and then ... (look below)
         with timeit('make_page'):
             html = make_page(contents, head0, main_toc)
 
-#        logger.debug('%d/%d: %s' % (i, n, filename))
+        #        logger.debug('%d/%d: %s' % (i, n, filename))
         with timeit("direct job"):
             result = only_second_part(
-                         mathjax, preamble, html, id2filename, filename)
+                    mathjax, preamble, html, id2filename, filename)
 
             # ... we remove it. In this way we don't have to copy it every time...
             main_toc.extract()
 
             fn = os.path.join(output_dir, filename)
 
-#            fn0 = os.path.join(tmpd, filename)
-#            write_data_to_file(result, fn0, quiet=True)
+            #            fn0 = os.path.join(tmpd, filename)
+            #            write_data_to_file(result, fn0, quiet=True)
 
             h = get_md5(result)[:8]
             r = context.comp(extract_assets_from_file, result, fn, assets_dir,
-                         job_id='assets-%s' % h)
+                             job_id='assets-%s' % h)
             asset_jobs.append(r)
-    return context.comp(wait_assets, asset_jobs)
+    return context.comp(wait_assets, res, asset_jobs)
 
 
-def wait_assets(asset_jobs):
-    # Wait that they are done
-    pass
+def wait_assets(res, asset_jobs):
+    for a in asset_jobs:
+        res.merge(a)
+    return res
 
 
-#def quick_copy(main_toc):
+# def quick_copy(main_toc):
 #    return bs(str(main_toc))
 def identity(x):
     return x
@@ -291,12 +300,14 @@ def remove_spurious(output_dir, filenames):
     ignore = ['link.html', 'errors.html', 'warnings.html']
     found = os.listdir(output_dir)
     for f in found:
-        if not f.endswith('.html'): continue
-        if f in ignore: continue
-        if not f in filenames:
+        if not f.endswith('.html'):
+            continue
+        if f in ignore:
+            continue
+        if  f  not in filenames:
             fn = os.path.join(output_dir, f)
             msg = 'I found a spurious file from earlier compilations: %s' % fn
-#             msg += '(%s not in %s) ' % (f, filenames)
+            #             msg += '(%s not in %s) ' % (f, filenames)
             logger.warning(msg)
 
             if 'SPURIOUS' in open(fn).read():
@@ -307,13 +318,13 @@ def remove_spurious(output_dir, filenames):
             e = soup.find('section')
             if e is not None and 'id' in e.attrs:
                 id_ = e.attrs['id'].replace(':section', '')
-                from mcdp_docs.composing.cli import remove_prefix
 
                 if False:
-                    if not 'autoid' in id_:
+                    if 'autoid' not in id_:
                         id_ = remove_prefix(id_)
                         url = 'http://purl.org/dt/master/' + id_
-                        OTHER = '<p>Maybe try this link to find the version on master (no guarantees): <a href="%s">%s</a></p>' % (url, url)
+                        OTHER = (('<p>Maybe try this link to find the version on master '
+                                  '(no guarantees): <a href="%s">%s</a></p>') % (url, url))
                         OTHER += '\n<p>If that does not work, the section was renamed.</p>'
                     else:
                         OTHER = ''

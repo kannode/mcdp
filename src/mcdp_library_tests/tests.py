@@ -1,34 +1,35 @@
 # -*- coding: utf-8 -*-
 import math
-from mcdp import MCDPConstants, logger
-from mcdp.exceptions import DPSemanticError, DPNotImplementedError
-from mcdp_library.specs_def import specs
-from mcdp_library.stdlib import get_test_librarian
-from mcdp_tests import get_test_index
-from mcdp_tests.generation import for_all_source_mcdp,\
-    for_all_source_mcdp_template, for_all_source_mcdp_poset,\
-    for_all_source_mcdp_value, for_all_source_all
-from mcdp_utils_misc import get_mcdp_tmp_dir, memoize_simple, timeit
-from mocdp.comp.context import Context
 import os
 import tempfile
 
 from contracts.enabling import all_disabled
 from contracts.utils import raise_desc, raise_wrapped
-from mcdp_lang.annotations import gives_syntax_error,\
+from mcdp import MCDPConstants, logger
+from mcdp.exceptions import DPSemanticError, DPNotImplementedError
+from mcdp_lang.annotations import gives_syntax_error, \
     gives_not_implemented_error, gives_semantic_error
+from mcdp_library.specs_def import specs
+from mcdp_library.stdlib import get_test_librarian
+from mcdp_tests import get_test_index
+from mcdp_tests.generation import for_all_source_mcdp, \
+    for_all_source_mcdp_template, for_all_source_mcdp_poset, \
+    for_all_source_mcdp_value, for_all_source_all
+from mcdp_utils_misc import get_mcdp_tmp_dir, memoize_simple, timeit
 from mcdp_utils_misc.reflection import accepts_arg
-
+from mocdp.comp.context import Context
 
 # XXX: move sooner
 __all__ = [
     'define_tests_for_mcdplibs',
 ]
 
+
 def testing_includes(libname):
     librarian = get_test_librarian()
     return libname in librarian.get_libraries()
-    
+
+
 def enumerate_test_libraries():
     """ 
         Libraries on which we need to run tests. 
@@ -61,18 +62,18 @@ def enumerate_test_libraries():
             n_effective = n - 1
             i_effective = i - 1
             assert 0 <= i_effective < n_effective
-            
+
             uselibs = []
-            buckets = [ [] for _ in range(n_effective)] 
-            
+            buckets = [[] for _ in range(n_effective)]
+
             for j, libname in enumerate(found):
-                #do = j % n_effective == i_effective
+                # do = j % n_effective == i_effective
                 which = int(math.floor((float(j) / len(found)) * n_effective))
-                
+
                 assert 0 <= which < n_effective, (j, which, n_effective)
                 buckets[which].append(libname)
-                 
-#                 do = math.floor((j - 1) / n_effective) == i_effective
+
+            #                 do = math.floor((j - 1) / n_effective) == i_effective
             for libname in found:
                 do = libname in buckets[i_effective]
                 if do:
@@ -81,12 +82,10 @@ def enumerate_test_libraries():
                 else:
                     s = 'skipped because of parallelism'
                 logger.debug('%20s: %s' % (libname, s))
-                
-            
+
             ntot = sum(len(_) for _ in buckets)
             assert ntot == len(found)
-            
-        
+
     return uselibs
 
 
@@ -95,7 +94,7 @@ def get_test_library(libname):
     assert isinstance(libname, str) and not MCDPConstants.library_extension in libname
     librarian = get_test_librarian()
     library = librarian.load_library(libname)
-    
+
     d = get_mcdp_tmp_dir()
     prefix = 'mcdp_library_tests_get_test_library_'
     d = tempfile.mkdtemp(dir=d, prefix=prefix)
@@ -114,20 +113,19 @@ def define_tests_for_mcdplibs(context):
     librarian = get_test_librarian()
 
     for libname in enumerate_test_libraries():
-        
-        c2 = context.child(libname, extra_report_keys=dict(libname=libname))
 
+        c2 = context.child(libname, extra_report_keys=dict(libname=libname))
 
         for spec_name in specs:
             c3 = c2.child(spec_name)
             c3.comp_dynamic(mcdplib_test_setup_spec, spec_name=spec_name, libname=libname)
-            
-#         c2.child('ndp').comp_dynamic(mcdplib_test_setup_nameddps, libname=libname)
-#         c2.child('poset').comp_dynamic(mcdplib_test_setup_posets, libname=libname)
-#         c2.child('primitivedp').comp_dynamic(mcdplib_test_setup_primitivedps, libname=libname)
-#         c2.child('source_mcdp').comp_dynamic(mcdplib_test_setup_sources, libname=libname)
-#         c2.child('value').comp_dynamic(mcdplib_test_setup_value, libname=libname)
-#         c2.child('template').comp_dynamic(mcdplib_test_setup_template, libname=libname)
+
+        #         c2.child('ndp').comp_dynamic(mcdplib_test_setup_nameddps, libname=libname)
+        #         c2.child('poset').comp_dynamic(mcdplib_test_setup_posets, libname=libname)
+        #         c2.child('primitivedp').comp_dynamic(mcdplib_test_setup_primitivedps, libname=libname)
+        #         c2.child('source_mcdp').comp_dynamic(mcdplib_test_setup_sources, libname=libname)
+        #         c2.child('value').comp_dynamic(mcdplib_test_setup_value, libname=libname)
+        #         c2.child('template').comp_dynamic(mcdplib_test_setup_template, libname=libname)
 
         path = librarian.libraries[libname]['path']
         makefile = os.path.join(path, 'Makefile')
@@ -140,8 +138,8 @@ def mcdplib_run_make(mcdplib):
     assert os.path.exists(makefile)
     cwd = mcdplib
     cmd = [
-        'make', 
-        'clean', 
+        'make',
+        'clean',
         'all',
     ]
     # do not use too many resources
@@ -149,7 +147,7 @@ def mcdplib_run_make(mcdplib):
     parallel = not circle
     if parallel:
         cmd.append('-j')
-        
+
     from system_cmd.meat import system_cmd_result
     logger.debug('$ cd %s' % cwd)
     env = os.environ.copy()
@@ -158,7 +156,7 @@ def mcdplib_run_make(mcdplib):
         msg = ('Disabling contracts in environment by adding '
                'DISABLE_CONTRACTS=%r.' % env['DISABLE_CONTRACTS'])
         logger.debug(msg)
-        
+
     system_cmd_result(cwd, cmd,
                       display_stdout=True,
                       display_stderr=True,
@@ -235,21 +233,21 @@ def mcdplib_test_setup_spec(context, spec_name, libname):
     things = l.list_spec(spec_name)
 
     from mcdp_tests.generation import test_accumulators, R, D
-    
+
     regular = test_accumulators[spec_name][R]
     dynamic = test_accumulators[spec_name][D]
-    
+
     load_tests_modules()
 
     if False:
         print('Found models: %r' % things)
-        print('Found registered: %r' % 
+        print('Found registered: %r' %
               regular.registered)
-        print('Found registered: %r' % 
+        print('Found registered: %r' %
               dynamic.registered)
 
     extension = specs[spec_name].extension
-    
+
     for thing_name in things:
         f = l._get_file_data(thing_name + '.' + extension)
 
@@ -260,7 +258,7 @@ def mcdplib_test_setup_spec(context, spec_name, libname):
             # TODO: actually check syntax error
             pass
         else:
-            extra_report_keys=dict(spec_name=spec_name, thing_name=thing_name)
+            extra_report_keys = dict(spec_name=spec_name, thing_name=thing_name)
             c = context.child(thing_name, extra_report_keys=extra_report_keys)
 
             if gives_not_implemented_error(source):
@@ -273,24 +271,23 @@ def mcdplib_test_setup_spec(context, spec_name, libname):
                 thing = c.comp(_load_spec, libname, spec_name, thing_name, job_id='load')
 
                 for ftest in regular.registered:
-                    
+
                     if accepts_arg(ftest, 'libname'):
-                        #print('using libname for %s' % ftest)
+                        # print('using libname for %s' % ftest)
                         c.comp(ftest, thing_name, thing, libname=libname,
                                job_id=ftest.__name__)
                     else:
                         c.comp(ftest, thing_name, thing)
-                        
+
                 for ftest in dynamic.registered:
-                    
+
                     if accepts_arg(ftest, 'libname'):
-                        #print('using libname for %s' % ftest)
+                        # print('using libname for %s' % ftest)
                         c.comp_dynamic(ftest, thing_name, thing, libname=libname,
                                        job_id=ftest.__name__)
                     else:
                         c.comp_dynamic(ftest, thing_name, thing)
-                     
-    
+
 
 def mcdplib_test_setup_sources(context, libname):
     from mcdp_tests import load_tests_modules
@@ -300,7 +297,7 @@ def mcdplib_test_setup_sources(context, libname):
     load_tests_modules()
 
     types = [
-        (['mcdp','mcdp_template','mcdp_poset','mcdp_value'], for_all_source_all),
+        (['mcdp', 'mcdp_template', 'mcdp_poset', 'mcdp_value'], for_all_source_all),
         (['mcdp'], for_all_source_mcdp),
         (['mcdp_template'], for_all_source_mcdp_template),
         (['mcdp_poset'], for_all_source_mcdp_poset),
@@ -308,35 +305,36 @@ def mcdplib_test_setup_sources(context, libname):
     ]
     for extensions, accumulator in types:
         mcdplib_test_setup_sources_(context, libname, l, extensions, accumulator)
-        
+
+
 def mcdplib_test_setup_sources_(context, libname, l, extensions, accumulator):
     registered = accumulator.registered
 
-    #print('Found registered: %r' % registered)
+    # print('Found registered: %r' % registered)
 
     for basename in l.file_to_contents:
         _model_name, dotext = os.path.splitext(basename)
-        ext = dotext[1:] # remove '.'
+        ext = dotext[1:]  # remove '.'
         if not ext in extensions:
             continue
 
-        f = l._get_file_data(basename) 
+        f = l._get_file_data(basename)
 
         source = f['data']
         filename = f['realpath']
 
         if gives_syntax_error(source):
-            #print('Skipping because syntax error')
+            # print('Skipping because syntax error')
             pass
             # TODO: actually check syntax error
         elif gives_semantic_error(source):
             # print('Skipping because semantic error')
             pass
 
-        else:            
+        else:
 
             c = context.child(basename)
-             
+
             for ftest in registered:
                 kwargs = {}
                 if accepts_arg(ftest, 'libname'):
@@ -357,7 +355,8 @@ def mcdplib_assert_not_implemented_error_fn(libname, model_name):
     else:
         msg = "Expected DPNotImplementedError, instead succesfull instantiation."
         raise_desc(Exception, msg, model_name=model_name, res=res.repr_long())
-    
+
+
 def mcdplib_assert_semantic_error_fn(libname, model_name):
     l = get_test_library(libname)
     try:
@@ -371,7 +370,9 @@ def mcdplib_assert_semantic_error_fn(libname, model_name):
     else:
         msg = "Expected DPSemanticError, instead succesfull instantiation."
         raise_desc(Exception, msg, model_name=model_name, res=res.repr_long())
-# 
+
+
+#
 # def mcdplib_test_setup_value(context, libname):
 #     from mcdp_tests import load_tests_modules
 # 
@@ -463,7 +464,9 @@ def mcdplib_assert_semantic_error_fn(libname, model_name):
 # 
 #     
 min_time_warn = 0.5
-# 
+
+
+#
 # def _load_primitivedp(libname, model_name):
 #     context = Context()
 #     l = get_test_library(libname)
@@ -497,11 +500,10 @@ min_time_warn = 0.5
 
 def _load_spec(libname, spec_name, thing_name):
     l = get_test_library(libname)
-    context = Context() 
+    context = Context()
     with timeit(thing_name, minimum=min_time_warn):
         return l.load_spec(spec_name, thing_name, context)
-    
-    
+
 #
 # @contextmanager
 # def templib(mcdplib):
@@ -515,5 +517,3 @@ def _load_spec(libname, spec_name, thing_name):
 #     finally:
 #         shutil.rmtree(tmpdir)
 #
-
-

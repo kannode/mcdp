@@ -4,9 +4,11 @@ import shutil
 from bs4.element import Tag
 
 from compmake.utils.filesystem_utils import make_sure_dir_exists
+from contracts import contract
 from mcdp_cli.utils_mkdir import mkdirs_thread_safe
 from mcdp_report.embedded_images import extract_img_to_file
 from mcdp_utils_misc import write_data_to_file
+from mcdp_utils_misc.augmented_result import AugmentedResult
 from mcdp_utils_misc.string_utils import get_md5
 from mcdp_utils_xml import write_html_doc_to_file
 from mcdp_utils_xml.parsing import bs_entire_document
@@ -49,7 +51,9 @@ class ExtractAssets(QuickAppBase):
 extract_assets_main = ExtractAssets.get_sys_main()
 
 
+@contract(returns=AugmentedResult)
 def extract_assets_from_file(data, fo, assets_dir):
+    res = AugmentedResult()
     make_sure_dir_exists(fo)
     if not os.path.exists(assets_dir):
         mkdirs_thread_safe(assets_dir)
@@ -68,12 +72,13 @@ def extract_assets_from_file(data, fo, assets_dir):
     save_images_locally(soup, fo, assets_dir)
     save_css(soup, fo, assets_dir)
     write_html_doc_to_file(soup, fo, quiet=True)
+    return res
 
-    if False:
-        s1 = os.path.getsize(fo)
-        inmb = lambda x: '%.1f MB' % (x / (1024.0 * 1024))
-        msg = 'File size: %s -> %s' % (inmb(s0), inmb(s1))
-        logger.info(msg)
+#    if False:
+#        s1 = os.path.getsize(fo)
+#        inmb = lambda x: '%.1f MB' % (x / (1024.0 * 1024))
+#        msg = 'File size: %s -> %s' % (inmb(s0), inmb(s1))
+#        logger.info(msg)
 
 
 def save_css(soup, fo, assets_dir):
