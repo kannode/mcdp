@@ -46,6 +46,11 @@ class LocationInString(Location):
         self.where = where
         self.parent = parent
 
+    def __eq__(self, other):
+        return isinstance(other, LocationInString) and \
+               (self.where == other.where) and \
+               (self.parent == other.parent)
+    
     def __repr__(self):
         s = 'Location in string:'
         s += '\n\n' + indent(str(self.where), '  ')
