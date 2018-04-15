@@ -30,7 +30,7 @@ class Location(object):
     def get_stack(self):
         """ Returns the set of all locations, including this one. """
 
-    def as_html(self):
+    def as_html(self, inline=False):
         pre = Tag(name='pre')
         code = Tag(name='code')
         s = str(self)
@@ -50,14 +50,14 @@ class LocationInString(Location):
         return isinstance(other, LocationInString) and \
                (self.where == other.where) and \
                (self.parent == other.parent)
-    
+
     def __repr__(self):
         s = 'Location in string:'
         s += '\n\n' + indent(str(self.where), '  ')
         s += '\n\n' + str(self.parent)
         return s
 
-    def as_html(self):
+    def as_html(self, inline=False):
         div = Tag(name='div')
         pre = Tag(name='pre')
         code = Tag(name='code')
@@ -65,7 +65,7 @@ class LocationInString(Location):
         pre.append(code)
         div.append(pre)
 
-        div.append(self.parent.as_html())
+        div.append(self.parent.as_html(inline=inline))
 
         return div
 
@@ -120,7 +120,7 @@ class LocalFile(Location):
         else:
             return [self]
 
-    def as_html(self):
+    def as_html(self, inline=False):
         div = Tag(name='div')
         p = Tag(name='p')
         p.append('Local file ')
@@ -136,7 +136,7 @@ class LocalFile(Location):
 
         div.append(p)
         if self.github_info is not None:
-            div.append(self.github_info.as_html())
+            div.append(self.github_info.as_html(inline=inline))
         return div
 
 
@@ -148,12 +148,16 @@ class HTMLIDLocation(Location):
     def get_stack(self):
         return [self]
 
-    def as_html(self):
+    def as_html(self, inline=False):
         div = Tag(name='div')
         p = Tag(name='p')
         p.append('Jump to ')
         a = Tag(name='a')
-        a.attrs['href'] = 'link.html#%s' % self.element_id
+        if inline:
+            href = '#%s' % self.element_id
+        else:
+            href = 'link.html#%s' % self.element_id
+        a.attrs['href'] = href
         a.append('element in output file')
         p.append(a)
         p.append('.')
@@ -177,12 +181,17 @@ class SnippetLocation(Location):
         self.line = line
         self.element_id = element_id
 
-    def as_html(self):
+    def as_html(self, inline=False):
         div = Tag(name='div')
         p = Tag(name='p')
         p.append('Jump to ')
         a = Tag(name='a')
-        a.attrs['href'] = 'link.html#%s' % self.element_id
+
+        if inline:
+            href = '#%s' % self.element_id
+        else:
+            href = 'link.html#%s' % self.element_id
+        a.attrs['href'] = href
         a.append('element in output file')
         p.append(a)
         p.append('.')
@@ -192,7 +201,7 @@ class SnippetLocation(Location):
         p.append('It happened at line %s of:' % self.line)
         div.append(p)
 
-        div.append(self.original_file.as_html())
+        div.append(self.original_file.as_html(inline=False))
 
         return div
 

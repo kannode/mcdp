@@ -45,7 +45,6 @@ class Note(object):
                     locations[k] = v
             s += '\n' + indent(pretty_print_dict(locations), '  ')
 
-
         s += '\n\nCreated by function %s()' % self.created_function
         s += '\n   in module %s' % self.created_module
         #         s += '\n   in file %s' % self.created_file
@@ -55,7 +54,7 @@ class Note(object):
             s = indent(s, p + '> ')
         return s
 
-    def as_html(self):
+    def as_html(self, inline=False):
         div = Tag(name='div')
         div.attrs['class'] = 'note'
         pre = Tag(name='pre')
@@ -80,13 +79,17 @@ class Note(object):
                     dl.append(dt)
 
                     dd = Tag(name='dd')
-                    dd.append(v.as_html())
+                    dd.append(v.as_html(inline=inline))
                     dl.append(dd)
 
                 div.append(dl)
             else:
+                p = Tag(name='p')
+                p.append("Location:")
+                div.append(p)
+
                 location = list(self.locations.values())[0]
-                div.append(location.as_html())
+                div.append(location.as_html(inline=inline))
         else:
             p = Tag(name='p')
             p.append("(No locations provided)")
@@ -152,8 +155,8 @@ class AugmentedResult(object):
         msg = 'No error contained the string %r' % s
         raise AssertionError(msg)
 
-    def info(self, s):
-        self.log.append('info: %s' % s)
+    # def info(self, s):
+    #     self.log.append('info: %s' % s)
 
     def has_result(self):
         # XXX: this should change
@@ -213,31 +216,8 @@ class AugmentedResult(object):
                 div.attrs['class'] = 'error'
                 body.append(div)
 
-        body.append(self.get_html_style())
+        body.append(get_html_style())
         return str(html)
-
-    def get_html_style(self):
-        style = """
-        div.error, div.warning {
-            border-radius: 10px;
-            display: inline-block;
-            padding: 1em;
-
-            margin-bottom: 2em;
-            margin: 1em;
-        }
-        div.error {
-            border: solid 1px red;
-            color: darkred;
-        }
-        div.warning {
-            border: solid 1px orange;
-            color: darkorange;
-        }
-        """
-        s = Tag(name='style')
-        s.append(style)
-        return s
 
     def html_warnings(self):
         notes = self.get_warnings()
@@ -264,7 +244,7 @@ class AugmentedResult(object):
                 div.attrs['class'] = 'warning'
                 body.append(div)
 
-        body.append(self.get_html_style())
+        body.append(get_html_style())
         return str(html)
 
     def summary_only_errors(self):
@@ -306,3 +286,32 @@ class AugmentedResult(object):
                 self.notes.append(note2)
 
         self.output.extend(other.output)
+
+
+def get_html_style():
+    style = """
+    div.error, div.warning {
+        border-radius: 10px;
+        display: inline-block;
+        padding: 1em;
+
+        margin-bottom: 2em;
+        margin: 1em;
+        
+    }
+    div.error pre,
+    div.warning pre {
+        white-space: pre-wrap;
+    }
+    div.error {
+        border: solid 1px red;
+        color: darkred;
+    }
+    div.warning {
+        border: solid 1px orange;
+        color: darkorange;
+    }
+    """
+    s = Tag(name='style')
+    s.append(style)
+    return s

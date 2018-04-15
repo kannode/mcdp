@@ -4,7 +4,6 @@ import traceback
 from bs4.element import Tag
 from contracts import contract
 from contracts.utils import check_isinstance, indent
-
 from mcdp import logger
 from mcdp_utils_xml import add_class
 from mcdp_utils_xml.parsing import bs
@@ -15,10 +14,10 @@ WARNING_CLASS = 'warning'
 
 
 def search_for_errors(soup):
-    '''
+    """
         Returns a string summarizing all errors
         marked by note_error()
-    '''
+    """
 
     s = ''
     for element in soup.select('details.' + ERROR_CLASS):
@@ -43,15 +42,17 @@ if __name__ == '__main__':
         logger.info('No errors found.')
 
 
+@contract(long_error='str|$Tag')
 def insert_inset(element, short, long_error, klasses=[]):
     """ Inserts an errored details after element """
     details = Tag(name='details')
-#     add_class(details, 'error')
     summary = Tag(name='summary')
     summary.append(short)
     details.append(summary)
-    pre = Tag(name='pre')
-#     add_class(pre, 'error')
+    if isinstance(long_error, Tag):
+        pre = Tag(name='div')
+    else:
+        pre = Tag(name='pre')
 
     for c in klasses:
         add_class(pre, c)
@@ -80,14 +81,15 @@ def note_error_msg(tag0, msg):
     insert_inset(tag0, short, long_error, [ERROR_CLASS])
 
 
+@contract(short=str, long_error='str|$Tag')
 def note_error2(element, short, long_error, other_classes=[]):
     if 'errored' in element.attrs.get('class', ''):
         return
     add_class(element, 'errored')
-    logger.error(short + '\n' + long_error)
+    # logger.error(short + '\n' + long_error)
     insert_inset(element, short, long_error, [ERROR_CLASS] + other_classes)
     parent = element.parent
-    if not 'style' in parent.attrs:
+    if 'style' not in parent.attrs:
         if parent.name != 'blockquote':
             parent.attrs['style'] = 'display: inline;'
 
@@ -95,4 +97,3 @@ def note_error2(element, short, long_error, other_classes=[]):
 def note_warning2(element, short, long_error, other_classes=[]):
     logger.warning(short + '\n' + long_error)
     insert_inset(element, short, long_error, [WARNING_CLASS] + other_classes)
-

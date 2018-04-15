@@ -727,6 +727,7 @@ pre.DPSemanticError,
 pre.DPSyntaxError {
   color: darkred;
   white-space: pre-wrap;
+  word-wrap: break-word;
 }
 summary::-webkit-details-marker {
   display: none;

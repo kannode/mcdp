@@ -1,16 +1,15 @@
+# -*- coding: utf-8 -*-
 import os
 import shutil
 import time
 
 from bs4.element import Tag
+from contracts.utils import raise_wrapped, raise_desc, indent
 from git.exc import GitCommandError, InvalidGitRepositoryError
 from git.repo.base import Repo
-
-from contracts.utils import raise_wrapped, raise_desc, indent
 from mcdp.exceptions import DPSyntaxError, DPSemanticError
 from mcdp.logs import logger
-from mcdp_utils_misc import locate_files
-from mcdp_utils_misc import memoize_simple
+from mcdp_utils_misc import locate_files, memoize_simple
 from mcdp_utils_xml import add_class
 
 from .reference import parse_github_file_ref, InvalidGithubRef
@@ -41,7 +40,7 @@ def substitute_github_ref(a, defaults):
         raise_desc(DPSyntaxError, e, msg, ref=ref)
 
     ref = resolve_reference(ref, defaults)
-#     logger.debug(ref.url)
+    #     logger.debug(ref.url)
     a.attrs['href'] = ref.url
 
     if not list(a.children):
@@ -69,10 +68,9 @@ class CouldNotResolveRef(Exception):
 
 # noinspection PyProtectedMember
 def resolve_reference(ref, defaults):
-
     for k, v in defaults.items():
         if getattr(ref, k, None) is None:
-            ref = ref._replace(**{k:v})
+            ref = ref._replace(**{k: v})
 
     if ref.branch is None:
         ref = ref._replace(branch='master')
@@ -145,7 +143,7 @@ def resolve_reference(ref, defaults):
 def which_line(contents, fragment, after_line):
     lines = contents.split('\n')
     after = "\n".join(lines[after_line:])
-    if not fragment in contents:
+    if fragment not in contents:
         msg = 'Cannot find fragment %r in file after line %d' % (fragment, after_line)
         msg += '\n' + indent(after, '| ')
         raise DPSemanticError(msg)
@@ -155,7 +153,6 @@ def which_line(contents, fragment, after_line):
 
 
 def checkout_repository(tmpdir, org, repo, branch):
-
     if branch is None:
         branch = 'master'
     path = os.path.join(tmpdir, org, repo, branch)
@@ -170,11 +167,11 @@ def checkout_repository(tmpdir, org, repo, branch):
             age = time.time() - m
             if age < 10 * 60:
                 pass
-#                 msg = 'Do not checkout repo if young.'
-#                 logger.debug(msg)
+            #                 msg = 'Do not checkout repo if young.'
+            #                 logger.debug(msg)
             else:
-#                 msg = 'Checkout repo of  age %s.' % age
-#                 logger.debug(msg)
+                #                 msg = 'Checkout repo of  age %s.' % age
+                #                 logger.debug(msg)
                 repo = Repo(path)
                 try:
                     repo.remotes.origin.pull()
@@ -198,8 +195,8 @@ def checkout(path, url, branch):
 
         head = repo.create_head(branch)
         head.checkout()
-#         if branch != 'master':
-#             repo.delete_head('master')
+        #         if branch != 'master':
+        #             repo.delete_head('master')
         return repo
     except:
         try:
@@ -207,4 +204,3 @@ def checkout(path, url, branch):
         except:
             pass
         raise
-
