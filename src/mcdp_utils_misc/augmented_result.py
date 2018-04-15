@@ -191,7 +191,14 @@ class AugmentedResult(object):
 
     def html_errors(self):
         notes = self.get_errors()
+        html = Tag(name='html')
+        head = Tag(name='head')
+        meta = Tag(name='meta')
+        meta.attrs['content'] = "text/html; charset=utf-8"
+        meta.attrs['http-equiv'] = "Content-Type"
+        html.append(head)
         body = Tag(name='body')
+        html.append(body)
         if not notes:
             p = Tag(name='p')
             p.append('There were no errors.')
@@ -207,7 +214,7 @@ class AugmentedResult(object):
                 body.append(div)
 
         body.append(self.get_html_style())
-        return str(body)
+        return str(html)
 
     def get_html_style(self):
         style = """
@@ -234,7 +241,15 @@ class AugmentedResult(object):
 
     def html_warnings(self):
         notes = self.get_warnings()
+        html = Tag(name='html')
+        head = Tag(name='head')
+        meta = Tag(name='meta')
+        meta.attrs['content'] = "text/html; charset=utf-8"
+        meta.attrs['http-equiv'] = "Content-Type"
+
+        html.append(head)
         body = Tag(name='body')
+        html.append(body)
         if not notes:
             p = Tag(name='p')
             p.append('There were no warnings.')
@@ -250,7 +265,7 @@ class AugmentedResult(object):
                 body.append(div)
 
         body.append(self.get_html_style())
-        return str(body)
+        return str(html)
 
     def summary_only_errors(self):
         s = "AugmentedResult (%s)" % self.desc

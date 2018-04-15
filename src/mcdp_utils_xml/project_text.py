@@ -4,6 +4,7 @@ from bs4.element import NavigableString
 __all__ = [
     'project_html',
     'gettext',
+    'gettext_repr',
 ]
 
 
