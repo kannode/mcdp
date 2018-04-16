@@ -2,8 +2,6 @@
 import logging
 import os
 
-from system_cmd import system_cmd_show
-
 from contracts.enabling import disable_all
 from contracts.utils import raise_desc
 from decent_params import UserError
@@ -13,6 +11,7 @@ from mcdp_report.html import get_css_filename
 from mcdp_utils_xml.parsing import \
     bs_entire_document, to_html_entire_document
 from quickapp import QuickAppBase
+from system_cmd import system_cmd_show
 
 from .add_mathjax import add_mathjax_preamble
 from .manual_join_imp import document_final_pass_after_toc, \
@@ -37,9 +36,9 @@ class Render(QuickAppBase):
         params.add_flag('pdf_figures', help='Generate PDF version of code and figures.')
 
         params.add_string('config_dirs', default='.', short='-D',
-                           help='Other libraries.')
+                          help='Other libraries.')
         params.add_string('maindir', default='.', short='-d',
-                           help='Library directories containing models, separated by :.')
+                          help='Library directories containing models, separated by :.')
 
     def go(self):
         logger.setLevel(logging.DEBUG)
@@ -116,12 +115,6 @@ class Render(QuickAppBase):
             if options.pdf:
                 run_prince(html_filename)
 
-# def add_mathjax_call(s, preamble):
-#     soup = BeautifulSoup(s, 'lxml', from_encoding='utf-8')
-#     add_mathjax_preamble(soup, preamble)
-#     contents2 = str(s)
-#     return contents2
-
 
 def run_prince(html_filename):
     pdf = os.path.splitext(html_filename)[0] + '.pdf'
@@ -138,7 +131,6 @@ def run_prince(html_filename):
 
 def render(library, docname, data, realpath, out_dir, generate_pdf, stylesheet,
            symbols, raise_errors, use_mathjax):
-
     if MCDPConstants.pdf_to_png_dpi < 300:
         msg = ('Note that pdf_to_png_dpi is set to %d, which is not suitable for printing'
                % MCDPConstants.pdf_to_png_dpi)
