@@ -6,16 +6,13 @@ import re
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-
 from contracts import contract
 from contracts.utils import check_isinstance, raise_wrapped
 from mcdp import logger
 from mcdp_report.pdf_conversion import ConversionError
-from mcdp_utils_misc import get_md5
-from mcdp_utils_misc.fileutils import write_data_to_file
+from mcdp_utils_misc import get_md5, write_data_to_file
 from mcdp_utils_xml import add_style
-from mcdp_utils_xml.note_errors_inline import note_error2, \
-    note_warning2
+from mcdp_utils_xml.note_errors_inline import note_error2, note_warning2
 
 from .pdf_conversion import png_from_pdf
 
@@ -50,6 +47,7 @@ def data_encoded_for_src(data, ext):
     mime = get_mime_for_format(ext)
     link = 'data:%s;base64,%s' % (mime, encoded)
     return link
+
 
 #### Other direction (note mime, not ext)
 
@@ -138,7 +136,7 @@ def extract_svg_to_file(soup, savefile):
             # only do the ones we rendered #XXX
             continue
 
-#        <svg focusable="false" height="2.176ex" role="img" style="vertical-align: -0.505ex;" viewbox="0
+        #        <svg focusable="false" height="2.176ex" role="img" style="vertical-align: -0.505ex;" viewbox="0
         svg['xmlns'] = "http://www.w3.org/2000/svg"
         svg['version'] = "1.1"
         prefix = """<?xml version="1.0"?>
@@ -157,8 +155,8 @@ def extract_svg_to_file(soup, savefile):
         propose = basename + '.svg'
         url = savefile(propose, data)
 
-#         for k, v in svg.attrs.items():
-#             img[k] = v
+        #         for k, v in svg.attrs.items():
+        #             img[k] = v
         img['class'] = svg.attrs.get('class', '')
 
         if 'id' in svg:
@@ -167,7 +165,7 @@ def extract_svg_to_file(soup, savefile):
         svg.replace_with(img)
 
     logger.debug('extract_svg_to_file: extracted %d/%d images from SVG tags.'
-                  % (n, tot))
+                 % (n, tot))
 
 
 def extract_img_to_file_(soup, savefile, tagname, attrname):
@@ -204,7 +202,7 @@ def extract_img_to_file_(soup, savefile, tagname, attrname):
         n += 1
     if False:
         logger.debug(('extract_img_to_file: extracted %d/%d images from %r tags, '
-                 ' attribute %r.') % (n, tot, tagname, attrname))
+                      ' attribute %r.') % (n, tot, tagname, attrname))
 
 
 def get_ext_for_mime(mime):
@@ -327,8 +325,8 @@ def embed_pdf_images(soup, resolve, density, raise_on_error):
 def embed_pdf_image(tag, resolve, density, raise_on_error=True):
     assert tag.name == 'img'
     assert tag.has_attr('src')
-    #print('!!embedding %s' % str(tag))
-    #raise Exception(str(tag))
+    # print('!!embedding %s' % str(tag))
+    # raise Exception(str(tag))
     # load pdf data
     src = tag['src']
     if src.startswith('http'):
@@ -419,7 +417,7 @@ def parse_includegraphics_option_string(latex_options):
 
 def get_length_in_inches(s):
     """ "1cm" = 0.393 """
-#     s = s.replace('\\columnwidth', '8.')
+    #     s = s.replace('\\columnwidth', '8.')
     inpoints = {'cm': 0.393, 'in': 1.0,
                 '\\textwidth': 6.0}
     for unit, ininches in inpoints.items():

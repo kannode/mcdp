@@ -105,5 +105,10 @@ def note_error2(element, short, long_error, other_classes=[]):
     return inset
 
 def note_warning2(element, short, long_error, other_classes=[]):
-    logger.warning(short + '\n' + long_error)
-    return insert_inset(element, short, long_error, [WARNING_CLASS] + other_classes)
+    # logger.warning(short + '\n' + long_error)
+    inset = insert_inset(element, short, long_error, [WARNING_CLASS] + other_classes)
+    parent = element.parent
+    if 'style' not in parent.attrs:
+        if parent.name != 'blockquote':
+            parent.attrs['style'] = 'display: inline;'
+    return inset

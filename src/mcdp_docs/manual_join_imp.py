@@ -194,7 +194,7 @@ def manual_join(template, files_contents,
                         raise Exception(msg)
 
         with timeit('document_final_pass_after_toc'):
-            document_final_pass_after_toc(soup=d, resolve_references=resolve_references)
+            document_final_pass_after_toc(soup=d, resolve_references=resolve_references, res=aug)
 
         if extra_css is not None:
             logger.info('adding extra CSS')

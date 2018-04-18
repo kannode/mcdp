@@ -91,6 +91,14 @@ class MCDPManualConstants(object):
     enforce_status_attribute = True
     enforce_lang_attribute = True
 
+    LANG_ATTR = 'lang'
+    allowed_langs = ['en', 'en-US', 'it', 'de', 'fr', 'es']
+
+    figure_prefixes = ['fig', 'tab', 'subfig', 'code']
+    # cite_prefixes = ['bib']
+    div_latex_prefixes = ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm']
+
+
 
 Label = namedtuple('Label', 'what number label_self')
 

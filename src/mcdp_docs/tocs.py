@@ -2,19 +2,15 @@
 
 from collections import namedtuple
 
-from bs4.element import Comment, Tag, NavigableString
+from bs4.element import Tag, NavigableString
 from contracts.utils import indent
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
+from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml import add_class, bs, note_error2
 
 from .manual_constants import MCDPManualConstants, get_style_book, get_style_duckietown
 from .toc_number import render_number, number_styles
-
-figure_prefixes = ['fig', 'tab', 'subfig', 'code']
-cite_prefixes = ['bib']
-div_latex_prefixes = ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm']
-
 
 def element_has_one_of_prefixes(element, prefixes):
     eid = element.attrs.get('id', 'notpresent')
@@ -25,12 +21,12 @@ class GlobalCounter(object):
     header_id = 1
 
 
-def fix_ids_and_add_missing(soup, globally_unique_id_part):
+def fix_ids_and_add_missing(soup, globally_unique_id_part, res):
     for h in soup.findAll(MCDPManualConstants.HEADERS_TO_FIX):
-        fix_header_id(h, globally_unique_id_part)
+        fix_header_id(h, globally_unique_id_part, res)
 
 
-def fix_header_id(header, globally_unique_id_part):
+def fix_header_id(header, globally_unique_id_part, res):
     ID = header.get('id', None)
     prefix = None if (ID is None or ':' not in ID) else ID[:ID.index(':')]
 
@@ -57,8 +53,9 @@ def fix_header_id(header, globally_unique_id_part):
                 if prefix not in allowed_prefixes:
                     msg = ('The prefix %r is not allowed for %s (ID=%r)' %
                            (prefix, header.name, ID))
-                    logger.error(msg)  # TODO: add warning
-                    header.insert_after(Comment('Error: ' + msg))
+                    # logger.error(msg)  # TODO: add warning
+                    # header.insert_after(Comment('Error: ' + msg))
+                    res.note_error(msg, HTMLIDLocation.for_element(header))
 
 
 class InvalidHeaders(ValueError):
@@ -113,12 +110,14 @@ def get_things_to_index(soup):
                 depth = 7
             elif h.name == 'h6':
                 depth = 8
+            else:
+                assert False, h
 
             name = h.decode_contents(formatter=formatter)
             yield h, depth, name
 
         elif h.name in ['figure']:
-            if not element_has_one_of_prefixes(h, figure_prefixes):
+            if not element_has_one_of_prefixes(h, MCDPManualConstants.figure_prefixes):
                 continue
 
             # XXX: bug because it gets confused with children
@@ -130,7 +129,7 @@ def get_things_to_index(soup):
             yield h, 100, name
 
         elif h.name in ['div']:
-            if not element_has_one_of_prefixes(h, div_latex_prefixes):
+            if not element_has_one_of_prefixes(h, MCDPManualConstants.div_latex_prefixes):
                 continue
             label = h.find(class_='latex_env_label')
             if label is None:
@@ -359,7 +358,7 @@ def render(s, counter_state):
     return s
 
 
-def check_no_patently_wrong_links(soup):
+def check_no_patently_wrong_links(soup, res):
     for a in soup.select('a[href]'):
         href = a.attrs['href']
         if href.startswith('#http:') or href.startswith('#https:'):
@@ -405,8 +404,8 @@ but you added an extra "#" at the beginning that should have not been there.
 Please remove the "#".
 
             """ % (href, href[1:])
-            note_error2(a, 'syntax error', msg.lstrip())
-
+            # note_error2(a, 'syntax error', )
+            res.note_error(msg.lstrip(), HTMLIDLocation.for_element(a))
 
 def substituting_empty_links(soup, raise_errors=False, res = None):
     """
@@ -513,10 +512,8 @@ def sub_link(a, element_id, element, raise_errors, res):
 
     if not element:
         msg = ('Cannot find %s' % element_id)
-        note_error2(a, 'Ref. error', 'substituting_empty_links():\n' + msg)
 
-        add_id_if_not_present(a)
-        res.note_error(msg, HTMLIDLocation(a.attrs['id']))
+        res.note_error(msg, HTMLIDLocation.for_element(a))
 
         # nerrors += 1
         if raise_errors:
@@ -528,34 +525,30 @@ def sub_link(a, element_id, element, raise_errors, res):
     #         a.attrs['href'] = new_href
     #         logger.info('setting new href= %s' % (new_href))
 
-    if (not LABEL_WHAT_NUMBER in element.attrs) or \
-            (not LABEL_NAME in element.attrs):
-        msg = ('substituting_empty_links: Could not find attributes %s or %s in %s' %
-               (LABEL_NAME, LABEL_WHAT_NUMBER, element))
+    if MCDPManualConstants.ATTR_NONUMBER in element.attrs:
+        label_what_number = None
+        label_number = None
+        label_what = element.attrs[LABEL_WHAT]
+        label_name = element.attrs[LABEL_NAME]
 
-        add_id_if_not_present(a)
-        res.note_warning(msg, {'original', HTMLIDLocation(element_id),
-                               'reference', HTMLIDLocation(a.attrs['id'])})
+        classes = [CLASS_ONLY_NAME]
+    else:
+        if (not LABEL_WHAT_NUMBER in element.attrs) or \
+                (not LABEL_NAME in element.attrs):
+            msg = ('substituting_empty_links: Could not find attributes %s or %s in %s' %
+                   (LABEL_NAME, LABEL_WHAT_NUMBER, element))
 
-        if True:
-            logger.warning(msg)
-        else:
-            #                 note_error_msg(a, msg)
-            note_error2(a, 'Ref. error', 'substituting_empty_links():\n' + msg)
-            #             nerrors += 1
-            if raise_errors:
-                raise ValueError(msg)
-        return
+            res.note_error(msg, {'original': HTMLIDLocation(element_id),
+                                 'reference': HTMLIDLocation.for_element(a)})
+            return
 
-    label_what_number = element.attrs[LABEL_WHAT_NUMBER]
-    label_number = element.attrs[LABEL_NUMBER]
-    label_what = element.attrs[LABEL_WHAT]
-    label_name = element.attrs[LABEL_NAME]
+        label_what_number = element.attrs[LABEL_WHAT_NUMBER]
+        label_number = element.attrs[LABEL_NUMBER]
+        label_what = element.attrs[LABEL_WHAT]
+        label_name = element.attrs[LABEL_NAME]
 
-    classes = list(a.attrs.get('class', []))  # bug: I was modifying
+        classes = list(a.attrs.get('class', []))  # bug: I was modifying
 
-    #     if le.query is not None:
-    #         classes.append(le.query)
 
     if 'toc_link' in classes:
 
@@ -679,6 +672,7 @@ def get_empty_links_to_fragment(soup):
         query = None
 
         linked = id2element.get(eid, None)
+        # noinspection PyArgumentList
         yield LinkElement(linker=element, eid=eid, linked=linked, query=query)
 
 

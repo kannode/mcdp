@@ -188,6 +188,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     else:
         resolve_references_to_images(soup=soup, library=library,
                                      raise_errors=raise_missing_image_errors)
+
     make_videos(soup=soup)
 
     if check_refs:
@@ -209,16 +210,16 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
         syntax_highlighting(soup)
 
     if MCDPManualConstants.enforce_status_attribute:
-        check_status_codes(soup, realpath)
+        check_status_codes(soup, realpath, res)
 
     if MCDPManualConstants.enforce_lang_attribute:
-        check_lang_codes(soup)
+        check_lang_codes(soup, res)
 
     # Fixes the IDs (adding 'sec:'); add IDs to missing ones
     globally_unique_id_part = 'autoid-DO-NOT-USE-THIS-VERY-UNSTABLE-LINK-' + get_md5(s0)[:5]
-    fix_ids_and_add_missing(soup, globally_unique_id_part)
+    fix_ids_and_add_missing(soup, globally_unique_id_part, res)
 
-    check_no_patently_wrong_links(soup)
+    check_no_patently_wrong_links(soup, res)
 
     s = to_html_stripping_fragment(soup)
     s = replace_macros(s)

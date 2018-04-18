@@ -20,7 +20,8 @@ class Note(object):
         from mcdp_docs.location import Location
         if isinstance(locations, Location):
             locations = {'location': locations}
-        self.locations = OrderedDict(locations)
+        check_isinstance(locations, dict)
+        self.locations = OrderedDict(**locations)
         stack = inspect.stack()
         self.created_function = stack[1 + stacklevel][3]
         module = inspect.getmodule(stack[1 + stacklevel][0])
