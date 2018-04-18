@@ -6,6 +6,7 @@ from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
+from nurb.out_html.utils import stag
 
 from .pretty_printing import pretty_print_dict
 
@@ -95,8 +96,13 @@ class Note(object):
             p.append("(No locations provided)")
             div.append(p)
 
-        s = 'Created by function %s()' % self.created_function
-        s += ' in module %s.' % self.created_module
+        s = Tag(name='span')
+        s.append('Created by function ')
+        s.append(stag('code', self.created_function))
+        s.append(' in module ')
+        s.append(stag('code', self.created_module))
+        s.append('.')
+
         p = Tag(name='p')
         p.append(s)
         div.append(s)

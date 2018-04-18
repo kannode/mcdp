@@ -60,7 +60,17 @@ def insert_inset(element, short, long_error, klasses=[]):
         add_class(summary, c)
     pre.append(long_error)
     details.append(pre)
+
+    element0 = element
+    while element.next_sibling and element.next_sibling.name == 'details':
+        element = element.next_sibling
+        add_class(element0, 'contains-consecutive-notes')
+        add_class(element, 'consecutive-note')
+        add_class(details, 'consecutive-note')
+
     element.insert_after(details)
+
+    return details
 
 
 @contract(e=BaseException)
@@ -69,7 +79,7 @@ def note_error(tag0, e):
     add_class(tag0, 'errored')
     short = 'Error'
     long_error = traceback.format_exc(e)
-    insert_inset(tag0, short, long_error, [ERROR_CLASS, type(e).__name__])
+    return insert_inset(tag0, short, long_error, [ERROR_CLASS, type(e).__name__])
 
 
 @contract(tag0=Tag, msg=bytes)
@@ -78,22 +88,22 @@ def note_error_msg(tag0, msg):
     add_class(tag0, 'errored')
     short = 'Error'
     long_error = msg
-    insert_inset(tag0, short, long_error, [ERROR_CLASS])
+    return insert_inset(tag0, short, long_error, [ERROR_CLASS])
 
 
 @contract(short=str, long_error='str|$Tag')
 def note_error2(element, short, long_error, other_classes=[]):
-    if 'errored' in element.attrs.get('class', ''):
-        return
+    # if 'errored' in element.attrs.get('class', ''):
+    #     return None
     add_class(element, 'errored')
     # logger.error(short + '\n' + long_error)
-    insert_inset(element, short, long_error, [ERROR_CLASS] + other_classes)
+    inset = insert_inset(element, short, long_error, [ERROR_CLASS] + other_classes)
     parent = element.parent
     if 'style' not in parent.attrs:
         if parent.name != 'blockquote':
             parent.attrs['style'] = 'display: inline;'
-
+    return inset
 
 def note_warning2(element, short, long_error, other_classes=[]):
     logger.warning(short + '\n' + long_error)
-    insert_inset(element, short, long_error, [WARNING_CLASS] + other_classes)
+    return insert_inset(element, short, long_error, [WARNING_CLASS] + other_classes)

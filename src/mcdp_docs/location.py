@@ -5,12 +5,12 @@ from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
 from bs4.element import Tag
-from contracts import contract
+from contracts import contract, check_isinstance
 from contracts.interface import location
 from contracts.utils import indent
 from mcdp_docs.github_edit_links import NoRootRepo
 from mcdp_lang_utils import Where
-from mcdp_utils_misc import pretty_print_dict
+from mcdp_utils_misc import pretty_print_dict, stag
 
 from .github_edit_links import get_repo_root, get_repo_information
 
@@ -132,7 +132,6 @@ class LocalFile(Location):
         #        a = Tag(name='a')
         #        a.attrs['href'] = 'edit://' + self.filename
         #        a.append('edit')
-        p.append(a)
 
         div.append(p)
         if self.github_info is not None:
@@ -150,6 +149,7 @@ class HTMLIDLocation(Location):
 
     def as_html(self, inline=False):
         div = Tag(name='div')
+
         p = Tag(name='p')
         p.append('Jump to ')
         a = Tag(name='a')
@@ -161,6 +161,7 @@ class HTMLIDLocation(Location):
         a.append('element in output file')
         p.append(a)
         p.append('.')
+
         div.append(p)
 
         return div
@@ -183,19 +184,21 @@ class SnippetLocation(Location):
 
     def as_html(self, inline=False):
         div = Tag(name='div')
-        p = Tag(name='p')
-        p.append('Jump to ')
-        a = Tag(name='a')
 
-        if inline:
-            href = '#%s' % self.element_id
-        else:
-            href = 'link.html#%s' % self.element_id
-        a.attrs['href'] = href
-        a.append('element in output file')
-        p.append(a)
-        p.append('.')
-        div.append(p)
+        if not inline:
+            p = Tag(name='p')
+            p.append('Jump to ')
+            a = Tag(name='a')
+
+            if inline:
+                href = '#%s' % self.element_id
+            else:
+                href = 'link.html#%s' % self.element_id
+            a.attrs['href'] = href
+            a.append('element in output file')
+            p.append(a)
+            p.append('.')
+            div.append(p)
 
         p = Tag(name='p')
         p.append('It happened at line %s of:' % self.line)
@@ -232,15 +235,21 @@ class GithubLocation(Location):
 
     """
 
-    def __init__(self, org, repo, path, blob_base, blob_url, branch, commit, edit_url):
+    def __init__(self, org, repo, path, blob_base, blob_url, branch, commit, edit_url,
+                 repo_base, branch_url, commit_url):
+        check_isinstance(path, str)
+        check_isinstance(branch, str)
         self.org = org
         self.repo = repo
         self.path = path
         self.blob_base = blob_base
         self.blob_url = blob_url
         self.edit_url = edit_url
+        self.branch_url = branch_url
+        self.commit_url = commit_url
         self.commit = commit
         self.branch = branch
+        self.repo_base = repo_base
 
     def __repr__(self):
         d = OrderedDict()
@@ -269,12 +278,33 @@ class GithubLocation(Location):
 
         return pretty_print_dict(d)
 
+    def as_html(self, inline=False):
+        p = Tag(name='p')
+
+        p.append('File ')
+        # p.append(stag('span', self.path))
+        p.append(stag('a', self.path, href=self.edit_url))
+
+        p.append(' in repo ')
+
+        repo = '%s/%s' % (self.org, self.repo)
+        p.append(stag('a', repo, href=self.repo_base))
+        p.append(' branch ')
+
+        # print('branch: %s' % self.branch.__repr__())
+        p.append(stag('a', str(self.branch), href=self.branch_url))
+        p.append(' commit ')
+        p.append(stag('a', self.commit[-8:], href=self.commit_url))
+
+        return p
+
     def get_stack(self):
         return [self]
 
 
 @contract(returns='$GithubLocation|None')
 def get_github_location(filename):
+    # TODO: detect if the copy is dirty
     try:
         repo_root = get_repo_root(filename)
     except NoRootRepo:
@@ -293,15 +323,20 @@ def get_github_location(filename):
     relpath = os.path.relpath(filename, repo_root)
 
     repo_base = 'https://github.com/%s/%s' % (org, repo)
-    blob_base = repo_base + '/blob/%s' % branch
-    edit_base = repo_base + '/edit/%s' % branch
+    commit_url = repo_base + '/commit/' + commit
+    branch_url = repo_base + '/tree/' + branch
+    blob_base = repo_base + '/blob/' + branch
+    edit_base = repo_base + '/edit/' + branch
 
     blob_url = blob_base + "/" + relpath
     edit_url = edit_base + "/" + relpath
     return GithubLocation(org=org, repo=repo, path=relpath,
+                          repo_base=repo_base,
                           blob_base=blob_base, blob_url=blob_url,
                           edit_url=edit_url,
-                          branch=branch, commit=commit)
+                          branch=branch, commit=commit,
+                          commit_url=commit_url,
+                          branch_url=branch_url)
 
 
 def location_from_stack(level):

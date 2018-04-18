@@ -72,7 +72,7 @@ def get_repo_information(repo_root):
     gitrepo = Repo(repo_root)
     try:
         try:
-            branch = gitrepo.active_branch
+            branch = str(gitrepo.active_branch)
         except TypeError:
         # TypeError: HEAD is a detached symbolic reference as it points
         # to '4bcaf737955277b156a5bacdd80d1805e4b8bb25'

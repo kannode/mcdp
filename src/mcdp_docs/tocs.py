@@ -25,7 +25,7 @@ class GlobalCounter(object):
 
 
 def fix_ids_and_add_missing(soup, globally_unique_id_part):
-    for h in soup.findAll(['h1', 'h2', 'h3', 'h4']):
+    for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5']):
         fix_header_id(h, globally_unique_id_part)
 
 

@@ -1,5 +1,6 @@
-from bs4.element import Comment
+from collections import OrderedDict
 
+from bs4.element import Comment
 from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
 from mcdp_utils_xml import note_error2, note_warning2
@@ -9,7 +10,7 @@ show_debug_message_for_corrected_links = False
 
 
 def get_id2element(soup, att):
-    id2element = {}
+    id2element = OrderedDict()
     duplicates = set()
 
     # ignore the maths
