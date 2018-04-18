@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from getpass import getuser
 import itertools
+from getpass import getuser
 
 from contracts import contract
 from contracts.utils import raise_desc, indent
@@ -13,8 +13,7 @@ from mcdp_utils_misc import get_md5
 from mcdp_utils_xml import to_html_stripping_fragment, bs, describe_tag
 
 from .check_missing_links import check_if_any_href_is_invalid, fix_subfig_references
-from .elements_abbrevs import check_good_use_of_special_paragraphs
-from .elements_abbrevs import other_abbrevs
+from .elements_abbrevs import check_good_use_of_special_paragraphs, other_abbrevs
 from .github_file_ref.display_file_imp import display_files
 from .github_file_ref.substitute_github_refs_i import substitute_github_refs
 from .lessc import run_lessc
@@ -25,8 +24,7 @@ from .manual_constants import MCDPManualConstants
 from .prerender_math import escape_for_mathjax_back, escape_for_mathjax
 from .status import check_status_codes, check_lang_codes
 from .syntax_highlight import syntax_highlighting, strip_pre
-from .tocs import check_no_patently_wrong_links
-from .tocs import fix_ids_and_add_missing
+from .tocs import check_no_patently_wrong_links, fix_ids_and_add_missing
 from .videos import make_videos
 
 __all__ = [
@@ -80,7 +78,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     #  between various limiters etc.
     # returns a dict(string, substitution)
     s, maths = extract_maths(s)
-#     print('maths = %s' % maths)
+    #     print('maths = %s' % maths)
     for k, v in maths.items():
         if v[0] == '$' and v[1] != '$$':
             if '\n\n' in v:
@@ -98,13 +96,13 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     s = s.replace('*}', '\*}')
 
     s, mcdpenvs = protect_my_envs(s)
-#     print('mcdpenvs = %s' % maths)
+    #     print('mcdpenvs = %s' % maths)
 
     s = col_macros_prepare_before_markdown(s)
 
-#     print(indent(s, 'before markdown | '))
+    #     print(indent(s, 'before markdown | '))
     s = render_markdown(s)
-#     print(indent(s, 'after  markdown | '))
+    #     print(indent(s, 'after  markdown | '))
 
     for k, v in maths.items():
         if not k in s:
@@ -115,7 +113,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
             # this gets mathjax confused
             x = x.replace('>', '\\gt{}')  # need brace; think a<b -> a\lt{}b
             x = x.replace('<', '\\lt{}')
-#             print('replaced equation %r by %r ' % (x0, x))
+            #             print('replaced equation %r by %r ' % (x0, x))
             return x
 
         v = preprocess_equations(v)
@@ -132,7 +130,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # need to process tabular before mathjax
     escape_for_mathjax(soup)
 
-#     print(indent(s, 'before prerender_mathjax | '))
+    #     print(indent(s, 'before prerender_mathjax | '))
     # mathjax must be after markdown because of code blocks using "$"
 
     s = to_html_stripping_fragment(soup)
@@ -144,7 +142,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     escape_for_mathjax_back(soup)
     s = to_html_stripping_fragment(soup)
 
-#     print(indent(s, 'after prerender_mathjax | '))
+    #     print(indent(s, 'after prerender_mathjax | '))
     for k, v in mcdpenvs.items():
         # there is this case:
         # ~~~
@@ -199,7 +197,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
                 run_lessc(soup)
             else:
                 logger.warning(
-                    'preprocess_style_using_less=False might break the manual')
+                        'preprocess_style_using_less=False might break the manual')
 
     fix_validation_problems(soup)
 
@@ -252,7 +250,7 @@ def get_library_from_document(soup, default_library):
     KEY_MCDP_LIBRARY = 'mcdp-library'
     if KEY_MCDP_LIBRARY in properties:
         use = properties[KEY_MCDP_LIBRARY]
-        #print('using library %r ' % use)
+        # print('using library %r ' % use)
         library = default_library.load_library(use)
         return library
 
@@ -286,27 +284,6 @@ def fix_validation_problems(soup):
             style = style.replace('display: inline-block;',
                                   '/* decided-to-ignore-inline-block: 0;*/')
             e.attrs['style'] = style
-
-    # remove useless <defs id="MathJax_SVG_glyphs"></defs>
-#     for e in list(soup.select('defs')):
-#         if e.attrs.get('id',None) == "MathJax_SVG_glyphs" and not e.string:
-#             e.extract()
-
-#     for e in soup.select('svg'):
-#         xmlns = "http://www.w3.org/2000/svg"
-#         if not 'xmlns' in e.attrs:
-#             e.attrs['xmlns'] = xmlns
-
-# def get_mathjax_preamble():
-#     symbols = '/Users/andrea/env_mcdp/src/mcdp/libraries/manual.mcdplib/symbols.tex'
-#     tex = open(symbols).read()
-#
-#     lines = tex.split('\n')
-#     lines = ['$%s$' % l for l in filter(lambda x: len(x.strip())>0, lines)]
-#     tex = "\n".join(lines)
-# #     frag = '<div class="mathjax-symbols">%s</div>\n' % tex
-#     frag = tex
-#     return frag
 
 
 def protect_my_envs(s):

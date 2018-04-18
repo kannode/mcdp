@@ -3,6 +3,7 @@ from collections import OrderedDict
 from bs4.element import Comment
 from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
+from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_xml import note_error2, note_warning2
 from mcdp_utils_xml.add_class_and_style import has_class
 
@@ -77,11 +78,9 @@ def check_if_any_href_is_invalid(soup):
             else:
                 core = ID
 
-            possible = [
-                'part', 'sec', 'sub', 'subsub', 'par', 'app', 'appsub', 'appsubsub',
-                'fig', 'tab', 'code',
-                'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
-            ]
+            possible = MCDPManualConstants.all_possible_prefixes_that_can_be_implied
+
+
             matches = []
             others = []
             for possible_prefix in possible:

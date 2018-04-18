@@ -1,11 +1,11 @@
 import datetime
+from collections import namedtuple
 
-from mcdp import MCDPConstants
 import mcdp
+from mcdp import MCDPConstants
 
 
 class MCDPManualConstants(object):
-
     activate_tilde_as_nbsp = False
 
     pdf_metadata = 'pdf_metadata.txt'
@@ -48,33 +48,153 @@ class MCDPManualConstants(object):
 
     ID_PUT_BIB_HERE = 'put-bibliography-here'
 
+    OTHER_THINGS_TO_INDEX = ['figure', 'div', 'cite']
+
+
+    allowed_prefixes_h = {
+        'h1': ['sec', 'app', 'part'],
+        'h2': ['sub', 'appsub'],
+        'h3': ['subsub', 'appsubsub'],
+        'h4': ['par'],
+        'h5': ['subpar'],
+    }
+
+    HEADERS_TO_FIX = HEADERS_TO_INDEX = list(allowed_prefixes_h)
+    # HEADERS_TO_FIX = ['h1', 'h2', 'h3', 'h4', 'h5']
+    # HEADERS_TO_INDEX = ['h1', 'h2', 'h3', 'h4', 'h5']
+    all_possible_prefixes_that_can_be_implied = [
+        'part', 'sec', 'sub', 'subsub', 'par', 'subpar', 'app', 'appsub', 'appsubsub',
+        'fig', 'tab', 'code',
+        'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
+    ]
+    
+    ATTR_NOTOC = 'notoc'
+    exclude_from_toc = [
+        'subsub', 'par', 'subpar', 'appsubsub',
+        'fig', 'subfig',
+        'code', 'tab',
+        'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm']
+
+    counters = [
+        'part', 'app', 'sec', 'sub', 'subsub', 'appsub', 'appsubsub', 'par', 'subpar',
+        'fig', 'tab', 'subfig', 'code',
+        'exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm',
+    ]
+
     # This is the TOC placeholder
     TOC_PLACEHOLDER_SELECTOR = 'div#toc'
     # this is what we generate (and splits looks for)
     MAIN_TOC_ID = 'main_toc'
 
-
-
-
     enable_syntax_higlighting = True
     enforce_status_attribute = True
     enforce_lang_attribute = True
 
-#     InfoBegin
-# InfoKey: dc:description
-# InfoValue: This is a description
-# InfoBegin
-# InfoKey: dc:identifier
-# InfoValue: myidentifier
-# InfoBegin
-# InfoKey: dc:source
-# InfoValue: mcdp.mit.edu
-# InfoBegin
-# InfoKey: dc:rights
-# InfoValue: Permissive license
-# InfoBegin
-# InfoKey: dc:type
-# InfoValue: Text
-# InfoBegin
-# InfoKey: dc:title
-# InfoValue: @@TITLE_CAPS
+
+Label = namedtuple('Label', 'what number label_self')
+
+Style = namedtuple('Style', 'resets labels')
+
+
+def get_style_book():
+    resets = {
+        'part': [],
+        'sec': ['sub', 'subsub', 'par'],
+        'sub': ['subsub', 'par'],
+        'subsub': ['par'],
+        'app': ['appsub', 'appsubsub', 'par'],
+        'appsub': ['appsubsub', 'par'],
+        'appsubsub': ['par'],
+        'par': ['subpar'],
+        'subpar': [],
+        'fig': ['subfig'],
+        'subfig': [],
+        'tab': [],
+        'code': [],
+        'exa': [],
+        'rem': [],
+        'lem': [],
+        'def': [],
+        'prop': [],
+        'prob': [],
+        'thm': [],
+    }
+
+    labels = {
+        'part': Label('Part', '${part}', ''),
+        'sec': Label('Chapter', '${sec}', ''),
+        'sub': Label('Section', '${sec}.${sub}', ''),
+        'subsub': Label('Subsection', '${sec}.${sub}.${subsub}', '${subsub}) '),
+        'par': Label('Paragraph', '${par|lower-alpha}', ''),
+        'subpar': Label('Sub paragraph', '${subpar|lower-alpha}', ''),
+        'app': Label('Appendix', '${app|upper-alpha}', ''),
+        'appsub': Label('Section', '${app|upper-alpha}.${appsub}', ''),
+        'appsubsub': Label('Subsection', '${app|upper-alpha}.${appsub}.${appsubsub}', ''),
+        # global counters
+        'fig': Label('Figure', '${fig}', ''),
+        'subfig': Label('Figure', '${fig}${subfig|lower-alpha}', '(${subfig|lower-alpha})'),
+        'tab': Label('Table', '${tab}', ''),
+        'code': Label('Listing', '${code}', ''),
+        'rem': Label('Remark', '${rem}', ''),
+        'lem': Label('Lemma', '${lem}', ''),
+        'def': Label('Definition', '${def}', ''),
+        'prob': Label('Problem', '${prob}', ''),
+        'prop': Label('Proposition', '${prop}', ''),
+        'thm': Label('Theorem', '${thm}', ''),
+        'exa': Label('Example', '${exa}', ''),
+
+    }
+    return Style(resets, labels)
+
+
+def get_style_duckietown():
+    resets = {
+        'part': ['sec'],
+        'sec': ['sub', 'subsub', 'par', 'fig', 'tab'],
+        'sub': ['subsub', 'par'],
+        'subsub': ['par'],
+        'app': ['appsub', 'appsubsub', 'par'],
+        'appsub': ['appsubsub', 'par'],
+        'appsubsub': ['par'],
+        'par': ['subpar'],
+        'subpar': [],
+
+        'fig': ['subfig'],
+        'subfig': [],
+        'tab': [],
+        'code': [],
+        'exa': [],
+        'rem': [],
+        'lem': [],
+        'def': [],
+        'prop': [],
+        'prob': [],
+        'thm': [],
+    }
+
+    labels = {
+        'part': Label('Part', '${part|upper-alpha}', ''),
+        'sec': Label('Unit', '${part|upper-alpha}-${sec}', ''),
+        'sub': Label('Section', '${sec}.${sub}', ''),
+        'subsub': Label('Subsection', '${sec}.${sub}.${subsub}', '${subsub}) '),
+        'par': Label('Paragraph', '${par|lower-alpha}', ''),
+        'subpar': Label('Sub paragraph', '${subpar|lower-alpha}', ''),
+        'app': Label('Appendix', '${app|upper-alpha}', ''),
+        'appsub': Label('Section', '${app|upper-alpha}.${appsub}', ''),
+        'appsubsub': Label('Subsection', '${app|upper-alpha}.${appsub}.${appsubsub}', ''),
+        # global counters
+        'fig': Label('Figure', '${sec}.${fig}', ''),
+        'subfig': Label('Figure', '${sec}.${fig}${subfig|lower-alpha}', '(${subfig|lower-alpha})'),
+        'tab': Label('Table', '${sec}.${tab}', ''),
+        'code': Label('Listing', '${sec}.${code}', ''),
+        'rem': Label('Remark', '${rem}', ''),
+        'lem': Label('Lemma', '${lem}', ''),
+        'def': Label('Definition', '${def}', ''),
+        'prob': Label('Problem', '${prob}', ''),
+        'prop': Label('Proposition', '${prop}', ''),
+        'thm': Label('Theorem', '${thm}', ''),
+        'exa': Label('Example', '${exa}', ''),
+
+    }
+
+    return Style(resets, labels)

@@ -32,7 +32,8 @@ class Location(object):
 
     def as_html(self, inline=False):
         pre = Tag(name='pre')
-        code = Tag(name='code')
+        code = Tag(name='span')
+        code.attrs['class'] = 'location'
         s = str(self)
         code.append(s)
         pre.append(code)
@@ -60,7 +61,8 @@ class LocationInString(Location):
     def as_html(self, inline=False):
         div = Tag(name='div')
         pre = Tag(name='pre')
-        code = Tag(name='code')
+        code = Tag(name='span')
+        code.attrs['class'] = 'location'
         code.append(str(self.where))
         pre.append(code)
         div.append(pre)

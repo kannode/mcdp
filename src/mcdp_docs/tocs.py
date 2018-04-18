@@ -7,7 +7,7 @@ from contracts.utils import indent
 from mcdp.logs import logger
 from mcdp_utils_xml import add_class, bs, note_error2
 
-from .manual_constants import MCDPManualConstants
+from .manual_constants import MCDPManualConstants, get_style_book, get_style_duckietown
 from .toc_number import render_number, number_styles
 
 figure_prefixes = ['fig', 'tab', 'subfig', 'code']
@@ -25,7 +25,7 @@ class GlobalCounter(object):
 
 
 def fix_ids_and_add_missing(soup, globally_unique_id_part):
-    for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5']):
+    for h in soup.findAll(MCDPManualConstants.HEADERS_TO_FIX):
         fix_header_id(h, globally_unique_id_part)
 
 
@@ -33,15 +33,8 @@ def fix_header_id(header, globally_unique_id_part):
     ID = header.get('id', None)
     prefix = None if (ID is None or ':' not in ID) else ID[:ID.index(':')]
 
-    allowed_prefixes_h = {
-        'h1': ['sec', 'app', 'part'],
-        'h2': ['sub', 'appsub'],
-        'h3': ['subsub', 'appsubsub'],
-        'h4': ['par'],
-    }
-
-    if header.name in allowed_prefixes_h:
-        allowed_prefixes = allowed_prefixes_h[header.name]
+    if header.name in MCDPManualConstants.allowed_prefixes_h:
+        allowed_prefixes = MCDPManualConstants.allowed_prefixes_h[header.name]
         default_prefix = allowed_prefixes[0]
 
         if ID is None:
@@ -75,20 +68,21 @@ def get_things_to_index(soup):
     """
         nothing with attribute "notoc"
 
-        h1, h2, h3, h4
+        h1, h2, h3, h4, h5
         figure  with id= "fig:*" or "tab:*" or "subfig:*" or code
     """
     formatter = None
-    for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'figure', 'div', 'cite']):
+    THINGS_TO_INDEX = MCDPManualConstants.HEADERS_TO_INDEX + MCDPManualConstants.OTHER_THINGS_TO_INDEX
+    for h in soup.findAll(THINGS_TO_INDEX):
 
         if formatter is None:
             # noinspection PyProtectedMember
             formatter = h._formatter_for_name("html")
 
-        if h.has_attr('notoc'):
+        if h.has_attr(MCDPManualConstants.ATTR_NOTOC):
             continue
 
-        if h.name in ['h1', 'h2', 'h3', 'h4']:
+        if h.name in MCDPManualConstants.HEADERS_TO_INDEX:
             if 'id' not in h.attrs:
                 msg = 'This header does not have an ID set.'
                 msg += '\n header: ' + str(h)
@@ -187,10 +181,8 @@ def generate_toc(soup, max_depth=None, max_levels=2):
     #                 item.tag.insert_after(ul)  # XXX: uses <fragment>
     #
     #     logger.debug('toc done iterating')
-    exclude = ['subsub', 'fig', 'code', 'tab', 'par', 'subfig',
-               'appsubsub',
-               'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm']
-    without_levels = root.copy_excluding_levels(exclude)
+
+    without_levels = root.copy_excluding_levels(MCDPManualConstants.exclude_from_toc)
     res = without_levels.to_html(root=True, max_levels=max_levels)
     return res
 
@@ -267,115 +259,10 @@ class Item(object):
                 yield item2
 
 
-Label = namedtuple('Label', 'what number label_self')
-
-Style = namedtuple('Style', 'resets labels')
-
-
-def get_style_book():
-    resets = {
-        'part': [],
-        'sec': ['sub', 'subsub', 'par'],
-        'sub': ['subsub', 'par'],
-        'subsub': ['par'],
-        'app': ['appsub', 'appsubsub', 'par'],
-        'appsub': ['appsubsub', 'par'],
-        'appsubsub': ['par'],
-        'par': [],
-        'fig': ['subfig'],
-        'subfig': [],
-        'tab': [],
-        'code': [],
-        'exa': [],
-        'rem': [],
-        'lem': [],
-        'def': [],
-        'prop': [],
-        'prob': [],
-        'thm': [],
-    }
-
-    labels = {
-        'part': Label('Part', '${part}', ''),
-        'sec': Label('Chapter', '${sec}', ''),
-        'sub': Label('Section', '${sec}.${sub}', ''),
-        'subsub': Label('Subsection', '${sec}.${sub}.${subsub}', '${subsub}) '),
-        'par': Label('Paragraph', '${par|lower-alpha}', ''),
-        'app': Label('Appendix', '${app|upper-alpha}', ''),
-        'appsub': Label('Section', '${app|upper-alpha}.${appsub}', ''),
-        'appsubsub': Label('Subsection', '${app|upper-alpha}.${appsub}.${appsubsub}', ''),
-        # global counters
-        'fig': Label('Figure', '${fig}', ''),
-        'subfig': Label('Figure', '${fig}${subfig|lower-alpha}', '(${subfig|lower-alpha})'),
-        'tab': Label('Table', '${tab}', ''),
-        'code': Label('Listing', '${code}', ''),
-        'rem': Label('Remark', '${rem}', ''),
-        'lem': Label('Lemma', '${lem}', ''),
-        'def': Label('Definition', '${def}', ''),
-        'prob': Label('Problem', '${prob}', ''),
-        'prop': Label('Proposition', '${prop}', ''),
-        'thm': Label('Theorem', '${thm}', ''),
-        'exa': Label('Example', '${exa}', ''),
-
-    }
-    return Style(resets, labels)
-
-
-def get_style_duckietown():
-    resets = {
-        'part': ['sec'],
-        'sec': ['sub', 'subsub', 'par', 'fig', 'tab'],
-        'sub': ['subsub', 'par'],
-        'subsub': ['par'],
-        'app': ['appsub', 'appsubsub', 'par'],
-        'appsub': ['appsubsub', 'par'],
-        'appsubsub': ['par'],
-        'par': [],
-        'fig': ['subfig'],
-        'subfig': [],
-        'tab': [],
-        'code': [],
-        'exa': [],
-        'rem': [],
-        'lem': [],
-        'def': [],
-        'prop': [],
-        'prob': [],
-        'thm': [],
-    }
-
-    labels = {
-        'part': Label('Part', '${part|upper-alpha}', ''),
-        'sec': Label('Unit', '${part|upper-alpha}-${sec}', ''),
-        'sub': Label('Section', '${sec}.${sub}', ''),
-        'subsub': Label('Subsection', '${sec}.${sub}.${subsub}', '${subsub}) '),
-        'par': Label('Paragraph', '${par|lower-alpha}', ''),
-        'app': Label('Appendix', '${app|upper-alpha}', ''),
-        'appsub': Label('Section', '${app|upper-alpha}.${appsub}', ''),
-        'appsubsub': Label('Subsection', '${app|upper-alpha}.${appsub}.${appsubsub}', ''),
-        # global counters
-        'fig': Label('Figure', '${sec}.${fig}', ''),
-        'subfig': Label('Figure', '${sec}.${fig}${subfig|lower-alpha}', '(${subfig|lower-alpha})'),
-        'tab': Label('Table', '${sec}.${tab}', ''),
-        'code': Label('Listing', '${sec}.${code}', ''),
-        'rem': Label('Remark', '${rem}', ''),
-        'lem': Label('Lemma', '${lem}', ''),
-        'def': Label('Definition', '${def}', ''),
-        'prob': Label('Problem', '${prob}', ''),
-        'prop': Label('Proposition', '${prop}', ''),
-        'thm': Label('Theorem', '${thm}', ''),
-        'exa': Label('Example', '${exa}', ''),
-
-    }
-
-    return Style(resets, labels)
-
-
 def number_items2(root):
-    counters = set(['part', 'app', 'sec', 'sub', 'subsub', 'appsub', 'appsubsub', 'par']
-                   + ['fig', 'tab', 'subfig', 'code']
-                   + ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm'])
+    counters = set(MCDPManualConstants.counters)
 
+    # TODO: make configurable
     style = get_style_book()
     style = get_style_duckietown()
     resets = style.resets
@@ -752,11 +639,7 @@ def get_empty_links_to_fragment(soup):
         if not href.startswith('#'):
             continue
         rest = href[1:]
-        #         if '/' in rest:
-        #             i = rest.index('/')
-        #             eid = rest[:i]
-        #             query = rest[i + 1:]
-        #         else:
+
         eid = rest
         query = None
 
@@ -765,6 +648,7 @@ def get_empty_links_to_fragment(soup):
 
 
 def get_ids_from_soup(soup):
+    # XXX: redundant
     id2e = {}
     for e in soup.select('[id]'):
         id_ = e.attrs['id']
