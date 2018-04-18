@@ -9,7 +9,7 @@ from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPInternalError
 from mcdp_library import MCDPLibrary
 from mcdp_report.gg_utils import embed_images_from_library2
-from mcdp_utils_misc import get_md5
+from mcdp_utils_misc import get_md5, AugmentedResult
 from mcdp_utils_xml import to_html_stripping_fragment, bs, describe_tag
 
 from .check_missing_links import check_if_any_href_is_invalid, fix_subfig_references
@@ -35,7 +35,7 @@ __all__ = [
 @contract(returns='str', s=str, library=MCDPLibrary, raise_errors=bool)
 def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
                     check_refs=False, use_mathjax=True, filter_soup=None,
-                    symbols=None):
+                    symbols=None, res=None):
     """
         Transforms markdown into html and then renders the mcdp snippets inside.
 
@@ -45,6 +45,8 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
 
         filter_soup(library, soup)
     """
+    if res is None:
+        res = AugmentedResult()
     from mcdp_report.gg_utils import resolve_references_to_images
     s0 = s
     check_good_use_of_special_paragraphs(s0, realpath)
@@ -189,7 +191,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     make_videos(soup=soup)
 
     if check_refs:
-        check_if_any_href_is_invalid(soup)
+        check_if_any_href_is_invalid(soup, res)
 
     if False:
         if getuser() == 'andrea':

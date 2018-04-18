@@ -17,6 +17,9 @@ class Note(object):
         self.msg = msg
         if locations is None:
             locations = OrderedDict()
+        from mcdp_docs.location import Location
+        if isinstance(locations, Location):
+            locations = {'location': locations}
         self.locations = OrderedDict(locations)
         stack = inspect.stack()
         self.created_function = stack[1 + stacklevel][3]
@@ -205,6 +208,7 @@ class AugmentedResult(object):
         meta = Tag(name='meta')
         meta.attrs['content'] = "text/html; charset=utf-8"
         meta.attrs['http-equiv'] = "Content-Type"
+        head.append(meta)
         html.append(head)
         body = Tag(name='body')
         html.append(body)
@@ -232,7 +236,7 @@ class AugmentedResult(object):
         meta = Tag(name='meta')
         meta.attrs['content'] = "text/html; charset=utf-8"
         meta.attrs['http-equiv'] = "Content-Type"
-
+        head.append(meta)
         html.append(head)
         body = Tag(name='body')
         html.append(body)
@@ -270,12 +274,14 @@ class AugmentedResult(object):
         self.notes.append(note)
 
     def note_error(self, msg, locations=None):
-        logger.error(msg)
-        self.add_note(NoteError(msg, locations, stacklevel=1))
+        note = NoteError(msg, locations, stacklevel=1)
+        self.add_note(note)
+        logger.error(str(note))
 
     def note_warning(self, msg, locations=None):
-        logger.warning(msg)
-        self.add_note(NoteWarning(msg, locations, stacklevel=1))
+        note = NoteWarning(msg, locations, stacklevel=1)
+        self.add_note(note)
+        # logger.warn(str(note))
 
     @contract(prefix='str|tuple')
     def merge(self, other, prefix=()):
@@ -285,6 +291,7 @@ class AugmentedResult(object):
         have = set()
         for n in self.notes:
             have.add(n.msg)
+
         for note in other.notes:
             if note.msg not in have:
                 note2 = copy.deepcopy(note)

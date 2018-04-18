@@ -11,6 +11,7 @@ from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
 from mcdp.logs import logger
 from mcdp_docs.manual_constants import MCDPManualConstants
+from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_misc.timing import timeit_wall as timeit
 from mcdp_utils_xml import add_class, bs, copy_contents_into
 
@@ -182,7 +183,7 @@ def manual_join(template, files_contents,
 
         with timeit('generate_and_add_toc'):
             try:
-                generate_and_add_toc(d, raise_error=True)
+                generate_and_add_toc(d, raise_error=True, aug=aug)
             except NoTocPlaceholder as e:
                 if require_toc_placeholder:
                     msg = 'Could not find toc placeholder: %s' % e
@@ -245,7 +246,9 @@ def document_final_pass_before_toc(soup, remove, remove_selectors):
         move_things_around(soup=soup)
 
 
-def document_final_pass_after_toc(soup, resolve_references=True):
+def document_final_pass_after_toc(soup, resolve_references=True, res=None):
+    if res is None:
+        res = AugmentedResult()
     """ This is done to a final document """
 
     logger.info('checking errors')
@@ -253,13 +256,13 @@ def document_final_pass_after_toc(soup, resolve_references=True):
 
     from mcdp_docs.check_missing_links import check_if_any_href_is_invalid
     logger.info('checking hrefs')
-    check_if_any_href_is_invalid(soup)
+    check_if_any_href_is_invalid(soup, res=res)
 
     # Note that this should be done *after* check_if_any_href_is_invalid()
     # because that one might fix some references
     if resolve_references:
         logger.info('substituting empty links')
-        substituting_empty_links(soup)
+        substituting_empty_links(soup, res)
 
     warn_for_duplicated_ids(soup)
 
@@ -662,7 +665,7 @@ def update_refs_(filename, contents, id2filename):
     for a in elements:
         href = a.attrs['href']
         assert href[0] == '#'
-        id_ = href[1:]  # Todo, parse out "?"
+        id_ = href[1:]
         if id_ in id2filename:
             point_to_filename = id2filename[id_]
             if point_to_filename != filename:
@@ -1030,17 +1033,20 @@ class NoTocPlaceholder(Exception):
     pass
 
 
-def generate_and_add_toc(soup, raise_error=False):
+def generate_and_add_toc(soup, raise_error=False, aug=None):
+    if aug is None:
+        aug = AugmentedResult()
     logger.info('adding toc')
     body = soup.find('body')
     toc = generate_toc(body)
 
-    #     logger.info('TOC:\n' + str(toc))
+    # logger.info('TOC:\n' + str(toc))
     toc_ul = bs(toc).ul
     if toc_ul is None:
         # empty TOC
-        msg = 'Could not find toc'
-        logger.warning(msg)
+        msg = 'Could not find toc.'
+        # logger.warning(msg)
+        aug.note_error(msg)
         # XXX
     else:
         toc_ul.extract()
@@ -1054,7 +1060,8 @@ def generate_and_add_toc(soup, raise_error=False):
             msg = 'Cannot find any element of type %r to put TOC inside.' % toc_selector
             if raise_error:
                 raise NoTocPlaceholder(msg)
-            logger.warning(msg)
+            # logger.warning(msg)
+            aug.note_error(msg)
         else:
             toc_place = tocs[0]
             toc_place.replaceWith(toc_ul)

@@ -5,6 +5,7 @@ from collections import namedtuple
 from bs4.element import Comment, Tag, NavigableString
 from contracts.utils import indent
 from mcdp.logs import logger
+from mcdp_docs.location import HTMLIDLocation
 from mcdp_utils_xml import add_class, bs, note_error2
 
 from .manual_constants import MCDPManualConstants, get_style_book, get_style_duckietown
@@ -232,7 +233,7 @@ class Item(object):
     def to_html(self, root, max_levels, ):
         s = u''
         if not root:
-            if 'nonumber' in self.tag.attrs:
+            if MCDPManualConstants.ATTR_NONUMBER in self.tag.attrs:
                 CLASS = MCDPManualConstants.CLASS_ONLY_NAME
             else:
                 CLASS = MCDPManualConstants.CLASS_NUMBER_NAME
@@ -283,31 +284,46 @@ def number_items2(root):
 
     for item in root.depth_first_descendants():
         counter = item.id.split(":")[0]
+
+        nonumber = MCDPManualConstants.ATTR_NONUMBER in item.tag.attrs
+
+
         #         print('counter %s id %s %s' % (counter, item.id, counter_state))
         if counter in counters:
-            counter_state[counter] += 1
-            for counter_to_reset in resets[counter]:
-                counter_state[counter_to_reset] = 0
+
+            if not nonumber:
+                counter_state[counter] += 1
+                for counter_to_reset in resets[counter]:
+                    counter_state[counter_to_reset] = 0
 
             label_spec = labels[counter]
             what = label_spec.what
             number = render(label_spec.number, counter_state)
 
-            item.tag.attrs[LABEL_NAME] = item.name
-            item.tag.attrs[LABEL_WHAT] = what
-            item.tag.attrs[LABEL_SELF] = render(
-                    label_spec.label_self, counter_state)
-
-            if item.name is None:
-                item.tag.attrs[LABEL_WHAT_NUMBER_NAME] = what + ' ' + number
+            if LABEL_NAME in item.tag.attrs:
+                msg = "Don't overwrite %s for element = %s" % (LABEL_NAME, item.tag.attrs[LABEL_NAME])
+                logger.warn(msg)
             else:
-                item.tag.attrs[LABEL_WHAT_NUMBER_NAME] = what + \
-                                                         ' ' + number + ' - ' + item.name
-            item.tag.attrs[LABEL_WHAT_NUMBER] = what + ' ' + number
-            item.tag.attrs[LABEL_NUMBER] = number
+                item.tag.attrs[LABEL_NAME] = item.name
 
-            allattrs = [LABEL_NAME, LABEL_WHAT,
-                        LABEL_WHAT_NUMBER_NAME, LABEL_NUMBER, LABEL_SELF]
+            if nonumber:
+                item.tag.attrs[LABEL_WHAT] = what
+                item.tag.attrs[LABEL_SELF] = item.name # ??? render(label_spec.label_self, counter_state)
+                item.tag.attrs[LABEL_WHAT_NUMBER_NAME] = item.name
+                # item.tag.attrs[LABEL_WHAT_NUMBER] = None
+                # item.tag.attrs[LABEL_NUMBER] = None
+            else:
+                item.tag.attrs[LABEL_WHAT] = what
+                item.tag.attrs[LABEL_SELF] = render(label_spec.label_self, counter_state)
+
+                if item.name is None:
+                    item.tag.attrs[LABEL_WHAT_NUMBER_NAME] = what + ' ' + number
+                else:
+                    item.tag.attrs[LABEL_WHAT_NUMBER_NAME] = what + ' ' + number + ' - ' + item.name
+                item.tag.attrs[LABEL_WHAT_NUMBER] = what + ' ' + number
+                item.tag.attrs[LABEL_NUMBER] = number
+
+            allattrs = [LABEL_NAME, LABEL_WHAT, LABEL_WHAT_NUMBER_NAME, LABEL_NUMBER, LABEL_SELF]
             for c in counters:
                 if c in counter_parents[counter] or c == counter:
                     attname = 'counter-%s' % c
@@ -392,7 +408,7 @@ Please remove the "#".
             note_error2(a, 'syntax error', msg.lstrip())
 
 
-def substituting_empty_links(soup, raise_errors=False):
+def substituting_empty_links(soup, raise_errors=False, res = None):
     """
 
         default style is [](#sec:systems)  "Chapter 10"
@@ -402,7 +418,8 @@ def substituting_empty_links(soup, raise_errors=False):
             <a href='#sec:name' class='only_number'></a>
 
     """
-
+    if res is None:
+        res = AugmentedResult()
     #     logger.debug('substituting_empty_links')
 
     #     n = 0
@@ -410,10 +427,13 @@ def substituting_empty_links(soup, raise_errors=False):
         a = le.linker
         element_id = le.eid
         element = le.linked
-        sub_link(a, element_id, element, raise_errors)
+        sub_link(a, element_id, element, raise_errors, res)
 
     # Now mark as errors the ones that
     for a in get_empty_links(soup):
+        if not 'id' in a.attrs:
+            a.attrs['id'] = 'ax-%s' % str(id(a))
+
         href = a.attrs.get('href', '(not present)')
         if not href:
             href = '""'
@@ -448,6 +468,8 @@ So, you need to provide some text, such as:
             msg = msg.replace('MYURL', href)
             note_error2(a, 'syntax error', msg.strip())
 
+            res.note_error(msg, HTMLIDLocation(a.attrs['id']))
+
         else:
             msg = """
 This link is empty:
@@ -469,14 +491,18 @@ the syntax "#ID", such as:
 """ % href
         msg = msg.replace('ELEMENT', str(a))
         note_error2(a, 'syntax error', msg.strip())
-
+        res.note_error(msg, HTMLIDLocation(a.attrs['id']))
 
 #         n += 1
 #     logger.debug('substituting_empty_links: %d total, %d errors' %
 #                  (n, nerrors))
 
 
-def sub_link(a, element_id, element, raise_errors):
+def add_id_if_not_present(a):
+    if not 'id' in a.attrs:
+        a.attrs['id'] = 'ay-%s' % str(id(a))
+
+def sub_link(a, element_id, element, raise_errors, res):
     """
         a: the link with href= #element_id
         element: the link to which we refer
@@ -488,6 +514,10 @@ def sub_link(a, element_id, element, raise_errors):
     if not element:
         msg = ('Cannot find %s' % element_id)
         note_error2(a, 'Ref. error', 'substituting_empty_links():\n' + msg)
+
+        add_id_if_not_present(a)
+        res.note_error(msg, HTMLIDLocation(a.attrs['id']))
+
         # nerrors += 1
         if raise_errors:
             raise ValueError(msg)
@@ -502,6 +532,11 @@ def sub_link(a, element_id, element, raise_errors):
             (not LABEL_NAME in element.attrs):
         msg = ('substituting_empty_links: Could not find attributes %s or %s in %s' %
                (LABEL_NAME, LABEL_WHAT_NUMBER, element))
+
+        add_id_if_not_present(a)
+        res.note_warning(msg, {'original', HTMLIDLocation(element_id),
+                               'reference', HTMLIDLocation(a.attrs['id'])})
+
         if True:
             logger.warning(msg)
         else:

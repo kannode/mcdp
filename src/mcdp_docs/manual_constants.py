@@ -69,6 +69,7 @@ class MCDPManualConstants(object):
     ]
     
     ATTR_NOTOC = 'notoc'
+    ATTR_NONUMBER = 'nonumber'
     exclude_from_toc = [
         'subsub', 'par', 'subpar', 'appsubsub',
         'fig', 'subfig',

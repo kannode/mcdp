@@ -6,6 +6,7 @@ import git
 from bs4.element import Tag
 from contracts.utils import check_isinstance
 from mcdp_docs.github_edit_links import NoRootRepo
+from mcdp_docs.tocs import LABEL_NAME
 from mcdp_utils_misc import memoize_simple
 from mcdp_utils_xml import bs, to_html_stripping_fragment
 
@@ -94,10 +95,9 @@ def make_last_modified(files_contents, nmax=100):
 
 def get_first_header_title(soup):
     """ returns attribute label-name """
-    a = 'label-name'
     for e in soup.find_all(['h1', 'h2', 'h3']):
-        if a in e.attrs:
-            return e.attrs[a]
+        if LABEL_NAME in e.attrs:
+            return e.attrs[LABEL_NAME]
     return None
 
 

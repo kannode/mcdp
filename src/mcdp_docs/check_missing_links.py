@@ -3,7 +3,9 @@ from collections import OrderedDict
 from bs4.element import Comment
 from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
+from mcdp_docs.location import GithubLocation, HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
+from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml import note_error2, note_warning2
 from mcdp_utils_xml.add_class_and_style import has_class
 
@@ -41,11 +43,13 @@ def get_id2element(soup, att):
     return id2element, duplicates
 
 
-def check_if_any_href_is_invalid(soup):
+def check_if_any_href_is_invalid(soup, res=None):
     """
         Checks if references are invalid and tries to correct them.
 
     """
+    if res is None:
+        res = AugmentedResult()
 
     errors = []
     math_errors = []
@@ -55,6 +59,8 @@ def check_if_any_href_is_invalid(soup):
     _name2element, _duplicates = get_id2element(soup, 'name')
 
     for a in soup.select('[href^="#"]'):
+        if 'id' not in a.attrs:
+            a.attrs['id'] = 'a-%s' % str(id(a))
         href = a['href']
         if a.has_attr('class') and "mjx-svg-href" in a['class']:
             msg = 'Invalid math reference (sorry, no details): href = %s .' % href
@@ -68,6 +74,8 @@ def check_if_any_href_is_invalid(soup):
         if '?' in ID:
             ID = ID[:ID.index('?')]
 
+        locations = {'link': HTMLIDLocation(a.attrs['id'])}
+
         if ID not in id2element:
             # try to fix it
 
@@ -79,7 +87,6 @@ def check_if_any_href_is_invalid(soup):
                 core = ID
 
             possible = MCDPManualConstants.all_possible_prefixes_that_can_be_implied
-
 
             matches = []
             others = []
@@ -94,6 +101,8 @@ def check_if_any_href_is_invalid(soup):
                 msg = '%s not found, and multiple matches for heuristics (%s)' % (href, matches)
                 note_error2(a, short, msg, ['href-invalid', 'href-invalid-missing'])
 
+                res.note_error(msg, locations)
+
             elif len(matches) == 1:
 
                 a['href'] = '#' + matches[0]
@@ -102,6 +111,8 @@ def check_if_any_href_is_invalid(soup):
                     short = 'Ref replaced'
                     msg = '%s not found, but corrected in %s' % (href, matches[0])
                     note_warning2(a, short, msg, ['href-replaced'])
+
+                    res.note_warning(msg, locations)
 
             else:
                 if has_class(a, MCDPConstants.CLASS_IGNORE_IF_NOT_EXISTENT):
@@ -114,11 +125,16 @@ def check_if_any_href_is_invalid(soup):
                     note_error2(a, short, msg, ['href-invalid', 'href-invalid-missing'])
                     errors.append(msg)
 
+
+                    res.note_error(msg, locations)
+
         if ID in duplicates:
             msg = 'More than one element matching %r.' % href
             short = 'Ref. error'
             note_error2(a, short, msg, ['href-invalid', 'href-invalid-multiple'])
             errors.append(msg)
+
+            res.note_error(msg, locations)
 
     return errors, math_errors
 
