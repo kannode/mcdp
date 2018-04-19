@@ -6,7 +6,7 @@ from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
-from nurb.out_html.utils import stag
+from mcdp_utils_xml import stag
 
 from .pretty_printing import pretty_print_dict
 
