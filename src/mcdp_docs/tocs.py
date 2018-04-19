@@ -3,6 +3,7 @@
 from collections import namedtuple
 
 from bs4.element import Tag, NavigableString
+from contracts import contract
 from contracts.utils import indent
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
@@ -11,6 +12,7 @@ from mcdp_utils_xml import add_class, bs, note_error2
 
 from .manual_constants import MCDPManualConstants, get_style_book, get_style_duckietown
 from .toc_number import render_number, number_styles
+
 
 def element_has_one_of_prefixes(element, prefixes):
     eid = element.attrs.get('id', 'notpresent')
@@ -286,7 +288,6 @@ def number_items2(root):
 
         nonumber = MCDPManualConstants.ATTR_NONUMBER in item.tag.attrs
 
-
         #         print('counter %s id %s %s' % (counter, item.id, counter_state))
         if counter in counters:
 
@@ -307,7 +308,7 @@ def number_items2(root):
 
             if nonumber:
                 item.tag.attrs[LABEL_WHAT] = what
-                item.tag.attrs[LABEL_SELF] = item.name # ??? render(label_spec.label_self, counter_state)
+                item.tag.attrs[LABEL_SELF] = item.name  # ??? render(label_spec.label_self, counter_state)
                 item.tag.attrs[LABEL_WHAT_NUMBER_NAME] = item.name
                 # item.tag.attrs[LABEL_WHAT_NUMBER] = None
                 # item.tag.attrs[LABEL_NUMBER] = None
@@ -407,7 +408,9 @@ Please remove the "#".
             # note_error2(a, 'syntax error', )
             res.note_error(msg.lstrip(), HTMLIDLocation.for_element(a))
 
-def substituting_empty_links(soup, raise_errors=False, res = None):
+
+@contract(raise_errors=bool)
+def substituting_empty_links(soup, raise_errors=False, res=None):
     """
 
         default style is [](#sec:systems)  "Chapter 10"
@@ -492,6 +495,7 @@ the syntax "#ID", such as:
         note_error2(a, 'syntax error', msg.strip())
         res.note_error(msg, HTMLIDLocation(a.attrs['id']))
 
+
 #         n += 1
 #     logger.debug('substituting_empty_links: %d total, %d errors' %
 #                  (n, nerrors))
@@ -500,6 +504,7 @@ the syntax "#ID", such as:
 def add_id_if_not_present(a):
     if not 'id' in a.attrs:
         a.attrs['id'] = 'ay-%s' % str(id(a))
+
 
 def sub_link(a, element_id, element, raise_errors, res):
     """
@@ -548,7 +553,6 @@ def sub_link(a, element_id, element, raise_errors, res):
         label_name = element.attrs[LABEL_NAME]
 
         classes = list(a.attrs.get('class', []))  # bug: I was modifying
-
 
     if 'toc_link' in classes:
 

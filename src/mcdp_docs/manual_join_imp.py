@@ -262,7 +262,7 @@ def document_final_pass_after_toc(soup, resolve_references=True, res=None):
     # because that one might fix some references
     if resolve_references:
         logger.info('substituting empty links')
-        substituting_empty_links(soup, res)
+        substituting_empty_links(soup, raise_errors=False, res=res)
 
     warn_for_duplicated_ids(soup)
 
