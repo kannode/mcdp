@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from comptests import comptest
 from mcdp_library import Librarian
 from mcdp_utils_misc.create_mockups import create_hierarchy
 from mocdp.comp.context import Context
