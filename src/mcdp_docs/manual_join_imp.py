@@ -72,6 +72,9 @@ def manual_join(template, files_contents,
         references = {}
     check_isinstance(files_contents, list)
 
+    if aug is None:
+        aug = AugmentedResult()
+        
     @contextmanager
     def timeit(_):
         yield
