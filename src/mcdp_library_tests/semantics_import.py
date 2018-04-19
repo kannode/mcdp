@@ -4,8 +4,6 @@ from mcdp_utils_misc.create_mockups import create_hierarchy
 from mocdp.comp.context import Context
 from nose.tools import assert_equal
 
-raise Exception()
-
 @comptest
 def feat_import1():
     """ Poset load """
