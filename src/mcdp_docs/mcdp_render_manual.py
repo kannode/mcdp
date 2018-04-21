@@ -48,7 +48,7 @@ class RenderManual(QuickApp):
         params.add_string('stylesheet_pdf', help='Stylesheet pdf version', default=None)
 
         params.add_string('split', help='If given, create split html version at this dir.', default=None)
-        params.add_int('mathjax', help='Use MathJax (requires node)', default=1)
+        params.add_int('mathjax', help='Prerender MathJax at the level of each file (requires node)', default=0)
         params.add_string('symbols', help='.tex file for MathJax', default=None)
         params.add_string('permalink_prefix', default=None)
         params.add_string('compose', default=None)
@@ -186,6 +186,9 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
         src_dirs: list of sources
         symbols: a TeX preamble (or None)
     """
+
+    if symbols is not None:
+        symbols = open(symbols).read()
     if stylesheet_pdf is None:
         stylesheet_pdf = stylesheet
     # outdir = os.path.dirname(out_split_dir)  # XXX
@@ -294,7 +297,7 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
 
     if out_pdf is not None:
         joined_aug_with_pdf_stylesheet = context.comp(add_style, joined_aug, stylesheet_pdf)
-        prerendered = context.comp(prerender, joined_aug_with_pdf_stylesheet)
+        prerendered = context.comp(prerender, joined_aug_with_pdf_stylesheet, symbols=symbols)
         pdf_data = context.comp(render_pdf, prerendered)
         context.comp(write_data_to_file, pdf_data, out_pdf)
 
@@ -333,7 +336,7 @@ def make_composite(compose_config, joined_aug):
     return res
 
 
-def prerender(joined_aug):
+def prerender(joined_aug, symbols):
     joined = joined_aug.get_result()
     soup = bs_entire_document(joined)
     for details in soup.select('details'):
@@ -342,10 +345,14 @@ def prerender(joined_aug):
         # details.attrs['open'] = 1
 
     joined = to_html_entire_document(soup)
-    return prerender_mathjax(joined, symbols=None)
+    res = AugmentedResult()
+    result =  prerender_mathjax(joined, symbols=symbols, res=res)
+    res.set_result(result)
+    return res
 
 
-def render_pdf(data):
+def render_pdf(data_aug):
+    data = data_aug.get_result()
     prefix = 'prince_render'
     d = tempfile.mkdtemp(dir=get_mcdp_tmp_dir(), prefix=prefix)
     f_html = os.path.join(d, 'file.html')

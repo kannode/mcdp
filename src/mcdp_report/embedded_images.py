@@ -182,7 +182,7 @@ def extract_img_to_file_(soup, savefile, tagname, attrname):
         filename = basename + '.' + ext
         # src = "%s" % filename
         # ask what we should be using
-        print('saving file %s with %d data' % (filename, len(data)))
+        # print('saving file %s with %d data' % (filename, len(data)))
         use_src = savefile(filename, data)
         check_isinstance(use_src, str)
         tag[attrname] = use_src

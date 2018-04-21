@@ -4,6 +4,8 @@ from mcdp.logs import logger
 from mcdp_docs.github_file_ref.display_file_imp import display_files
 from mcdp_docs.github_file_ref.reference import parse_github_file_ref, InvalidGithubRef
 from mcdp_docs.github_file_ref.substitute_github_refs_i import substitute_github_refs
+from mcdp_docs.location import LocationUnknown
+from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml.parsing import bs
 
 
@@ -17,7 +19,10 @@ def displayfile1():
 <display-file src="github:path=context_eval_as_constant.py,from_text=get_connections_for,to_text=return"></a> 
 """
     soup = bs(s)
-    n = display_files(soup, defaults, raise_errors=True)
+    res = AugmentedResult()
+    location = LocationUnknown()
+
+    n = display_files(soup, defaults, raise_errors=True, res=res, location=location)
     assert n == 1
 
     s2 = str(soup)
@@ -36,7 +41,9 @@ from_text=get_connections_for,
 to_text=return"></a> 
 """
     soup = bs(s)
-    n = display_files(soup, defaults, raise_errors=True)
+    location = LocationUnknown()
+    res = AugmentedResult()
+    n = display_files(soup, defaults, raise_errors=True, res=res, location=location)
     assert n == 1
 
     s2 = str(soup)
@@ -53,7 +60,10 @@ def sub1():
 <a href="github:path=context_eval_as_constant.py"></a> 
 """
     soup = bs(s)
-    n = substitute_github_refs(soup, defaults)
+    location = LocationUnknown()
+    res = AugmentedResult()
+
+    n = substitute_github_refs(soup, defaults, res=res, location=location)
     assert n == 1
 
     s2 = str(soup)
@@ -74,7 +84,9 @@ def sub2():
 <a href="github:path=context_eval_as_constant.py,from_text=get_connections_for,to_text=return"></a> 
 """
     soup = bs(s)
-    n = substitute_github_refs(soup, defaults)
+    location = LocationUnknown()
+    res = AugmentedResult()
+    n = substitute_github_refs(soup, defaults, res=res, location=location)
     assert n == 1
 
     s2 = str(soup)
