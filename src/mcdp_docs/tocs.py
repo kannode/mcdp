@@ -10,7 +10,7 @@ from mcdp_docs.location import HTMLIDLocation
 from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml import add_class, bs, note_error2
 
-from .manual_constants import MCDPManualConstants, get_style_book, get_style_duckietown
+from .manual_constants import MCDPManualConstants, get_style_duckietown
 from .toc_number import render_number, number_styles
 
 
@@ -200,7 +200,7 @@ def toc_summary(root):
         m = ('depth %s tag %s id %-30s %-20s %s %s  ' %
              (item.depth, item.tag.name, item.id[:26],
               number, ' ' * 2 * item.depth, display_name))
-        m = m + ' ' * (120 - len(m))
+        m += ' ' * (120 - len(m))
         s += '\n' + m
     return s
 
@@ -265,7 +265,7 @@ def number_items2(root):
     counters = set(MCDPManualConstants.counters)
 
     # TODO: make configurable
-    style = get_style_book()
+    # style = get_style_book()
     style = get_style_duckietown()
     resets = style.resets
     labels = style.labels
@@ -434,8 +434,8 @@ def substituting_empty_links(soup, raise_errors=False, res=None):
 
     # Now mark as errors the ones that
     for a in get_empty_links(soup):
-        if not 'id' in a.attrs:
-            a.attrs['id'] = 'ax-%s' % str(id(a))
+        # if not 'id' in a.attrs:
+        #     a.attrs['id'] = 'ax-%s' % str(id(a))
 
         href = a.attrs.get('href', '(not present)')
         if not href:
@@ -471,7 +471,7 @@ So, you need to provide some text, such as:
             msg = msg.replace('MYURL', href)
             note_error2(a, 'syntax error', msg.strip())
 
-            res.note_error(msg, HTMLIDLocation(a.attrs['id']))
+            res.note_error(msg, HTMLIDLocation.for_element(a))
 
         else:
             msg = """
@@ -494,7 +494,8 @@ the syntax "#ID", such as:
 """ % href
         msg = msg.replace('ELEMENT', str(a))
         note_error2(a, 'syntax error', msg.strip())
-        res.note_error(msg, HTMLIDLocation(a.attrs['id']))
+        # res.note_error(msg, HTMLIDLocation(a.attrs['id']))
+        res.note_error(msg, HTMLIDLocation.for_element(a))
 
 
 #         n += 1

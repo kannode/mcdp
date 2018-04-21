@@ -228,8 +228,9 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         linkjs = create_link_base_js(id2filename)
         write_data_to_file(str(linkjs), os.path.join(output_dir, linkbasejs), quiet=True)
 
-    if preamble:
-        preamble = open(preamble).read()
+    if preamble is not None:
+        if preamble.endswith('.tex'): # XXX
+            preamble = open(preamble).read()
 
     ids_to_use = []
     for k in list(id2filename):

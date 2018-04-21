@@ -186,9 +186,9 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
         src_dirs: list of sources
         symbols: a TeX preamble (or None)
     """
-
-    if symbols is not None:
-        symbols = open(symbols).read()
+    #
+    # if symbols is not None:
+    #     symbols = open(symbols).read()
     if stylesheet_pdf is None:
         stylesheet_pdf = stylesheet
     # outdir = os.path.dirname(out_split_dir)  # XXX
@@ -289,7 +289,7 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
         written_aug = context.comp_dynamic(create_split_jobs,
                                            data_aug=joined_aug_with_html_stylesheet,
                                            mathjax=True,
-                                           preamble=None,
+                                           preamble=symbols,
                                            output_dir=out_split_dir, nworkers=0)
 
         context.comp(write_errors_and_warnings_files, joined_aug, out_split_dir,
