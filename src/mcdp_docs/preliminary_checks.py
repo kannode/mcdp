@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
 
-from contracts.utils import indent
 from mcdp import MCDPConstants, logger
 from mcdp.exceptions import DPSyntaxError
+from mcdp_docs.location import LocationInString
 from mcdp_lang_utils import Where, location
 from mcdp_utils_misc import format_list
 
@@ -13,14 +13,17 @@ from .mark.markdown_transform import censor_markdown_code_blocks
 __all__ = ['do_preliminary_checks_and_fixes']
 
 
-def do_preliminary_checks_and_fixes(s):
+def do_preliminary_checks_and_fixes(s, res, location0):
     if MCDPConstants.allow_tabs:
         if '\t' in s:
             i = s.index('\t')
             msg = "Tabs bring despair (e.g. Markdown does not recognize them.)"
             where = Where(s, i)
-            logger.warn(msg + '\n\n' + indent(where, '  '))  # TODO: make augmented result
-            s.replace('\t', ' ' * MCDPConstants.tabsize)
+
+            location = LocationInString(where, location0)
+            # logger.warn(msg + '\n\n' + indent(where, '  '))  # TODO: make augmented result
+            res.note_warning(msg, location)
+            s = s.replace('\t', ' ' * MCDPConstants.tabsize)
     else:
         check_no_tabs(s)
     check_no_forbidden(s)

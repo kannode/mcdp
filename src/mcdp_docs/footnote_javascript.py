@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from mcdp_utils_xml import bs, copy_contents_into
 
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import copy
 
 from bs4.element import Tag
@@ -13,7 +14,7 @@ from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_docs.manual_join_imp import generate_and_add_toc, \
     document_final_pass_after_toc
 from mcdp_docs.tocs import get_ids_from_soup, is_empty_link
-from mcdp_utils_misc import write_data_to_file
+from mcdp_utils_misc import write_data_to_file, AugmentedResult
 from mcdp_utils_xml import add_class, get_classes, bs_entire_document
 from quickapp import QuickAppBase
 
@@ -74,7 +75,8 @@ class Compose(QuickAppBase):
         except ValueError as e:
             msg = 'Cannot read YAML config file %s' % config
             raise_wrapped(UserError, e, msg, compact=True)
-        compose_go(compose_config)
+        else:
+            compose_go(compose_config)
 
 
 compose_main = Compose.get_sys_main()
@@ -84,12 +86,20 @@ def compose_go(compose_config):
     input_ = compose_config.input
     output = compose_config.output
     recipe = compose_config.recipe
-    permalink_prefix = compose_config.purl_prefix
-
-    # Read input file
-    logger.info('Reading %s' % input_)
+    remove_status = compose_config.remove_status
+    show_removed = compose_config.show_removed
     data = open(input_).read()
     soup = bs_entire_document(data)
+    permalink_prefix = compose_config.purl_prefix
+    aug = compose_go2(soup, recipe, permalink_prefix, remove_status, show_removed)
+    soup = aug.get_result()
+    results = str(soup)
+    write_data_to_file(results, output)
+
+
+def compose_go2(soup, recipe, permalink_prefix, remove_status, show_removed):
+    res = AugmentedResult()
+
     # Create context
     doc = soup.__copy__()
     body = Tag(name='body')
@@ -99,7 +109,7 @@ def compose_go(compose_config):
     append_all(body, elements)
 
     # Now remove stuff
-    for status in compose_config.remove_status:
+    for status in remove_status:
         removed = []
         for section in list(body.select('section[status=%s]' % status)):
             level = section.attrs['level']
@@ -110,7 +120,7 @@ def compose_go(compose_config):
             pure_id = section_id.replace(':section', '')
             removed.append(section.attrs['id'])
 
-            if compose_config.show_removed:
+            if show_removed:
                 # remove everything that is not a header
                 keep = ['h1', 'h2', 'h3', 'h4', 'h5']
                 for e in list(section.children):
@@ -151,14 +161,15 @@ def compose_go(compose_config):
     #     generate_and_add_toc(soup)
     #     substituting_empty_links(soup)
     raise_errors = False
-    find_links_from_master(master_soup=soup, version_soup=doc, raise_errors=raise_errors)
+    find_links_from_master(master_soup=soup, version_soup=doc, raise_errors=raise_errors, res=res)
 
     document_final_pass_after_toc(doc)
-    results = str(doc)
-    write_data_to_file(results, output)
+
+    res.set_result(doc)
+    return res
 
 
-def find_links_from_master(master_soup, version_soup, raise_errors):
+def find_links_from_master(master_soup, version_soup, raise_errors, res):
     logger.info('find_links_from_master')
     from mcdp_docs.tocs import sub_link
     # find all ids
@@ -181,7 +192,7 @@ def find_links_from_master(master_soup, version_soup, raise_errors):
                     if not get_classes(a):
                         add_class(a, MCDPManualConstants.CLASS_ONLY_NAME)
                     #                     logger.debug('is before: %s' % a)
-                    sub_link(a, eid, linked_element, raise_errors)
+                    sub_link(a, eid, linked_element, raise_errors, res)
                 #                     logger.debug('is now: %s' % a)
 
                 href = 'http://purl.org/dth/%s' % remove_prefix(eid)

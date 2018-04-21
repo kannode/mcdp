@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 
@@ -98,4 +99,3 @@ if __name__ == '__main__':
         with open(filename, 'w') as f:
             f.write(contents2)
         
-            

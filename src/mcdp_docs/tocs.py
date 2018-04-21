@@ -23,12 +23,12 @@ class GlobalCounter(object):
     header_id = 1
 
 
-def fix_ids_and_add_missing(soup, globally_unique_id_part, res):
+def fix_ids_and_add_missing(soup, globally_unique_id_part, res, location):
     for h in soup.findAll(MCDPManualConstants.HEADERS_TO_FIX):
-        fix_header_id(h, globally_unique_id_part, res)
+        fix_header_id(h, globally_unique_id_part, res, location)
 
 
-def fix_header_id(header, globally_unique_id_part, res):
+def fix_header_id(header, globally_unique_id_part, res, location):
     ID = header.get('id', None)
     prefix = None if (ID is None or ':' not in ID) else ID[:ID.index(':')]
 
@@ -57,7 +57,7 @@ def fix_header_id(header, globally_unique_id_part, res):
                            (prefix, header.name, ID))
                     # logger.error(msg)  # TODO: add warning
                     # header.insert_after(Comment('Error: ' + msg))
-                    res.note_error(msg, HTMLIDLocation.for_element(header))
+                    res.note_error(msg, HTMLIDLocation.for_element(header, location))
 
 
 class InvalidHeaders(ValueError):
@@ -301,8 +301,9 @@ def number_items2(root):
             number = render(label_spec.number, counter_state)
 
             if LABEL_NAME in item.tag.attrs:
-                msg = "Don't overwrite %s for element = %s" % (LABEL_NAME, item.tag.attrs[LABEL_NAME])
-                logger.warn(msg)
+                pass
+                # msg = "Don't overwrite %s for element = %s" % (LABEL_NAME, item.tag.attrs[LABEL_NAME])
+                # logger.warn(msg)
             else:
                 item.tag.attrs[LABEL_NAME] = item.name
 
@@ -359,7 +360,7 @@ def render(s, counter_state):
     return s
 
 
-def check_no_patently_wrong_links(soup, res):
+def check_no_patently_wrong_links(soup, res, location):
     for a in soup.select('a[href]'):
         href = a.attrs['href']
         if href.startswith('#http:') or href.startswith('#https:'):
@@ -406,7 +407,7 @@ Please remove the "#".
 
             """ % (href, href[1:])
             # note_error2(a, 'syntax error', )
-            res.note_error(msg.lstrip(), HTMLIDLocation.for_element(a))
+            res.note_error(msg.lstrip(), HTMLIDLocation.for_element(a, location))
 
 
 @contract(raise_errors=bool)

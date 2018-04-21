@@ -1,4 +1,5 @@
-from mcdp_utils_misc.timing import timeit, timeit_wall
+# -*- coding: utf-8 -*-
+from mcdp_utils_misc.timing import timeit_wall
 from mcdp_utils_xml import note_error2
 
 
@@ -41,4 +42,3 @@ def move_things_around(soup, raise_if_errors=False):
                 continue
         el.extract()
         e.replace_with(el)
-

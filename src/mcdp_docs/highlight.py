@@ -231,6 +231,7 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
 
     def go(selector, parse_expr, extension, use_pre=True, refine=None):
         for tag in soup.select(selector):
+            source_code = '<unset>' # XXX
             try:
                 if tag.string is None:  # or not tag.string.strip():
                     if not tag.has_attr('id'):

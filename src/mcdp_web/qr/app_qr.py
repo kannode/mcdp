@@ -197,6 +197,7 @@ class AppQR(object):
                     msg = 'Expect content-type to be text/mcdp: %s' % r
                     raise ValueError(msg)
 
+            # noinspection PyUnboundLocalVariable
             filename = os.path.join(where, '%s.%s' % (r.name, extension))
             print('written %r' % filename)
             with open(filename, 'wb') as f:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from collections import OrderedDict
 
 from contracts.utils import indent
@@ -26,7 +27,7 @@ def all_headers(soup):
         yield h
 
 
-def check_status_codes(soup, realpath, res):
+def check_status_codes(soup, realpath, res, location):
     for h in all_headers(soup):
         if MCDPManualConstants.ATTR_NOTOC in h.attrs:
             continue
@@ -35,8 +36,7 @@ def check_status_codes(soup, realpath, res):
             if not s in allowed_statuses:
                 msg = 'Invalid status code %r; expected one of %r' % (s, allowed_statuses)
                 msg += '\n' + indent(str(h), '  ')
-                # note_error2(h, 'syntax error', msg)
-                res.note_error(msg, HTMLIDLocation.for_element(h))
+                res.note_error(msg, HTMLIDLocation.for_element(h, location))
         else:
             # Only warn for h1 that are not part:
             if h.name == 'h1' and not 'part:' in h.attrs.get('id', ''):
@@ -53,21 +53,19 @@ def check_status_codes(soup, realpath, res):
                     for k, v in allowed_statuses.items():
                         if k != STATUS_UNKNOWN:
                             msg += '\n' + indent(v, '', '%23s   ' % ('status=%s' % k))
-                    # note_error2(h, 'missing status', msg)
-
-                    res.note_error(msg, HTMLIDLocation.for_element(h))
+                    res.note_error(msg, HTMLIDLocation.for_element(h, location))
 
             h.attrs[STATUS_ATTR] = STATUS_UNKNOWN
 
 
 
-def check_lang_codes(soup, res):
+def check_lang_codes(soup, res, location):
     for h in all_headers(soup):
         if MCDPManualConstants.LANG_ATTR in h.attrs:
             s = h.attrs[MCDPManualConstants.LANG_ATTR]
             if not s in MCDPManualConstants.allowed_langs:
-                msg = 'Invalid lang code %r; expected one of %r' % (s, allowed_langs)
+                msg = 'Invalid lang code %r; expected one of %r' % (s, MCDPManualConstants.allowed_langs)
                 msg += '\n' + indent(str(h), '  ')
                 # note_error2(h, 'syntax error', msg)
-                res.note_error(msg, HTMLIDLocation.for_element(h))
+                res.note_error(msg, HTMLIDLocation.for_element(h, location))
 

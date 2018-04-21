@@ -696,6 +696,7 @@ def substitute_command(s, name, sub):
         bit = after[:max(len(after), 15)]
         msg = 'Could not find completion for "%s".' % bit
         raise_wrapped(Malformed, e, msg)
+        raise
     inside = inside_plus_brace[1:-1]
     replace = sub(name=name, inside=inside)
     before = s[:istart]

@@ -1374,3 +1374,64 @@ section[status=deprecated] {
   border-right: solid @section-ribbon fade(@color-deprecated, 20%);
   padding-right: @section-padding;
 }
+
+/// TODO: "details" Note navigation: put somewhere else
+
+.note-navigation span {
+  padding-right: 5px;
+  padding-left: 5px;
+}
+
+/*TODO : put upstream*/
+
+details.error {
+  margin: 0.4em;
+}
+
+@media print {
+  div.transmuted-details {
+    border: solid 1px red;
+    width: calc(100% - 2em);
+    display: block;
+    margin: 0.4em;
+    border-radius: 4px;
+    padding: 0.4em;
+  }
+
+  div.transmuted-details p {
+    max-width: 100%;
+  }
+
+  blockquote div.transmuted-details p {
+    color: darkred;
+  }
+
+}
+
+details.consecutive-note {
+  display: block;
+  width: calc(100% - 2em);
+  /*margin: 0.4em;*/
+}
+
+details[open] {
+  width: calc(100% - 2em);
+  border-radius: 2px;
+}
+
+details[open] summary {
+  margin-bottom: 1em;
+}
+
+details.error pre {
+  font-family: "Anka/Coder Narrow";
+  font-size: 90%;
+}
+
+blockquote details p {
+  color: darkred;
+}
+
+details p {
+  max-width: 100%;
+}

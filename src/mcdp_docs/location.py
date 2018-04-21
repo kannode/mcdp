@@ -10,7 +10,8 @@ from contracts.interface import location
 from contracts.utils import indent
 from mcdp_docs.github_edit_links import NoRootRepo
 from mcdp_lang_utils import Where
-from mcdp_utils_misc import pretty_print_dict, stag
+from mcdp_utils_misc import pretty_print_dict
+from mcdp_utils_xml import stag
 
 from .github_edit_links import get_repo_root, get_repo_information
 
@@ -144,16 +145,20 @@ class LocalFile(Location):
 class HTMLIDLocation(Location):
 
     @staticmethod
-    def for_element(element):
+    def for_element(element, parent=None):
         from mcdp_docs.tocs import add_id_if_not_present
         add_id_if_not_present(element)
-        return HTMLIDLocation(element.attrs['id'])
+        return HTMLIDLocation(element.attrs['id'], parent)
 
-    def __init__(self, element_id):
+    def __init__(self, element_id, parent=None):
         self.element_id = element_id
+        self.parent = parent
 
     def get_stack(self):
-        return [self]
+        if self.parent is not None:
+            return [self] + self.parent.get_stack()
+        else:
+            return [self]
 
     def as_html(self, inline=False):
         div = Tag(name='div')
@@ -172,14 +177,24 @@ class HTMLIDLocation(Location):
 
         div.append(p)
 
+        if self.parent is not None:
+            div.append(self.parent.as_html(inline=False))
+
         return div
 
     def __repr__(self):
-        d = OrderedDict()
-        d['element_id'] = self.element_id
-        s = "HTMLIDLocation"
-        s += '\n' + indent(pretty_print_dict(d), '| ')
+
+        s = 'Found at element %s' % self.element_id
+
+        if self.parent is not None:
+            s += '\n\n' + str(self.parent)
         return s
+        #
+        # d = OrderedDict()
+        # d['element_id'] = self.element_id
+        # s = "HTMLIDLocation"
+        # s += '\n' + indent(pretty_print_dict(d), '| ')
+        # return s
 
 
 class SnippetLocation(Location):

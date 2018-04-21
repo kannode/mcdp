@@ -6,7 +6,7 @@ from system_cmd import system_cmd_result
 
 from contracts import contract
 from mcdp import logger
-from mcdp_utils_misc import tmpdir
+from mcdp_utils_misc import tmpdir, AugmentedResult
 from mcdp_utils_misc.fileutils import write_data_to_file
 
 
@@ -24,8 +24,9 @@ from mcdp_utils_misc.fileutils import write_data_to_file
 # <a href="http://dx.doi.org/10.1007/978-3-642-01492-5">DOI</a>&nbsp;]
 #
 # </dd>
-@contract(contents='str', returns='str')
+@contract(contents='str', returns=AugmentedResult)
 def run_bibtex2html(contents):
+    res = AugmentedResult()
     erase = True
     with tmpdir(prefix='bibtex', erase=erase, keep_on_exception=True) as d:
         fn = os.path.join(d, 'input.bib')
@@ -59,7 +60,8 @@ def run_bibtex2html(contents):
 
         write_data_to_file(out, os.path.join(d, 'processed.html'))
 
-        return out
+        res.set_result(out)
+        return res
 
 
 def process_bibtex2html_output(bibtex2html_output, d):

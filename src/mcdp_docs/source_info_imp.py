@@ -7,7 +7,7 @@ from bs4.element import Tag
 from contracts.utils import check_isinstance
 from mcdp_docs.github_edit_links import NoRootRepo
 from mcdp_docs.tocs import LABEL_NAME
-from mcdp_utils_misc import memoize_simple
+from mcdp_utils_misc import memoize_simple, AugmentedResult
 from mcdp_utils_xml import bs, to_html_stripping_fragment
 
 from .github_edit_links import get_repo_root
@@ -46,6 +46,7 @@ def get_source_info(filename):
 
 
 def make_last_modified(files_contents, nmax=100):
+    res = AugmentedResult()
     files_contents = [DocToJoin(*x) for x in files_contents]
     files_contents = [_ for _ in files_contents if _.source_info]
 
@@ -90,7 +91,9 @@ def make_last_modified(files_contents, nmax=100):
     r.append(ul)
     s = to_html_stripping_fragment(r)
     #     print s
-    return s
+
+    res.set_result(s)
+    return res
 
 
 def get_first_header_title(soup):

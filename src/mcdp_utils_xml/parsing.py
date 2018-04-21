@@ -59,6 +59,7 @@ def check_html_fragment(m, msg=None):
         msg2 += 'This appears to be a complete document instead of a fragment.'
         raise_desc(ValueError, msg2, m=m)
 
+
 ## Use these for entire documents
 
 
@@ -87,4 +88,3 @@ def write_html_doc_to_file(soup, filename, quiet=False):
 
     html = to_html_entire_document(soup)
     write_data_to_file(html, filename, quiet=quiet)
-

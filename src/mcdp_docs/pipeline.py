@@ -3,10 +3,11 @@ import itertools
 from getpass import getuser
 
 from contracts import contract
-from contracts.utils import raise_desc, indent
+from contracts.utils import raise_desc
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPInternalError
+from mcdp_docs.location import LocationUnknown
 from mcdp_library import MCDPLibrary
 from mcdp_report.gg_utils import embed_images_from_library2
 from mcdp_utils_misc import get_md5, AugmentedResult
@@ -15,7 +16,6 @@ from mcdp_utils_xml import to_html_stripping_fragment, bs, describe_tag
 from .check_missing_links import check_if_any_href_is_invalid, fix_subfig_references
 from .elements_abbrevs import check_good_use_of_special_paragraphs, other_abbrevs
 from .github_file_ref.display_file_imp import display_files
-from .github_file_ref.substitute_github_refs_i import substitute_github_refs
 from .lessc import run_lessc
 from .macros import replace_macros
 from .make_console_pre import mark_console_pres
@@ -35,7 +35,7 @@ __all__ = [
 @contract(returns='str', s=str, library=MCDPLibrary, raise_errors=bool)
 def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
                     check_refs=False, use_mathjax=True, filter_soup=None,
-                    symbols=None, res=None):
+                    symbols=None, res=None, location=None):
     """
         Transforms markdown into html and then renders the mcdp snippets inside.
 
@@ -47,6 +47,8 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     """
     if res is None:
         res = AugmentedResult()
+    if location is None:
+        location = LocationUnknown()
     from mcdp_report.gg_utils import resolve_references_to_images
     s0 = s
     check_good_use_of_special_paragraphs(s0, realpath)
@@ -69,7 +71,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # because of & char
     s, tabulars = extract_tabular(s)
 
-    s = do_preliminary_checks_and_fixes(s)
+    s = do_preliminary_checks_and_fixes(s, res, location)
     # put back tabular, because extract_maths needs to grab them
     for k, v in tabulars.items():
         assert k in s
@@ -157,18 +159,18 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     s = s.replace('<p>/DRAFT</p>', '</div>')
 
     soup = bs(s)
-    mark_console_pres(soup)
+    mark_console_pres(soup, res, location)
 
-    try:
-        substitute_github_refs(soup, defaults={})
-    except Exception as e:
-        msg = 'I got an error while substituting github: references.'
-        msg += '\nI will ignore this error because it might not be the fault of the writer.'
-        msg += '\n\n' + indent(str(e), '|', ' error: |')
-        logger.warn(msg)
+    # try:
+
+    # except Exception as e:
+    #     msg = 'I got an error while substituting github: references.'
+    #     msg += '\nI will ignore this error because it might not be the fault of the writer.'
+    #     msg += '\n\n' + indent(str(e), '|', ' error: |')
+    #
 
     # must be before make_figure_from_figureid_attr()
-    display_files(soup, defaults={}, raise_errors=raise_errors)
+    display_files(soup, defaults={}, res=res, location=location, raise_errors=raise_errors)
 
     make_figure_from_figureid_attr(soup)
     col_macros(soup)
@@ -184,15 +186,17 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
 
     if False:
         embed_images_from_library2(soup=soup, library=library,
-                                   raise_errors=raise_missing_image_errors)
+                                   raise_errors=raise_missing_image_errors,
+                                   res=res, location=location)
     else:
         resolve_references_to_images(soup=soup, library=library,
-                                     raise_errors=raise_missing_image_errors)
+                                     raise_errors=raise_missing_image_errors,
+                                     res=res, location=location)
 
-    make_videos(soup=soup)
+    make_videos(soup, res, location, raise_on_errors=False)
 
     if check_refs:
-        check_if_any_href_is_invalid(soup, res)
+        check_if_any_href_is_invalid(soup, res, location)
 
     if False:
         if getuser() == 'andrea':
@@ -210,16 +214,16 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
         syntax_highlighting(soup)
 
     if MCDPManualConstants.enforce_status_attribute:
-        check_status_codes(soup, realpath, res)
+        check_status_codes(soup, realpath, res, location)
 
     if MCDPManualConstants.enforce_lang_attribute:
-        check_lang_codes(soup, res)
+        check_lang_codes(soup, res, location)
 
     # Fixes the IDs (adding 'sec:'); add IDs to missing ones
     globally_unique_id_part = 'autoid-DO-NOT-USE-THIS-VERY-UNSTABLE-LINK-' + get_md5(s0)[:5]
-    fix_ids_and_add_missing(soup, globally_unique_id_part, res)
+    fix_ids_and_add_missing(soup, globally_unique_id_part, res, location)
 
-    check_no_patently_wrong_links(soup, res)
+    check_no_patently_wrong_links(soup, res, location)
 
     s = to_html_stripping_fragment(soup)
     s = replace_macros(s)
@@ -281,12 +285,12 @@ def fix_validation_problems(soup):
         if not 'type' in e.attrs:
             e.attrs['type'] = 'text/css'
 
-    if False:
-        for e in soup.select('span.MathJax_SVG'):
-            style = e.attrs['style']
-            style = style.replace('display: inline-block;',
-                                  '/* decided-to-ignore-inline-block: 0;*/')
-            e.attrs['style'] = style
+    # if False:
+    #     for e in soup.select('span.MathJax_SVG'):
+    #         style = e.attrs['style']
+    #         style = style.replace('display: inline-block;',
+    #                               '/* decided-to-ignore-inline-block: 0;*/')
+    #         e.attrs['style'] = style
 
 
 def protect_my_envs(s):

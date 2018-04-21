@@ -90,12 +90,12 @@ def locate_files(directory, pattern, followlinks=True,
         for k, v in real2norm.items():
             if len(v) > 1:
                 msg = 'In directory:\n\t%s\n' % directory
-                msg += 'I found %d paths that refer to the same file:\n'
+                msg += 'I found %d paths that refer to the same file:\n' % len(v)
                 for n in v:
                     msg += '\t%s\n' % n
                 msg += 'refer to the same file:\n\t%s\n' % k
                 msg += 'I will silently eliminate redundancies.'
-                logger.warning(msg)
+                # logger.warning(msg) # XXX
 
         filenames = list(real2norm.keys())
 

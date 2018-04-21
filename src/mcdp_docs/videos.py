@@ -1,15 +1,15 @@
-from collections import namedtuple
+# -*- coding: utf-8 -*-
 import json
-from urllib2 import URLError
 import urllib2
+from collections import namedtuple
+from urllib2 import URLError
 
 from bs4.element import Tag, Comment
+from contracts.utils import raise_wrapped
+from mcdp_docs.location import HTMLIDLocation
 
-from contracts.utils import raise_desc, raise_wrapped
-from mcdp_utils_xml import note_error2
 
-
-def make_videos(soup, raise_on_errors=False):
+def make_videos(soup, res, location, raise_on_errors=False):
     """
         Looks for tags of the kind:
         
@@ -19,19 +19,23 @@ def make_videos(soup, raise_on_errors=False):
     """
 
     for o in soup.find_all('dtvideo'):
-        make_videos_(o, raise_on_errors)
+        make_videos_(o, res, location, raise_on_errors)
 
 
-def make_videos_(o, raise_on_errors):
+def make_videos_(o, res, location, raise_on_errors):
     if 'src' not in o.attrs:
         msg = 'The video does not have a "src" attribute.'
-        raise_desc(ValueError, msg, element=str(o))
+        res.note_error(msg, HTMLIDLocation.for_element(o, location))
+        return
+        # raise_desc(ValueError, msg, element=str(o))
 
     src = o.attrs['src']
     prefix = 'vimeo:'
     if not src.startswith(prefix):
         msg = 'Invalid src attribute "%s": it does not start with %r.' % (src, prefix)
-        raise_desc(ValueError, msg, element=str(o))
+        res.note_error(msg, HTMLIDLocation.for_element(o, location))
+        return
+        # raise_desc(ValueError, msg, element=str(o))
 
     vimeo_id = src[len(prefix):]
 
@@ -45,7 +49,9 @@ def make_videos_(o, raise_on_errors):
         if raise_on_errors:
             raise
         else:
-            note_error2(o, 'Resource error', str(e))
+            msg = str(e)
+            # note_error2(o, 'Resource error', str(e))
+            res.note_error(msg, HTMLIDLocation.for_element(o, location))
             return
 
     d = Tag(name='div')
@@ -114,8 +120,8 @@ def get_vimeo_info(vimeo_id):
     except URLError as e:
         msg = 'Cannot open URL'
         msg += '\n\n   ' + url
-        raise_wrapped(VimeoInfoException, e, msg)
-
+        raise_wrapped(VimeoInfoException, e, msg, compact=True)
+        raise
     data = response.read()
     # logger.debug(data)
 

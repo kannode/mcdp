@@ -1,8 +1,8 @@
+# -*- coding: utf-8 -*-
 import os
 import shutil
 
 from bs4.element import Tag
-
 from compmake.utils.filesystem_utils import make_sure_dir_exists
 from contracts import contract
 from mcdp_cli.utils_mkdir import mkdirs_thread_safe
@@ -67,12 +67,16 @@ def extract_assets_from_file(data, fo, assets_dir):
         relative = os.path.relpath(where, os.path.dirname(fo))
         return relative
 
-    extract_img_to_file(soup, savefile)
-
-    save_images_locally(soup, fo, assets_dir)
-    save_css(soup, fo, assets_dir)
+    nimg = extract_img_to_file(soup, savefile)
+    nsave = save_images_locally(soup, fo, assets_dir)
+    ncss = save_css(soup, fo, assets_dir)
+    n = nimg + nsave + ncss
+    if n:
+        pass
+        #print('Total of %d subs (img %d save %d css %d)' % (n, nimg, nsave, ncss))
     write_html_doc_to_file(soup, fo, quiet=True)
     return res
+
 
 #    if False:
 #        s1 = os.path.getsize(fo)
@@ -82,6 +86,11 @@ def extract_assets_from_file(data, fo, assets_dir):
 
 
 def save_css(soup, fo, assets_dir):
+    """
+        Extracts <style> elements in <head> from the
+        file and replaces them with <link>.
+    """
+    n = 0
     for style in soup.select('head style'):
         data = style.text.encode(errors='ignore')
         md5 = get_md5(data)
@@ -89,6 +98,7 @@ def save_css(soup, fo, assets_dir):
         dest_abs = os.path.join(assets_dir, basename)
         dest_rel = os.path.relpath(dest_abs, os.path.dirname(fo))
         if not os.path.exists(dest_abs):
+            make_sure_dir_exists(dest_abs)
             with open(dest_abs, 'w') as f:
                 f.write(data)
 
@@ -98,9 +108,12 @@ def save_css(soup, fo, assets_dir):
         link.attrs['href'] = dest_rel
 
         style.replace_with(link)
+        n += 1
+    return n
 
 
 def save_images_locally(soup, fo, assets_dir):
+    n = 0
     for tag in soup.select('img[src]'):
         src = tag.attrs['src']
         # check if not relative path
@@ -125,6 +138,9 @@ def save_images_locally(soup, fo, assets_dir):
             #            print('new link: %s' % dest_rel)
             #            print('new res: %s' % dest_abs)
             tag.attrs['src'] = dest_rel
+            # print('image points to %s' % dest_rel)
+            n += 1
+    return n
 
 
 if __name__ == '__main__':

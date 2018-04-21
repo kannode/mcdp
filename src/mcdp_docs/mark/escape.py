@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from mcdp_utils_xml.parsing import to_html_stripping_fragment, bs
 import bs4
 

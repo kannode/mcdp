@@ -6,7 +6,6 @@ from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
-from mcdp_utils_xml import stag
 
 from .pretty_printing import pretty_print_dict
 
@@ -99,6 +98,8 @@ class Note(object):
             p = Tag(name='p')
             p.append("(No locations provided)")
             div.append(p)
+
+        from mcdp_utils_xml import stag
 
         s = Tag(name='span')
         s.append('Created by function ')
@@ -329,3 +330,102 @@ def get_html_style():
     s = Tag(name='style')
     s.append(style)
     return s
+
+
+@contract(aug=AugmentedResult)
+def mark_in_html(aug, soup):
+    """ Marks the errors and warnings in the html soup."""
+    warnings = aug.get_warnings()
+    errors = aug.get_errors()
+    warnings_list = list(_mark_in_html_iterate_id_note_with_location(warnings))
+    errors_list = list(_mark_in_html_iterate_id_note_with_location(errors))
+    mark_in_html_notes(errors_list, soup, 'error')
+    mark_in_html_notes(warnings_list, soup, 'warning')
+
+
+def mark_in_html_notes(notes, soup, note_type):
+    from mcdp_docs.check_missing_links import get_id2element
+    id2element, duplicates = get_id2element(soup, 'id')
+    ids_ordered = list(id2element)
+
+    N = len(notes)
+    indices = [None for _ in range(len(notes))]
+    for i in range(len(notes)):
+        eid, note = notes[i]
+        if eid in id2element:
+            indices[i] = ids_ordered.index(eid)
+        else:
+            indices[i] = None
+
+    indices = sorted(range(N), key=lambda _: indices[_])
+
+    def idfor(x):
+        return 'note-%s-%d' % (note_type, x)
+
+    from mcdp_utils_xml import stag, note_error2, note_warning2
+
+    for b, i in enumerate(indices):
+        eid, note = notes[i]
+
+        element = id2element.get(eid, None)
+        if element is None:
+            msg = 'Cannot find the element corresponding to ID %r' % eid
+            # raise Exception(msg)  # FIXME
+            logger.error(msg)
+        else:
+            if element.name == 'code' and element.parent and element.parent.name == 'pre':
+                element = element.parent
+
+            note_html = note.as_html(inline=True)
+
+            if note_type == 'error':
+                inset = note_error2(element, 'error', note_html)
+            elif note_type == 'warning':
+                # inset = note_error2(element, 'warning', note_html)
+                inset = note_warning2(element, 'warning', note_html)
+            else:
+                assert False
+
+            # if inset is not None:
+            inset.attrs['id'] = idfor(b)
+
+            summary = inset.find('summary')
+
+            summary.append('\n')
+            if b > 0:
+                a = Tag(name='a')
+                a.attrs['class'] = 'note-navigation'
+                a.append('previous ')
+                a.attrs['href'] = '#%s' % idfor(b - 1)
+                summary.insert(0, a)
+
+            if b < N - 1:
+                a = Tag(name='a')
+                a.attrs['class'] = 'note-navigation'
+                a.append(' next')
+                a.attrs['href'] = '#%s' % idfor(b + 1)
+                summary.append(a)
+            summary.append(' (%d of %s) ' % (b + 1, len(notes)))
+            summary.append('\n')
+            summary.append(stag('a', 'index', href='errors.html'))
+            summary.append('\n')
+
+            # summary.append(p)
+
+
+def _mark_in_html_iterate_id_note_with_location(notes):
+    from mcdp_docs.location import LocationUnknown
+    from mcdp_docs.location import SnippetLocation
+    from mcdp_docs.location import HTMLIDLocation
+    for _note in notes:
+        for location in _note.locations.values():
+            if isinstance(location, LocationUnknown):
+                continue
+            stack = location.get_stack()
+            for l in stack:
+                if isinstance(l, SnippetLocation):
+                    _eid = l.element_id
+                    yield _eid, _note
+                if isinstance(l, HTMLIDLocation):
+                    _eid = l.element_id
+                    yield _eid, _note

@@ -10,8 +10,11 @@ from bs4.element import Comment, Tag, NavigableString
 from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
 from mcdp.logs import logger
+from mcdp_docs.add_edit_links import add_github_links_if_edit_url
+from mcdp_docs.github_file_ref.substitute_github_refs_i import substitute_github_refs
+from mcdp_docs.location import LocationUnknown
 from mcdp_docs.manual_constants import MCDPManualConstants
-from mcdp_utils_misc import AugmentedResult
+from mcdp_utils_misc import AugmentedResult, mark_in_html
 from mcdp_utils_misc.timing import timeit_wall as timeit
 from mcdp_utils_xml import add_class, bs, copy_contents_into
 
@@ -57,6 +60,7 @@ def manual_join(template, files_contents,
                 resolve_references=True,
                 hook_before_final_pass=None,
                 require_toc_placeholder=False,
+                permalink_prefix=None,
                 aug=None):
     """
         files_contents: a list of tuples that can be cast to DocToJoin:
@@ -72,9 +76,10 @@ def manual_join(template, files_contents,
         references = {}
     check_isinstance(files_contents, list)
 
-    if aug is None:
-        aug = AugmentedResult()
-        
+    result = AugmentedResult()
+    if aug is not None:
+        result.merge(aug)
+
     @contextmanager
     def timeit(_):
         yield
@@ -97,6 +102,11 @@ def manual_join(template, files_contents,
             assert d.html is not None
             assert '<html' in str(d)
             head = d.find('head')
+            if head is None:
+                msg = 'Could not find <head> in template:'
+                logger.error(msg)
+                logger.error(str(d))
+                raise Exception(msg)
             assert head is not None
             for x in get_manual_css_frag().contents:
                 head.append(x.__copy__())
@@ -117,10 +127,15 @@ def manual_join(template, files_contents,
                     msg = 'Repeated docname %r' % doc_to_join.docname
                     raise ValueError(msg)
                 from .latex.latex_preprocess import assert_not_inside
-                assert_not_inside(doc_to_join.contents, '<fragment')
-                assert_not_inside(doc_to_join.contents, 'DOCTYPE')
+                if isinstance(doc_to_join.contents, AugmentedResult):
+                    result.merge(doc_to_join.contents)
+                    contents = doc_to_join.contents.get_result()
+                else:
+                    contents = doc_to_join.contents
+                assert_not_inside(contents, '<fragment')
+                assert_not_inside(contents, 'DOCTYPE')
 
-                frag = bs(doc_to_join.contents)
+                frag = bs(contents)
                 basename2soup[doc_to_join.docname] = frag
 
         with timeit('fix_duplicate_ids'):
@@ -136,7 +151,6 @@ def manual_join(template, files_contents,
                     body.append(Comment('Beginning of document dump of %r' % docname))
                     body.append(NavigableString('\n\n'))
 
-                #                with timeit('copying for %s' % docname):
                 try_faster = True
                 if try_faster:
                     for e in list(content.children):
@@ -144,11 +158,6 @@ def manual_join(template, files_contents,
                 else:
                     copy_contents_into(content, body)
 
-                #                f = body.find('fragment')
-                #                if f:
-                #                    msg = 'I found a <fragment> in the manual after %r' % docname
-                #                    msg += '\n\n' + indent(str(content), '> ')
-                #                    raise Exception(msg)
 
                 if add_comments:
                     body.append(NavigableString('\n\n'))
@@ -206,6 +215,9 @@ def manual_join(template, files_contents,
         with timeit('document_only_once'):
             document_only_once(d)
 
+        location = LocationUnknown()
+        substitute_github_refs(d, defaults={}, res=result, location=location)
+
         with timeit('another A pass'):
             for a in d.select('a[href]'):
                 href = a.attrs['href']
@@ -217,6 +229,10 @@ def manual_join(template, files_contents,
 
         # do not use to_html_stripping_fragment - this is a complete doc
 
+        mark_in_html(result, soup=d)
+
+        add_github_links_if_edit_url(soup=d, permalink_prefix=permalink_prefix)
+
         with timeit('converting to string'):
             res = unicode(d)
 
@@ -224,7 +240,9 @@ def manual_join(template, files_contents,
             res = res.encode('utf8')
 
         logger.info('done - %.1f MB' % (len(res) / (1024 * 1024.0)))
-        return res
+
+        result.set_result(res)
+        return result
 
 
 def document_final_pass_before_toc(soup, remove, remove_selectors):
@@ -249,7 +267,7 @@ def document_final_pass_before_toc(soup, remove, remove_selectors):
         move_things_around(soup=soup)
 
 
-def document_final_pass_after_toc(soup, resolve_references=True, res=None):
+def document_final_pass_after_toc(soup, resolve_references=True, res=None, location=LocationUnknown()):
     if res is None:
         res = AugmentedResult()
     """ This is done to a final document """
@@ -259,7 +277,7 @@ def document_final_pass_after_toc(soup, resolve_references=True, res=None):
 
     from mcdp_docs.check_missing_links import check_if_any_href_is_invalid
     logger.info('checking hrefs')
-    check_if_any_href_is_invalid(soup, res=res)
+    check_if_any_href_is_invalid(soup, res, location)
 
     # Note that this should be done *after* check_if_any_href_is_invalid()
     # because that one might fix some references

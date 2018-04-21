@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from bs4.element import NavigableString
  
 from mcdp_utils_xml import add_class

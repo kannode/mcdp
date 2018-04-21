@@ -37,7 +37,7 @@ def apply_refinement(expr, context):
             
             si = SemanticInformation()
             line_exprs = infer_types_of_variables(line_exprs, context, si)
-            logger.debug('Si: %s' % si)
+            # logger.debug('Si: %s' % si)
             transformed = CDP.ModelStatements(make_list(line_exprs), where=x.where)
             
             for cname, cinfo in si.constants.items():

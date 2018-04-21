@@ -6,6 +6,7 @@ from git.repo.base import Repo
 
 from contracts.utils import raise_wrapped
 from mcdp import logger
+
 from mcdp_utils_misc import memoize_simple
 
 
@@ -25,11 +26,25 @@ def get_repo_root(d):
             raise NoRootRepo(msg)
         return get_repo_root(parent)
 
+def add_edit_links2(soup, location):
+    from mcdp_docs.location import GithubLocation
+    stack = location.get_stack()
+    for l in stack:
+        if isinstance(l, GithubLocation):
+            break
+    else:
+        return
+
+    for h in soup.findAll(['h1', 'h2', 'h3', 'h4']):
+        h.attrs['github-edit-url'] = l.edit_url
+        h.attrs['github-blob-url'] = l.blob_url
+
+
 
 def add_edit_links(soup, filename):
     # is this is in a repo?
+    filename_abs = os.path.abspath(filename)
     try:
-        filename_abs = os.path.abspath(filename)
         repo_root = get_repo_root(filename_abs)
     except NoRootRepo:
         logger.warning("Could not get repository root for filename %r" % filename_abs)
@@ -87,6 +102,7 @@ def get_repo_information(repo_root):
     except ValueError as e:
         msg = 'Could not get branch, commit, url. Maybe the repo is not initialized.'
         raise_wrapped(RepoInfoException, e, msg, compact=True)
+        raise
 
     # now github can use urls that do not end in '.git'
     if 'github' in url and not url.endswith('.git'):

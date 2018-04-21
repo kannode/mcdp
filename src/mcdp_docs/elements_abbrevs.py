@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from bs4.element import Tag, NavigableString
 
 from mcdp.exceptions import DPSyntaxError

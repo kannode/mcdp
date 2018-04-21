@@ -1,11 +1,11 @@
-from contextlib import contextmanager
-from multiprocessing import cpu_count
+# -*- coding: utf-8 -*-
 import getpass
 import logging
 import os
+from contextlib import contextmanager
+from multiprocessing import cpu_count
 
 from bs4.element import Tag
-
 from contracts import contract
 from mcdp import logger
 from mcdp_docs.embed_css import embed_css_files
@@ -13,13 +13,13 @@ from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_misc import get_md5, write_data_to_file
 from mcdp_utils_misc.augmented_result import AugmentedResult
 from mcdp_utils_misc.timing import timeit_wall
-from mcdp_utils_xml import read_html_doc_from_file
+from mcdp_utils_xml import read_html_doc_from_file, to_html_entire_document
 from mcdp_utils_xml.parsing import bs, bs_entire_document
 from mcdp_utils_xml.project_text import gettext
 from quickapp import QuickApp
 
 from .add_mathjax import add_mathjax_call, add_mathjax_preamble
-from .extract_assets import extract_assets_from_file
+from .extract_assets import extract_assets_from_file, save_css
 from .manual_join_imp import (add_prev_next_links, split_in_files, get_id2filename,
                               create_link_base, create_link_base_js, update_refs_)
 from .source_info_imp import get_first_header_title
@@ -59,6 +59,7 @@ def make_page(contents, head0, add_toc):
             p.append(a)
             tocdiv.append(p)
             tocdiv.append(add_toc)
+            body.append(tocdiv)
 
     section_name = get_first_header_title(contents)
     if section_name is not None:
@@ -73,7 +74,6 @@ def make_page(contents, head0, add_toc):
         else:
             title.replace_with(title2)
 
-    body.append(tocdiv)
     not_toc = Tag(name='div')
     not_toc.attrs['id'] = 'not-toc'
     not_toc.append(contents)
@@ -130,10 +130,13 @@ class Split(QuickApp):
         self.debug("Using n = %d workers" % nworkers)
 
         data = open(ifilename).read()
-        create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=nworkers)
+        data_aug = AugmentedResult()
+        data_aug.set_result(data)
+        create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers=nworkers)
 
 
-def create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=0):
+def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers=0):
+    data = data_aug.get_result()
     if nworkers == 0:
         nworkers = max(1, cpu_count() - 2)
 
@@ -150,8 +153,20 @@ def create_split_jobs(context, data, mathjax, preamble, output_dir, nworkers=0):
 
     h = get_md5(data)[-4:]
     jobs = []
+
+    assets_dir = os.path.join(output_dir, 'assets')
+
+    with timeit("preprocess"):
+        soup = bs_entire_document(data)
+        embed_css_files(soup)
+        fo = os.path.join(output_dir, 'dummy.html')
+        ncss = save_css(soup, fo, assets_dir)
+        # print('Extracted %s css files' % ncss)
+        data = to_html_entire_document(soup)
+
     for i in range(nworkers):
         promise = context.comp_dynamic(go, i, nworkers, data, mathjax, preamble, output_dir,
+                                       assets_dir=assets_dir,
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
         jobs.append(promise)
 
@@ -169,11 +184,10 @@ def notification(aug, jobs_aug, output_dir):
 
 
 @contract(returns=AugmentedResult)
-def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
+def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir):
     res = AugmentedResult()
-    with timeit("parsing"):
-        soup = bs_entire_document(data)
-        embed_css_files(soup)
+    soup = bs_entire_document(data)
+    # embed_css_files(soup)
 
     # extract the main toc if it is there
 
@@ -202,8 +216,6 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
             except:
                 pass
 
-        assets_dir = os.path.join(output_dir, 'assets')
-
     with timeit("creating link.html and link.js"):
         id2filename = get_id2filename(filename2contents)
 
@@ -231,7 +243,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
         if not f in pointed_to:
             pointed_to.append(f)
 
-    data = ",".join(pointed_to)
+    # data = ",".join(pointed_to)
     head0 = soup.html.head
 
     if True:
@@ -276,7 +288,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir):
 
             h = get_md5(result)[:8]
             r = context.comp(extract_assets_from_file, result, fn, assets_dir,
-                             job_id='assets-%s' % h)
+                             job_id='%s-%s-assets' % (filename, h))
             asset_jobs.append(r)
     return context.comp(wait_assets, res, asset_jobs)
 
@@ -304,15 +316,16 @@ def remove_spurious(output_dir, filenames):
             continue
         if f in ignore:
             continue
-        if  f  not in filenames:
+        if f not in filenames:
             fn = os.path.join(output_dir, f)
-            msg = 'I found a spurious file from earlier compilations: %s' % fn
-            #             msg += '(%s not in %s) ' % (f, filenames)
-            logger.warning(msg)
 
             if 'SPURIOUS' in open(fn).read():
                 # already marked as spurious
                 continue
+
+            msg = 'I found a spurious file from earlier compilations: %s' % fn
+            #             msg += '(%s not in %s) ' % (f, filenames)
+            logger.warning(msg)
 
             soup = read_html_doc_from_file(fn)
             e = soup.find('section')

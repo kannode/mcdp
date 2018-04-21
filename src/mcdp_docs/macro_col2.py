@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
 This:
@@ -151,5 +152,4 @@ def col_macro_(e, ncols):
     wrapper.append(NavigableString(NL))
     
     parent.insert(original_position, wrapper) 
-    
     

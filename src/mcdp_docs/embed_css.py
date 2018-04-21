@@ -1,25 +1,29 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
-from compmake.utils import friendly_path
-
 from .logs import logger
 
 
-def embed_css_files(soup):
+def embed_css_files(soup, base_dir=None):
     """ Look for <link> elements of CSS and embed them if they are local files"""
     # <link href="..." rel="stylesheet" type="text/css"/>
-    for link in list(soup.findAll('link', attrs={'rel':'stylesheet', 'href': True})):
+    for link in list(soup.findAll('link', attrs={'rel': 'stylesheet', 'href': True})):
         href = link.attrs['href']
         if href.startswith('file://'):
             filename = href.replace('file://', '')
         elif href.startswith('/'):  # not on windows?
             filename = href
         else:
-            filename = None
+            # filename = None
+            if base_dir is not None:
+                filename = os.path.join(base_dir, href)
+            else:
+                filename = None
+
 
         if filename is not None:
 
@@ -28,7 +32,7 @@ def embed_css_files(soup):
                 logger.error(msg)
                 raise Exception(msg)
             else:
-#                logger.info('Embedding %r' % friendly_path(filename))
+                #                logger.info('Embedding %r' % friendly_path(filename))
                 data = open(filename).read()
                 style = Tag(name='style')
                 style.attrs['type'] = 'text/css'

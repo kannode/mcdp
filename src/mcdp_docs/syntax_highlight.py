@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from bs4.element import Tag, NavigableString
 from pygments.lexers import get_lexer_by_name
 
@@ -35,6 +36,7 @@ def strip_pre(soup):
 def syntax_highlighting(soup, use_heuristics=False):
 
     from pygments import highlight
+    # noinspection PyUnresolvedReferences
     from pygments.formatters import HtmlFormatter  # @UnresolvedImport
 
     try:

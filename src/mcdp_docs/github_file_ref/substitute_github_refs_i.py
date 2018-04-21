@@ -4,43 +4,64 @@ import shutil
 import time
 
 from bs4.element import Tag
-from contracts.utils import raise_wrapped, raise_desc, indent
+from contracts.utils import raise_wrapped, indent
 from git.exc import GitCommandError, InvalidGitRepositoryError
 from git.repo.base import Repo
-from mcdp.exceptions import DPSyntaxError, DPSemanticError
+from mcdp.exceptions import DPSemanticError
 from mcdp.logs import logger
+from mcdp_docs.location import HTMLIDLocation
 from mcdp_utils_misc import locate_files, memoize_simple
 from mcdp_utils_xml import add_class
 
 from .reference import parse_github_file_ref, InvalidGithubRef
 
 
-def substitute_github_refs(soup, defaults):
+def substitute_github_refs(soup, defaults, res, location):
     n = 0
 
     for a in soup.find_all('a'):
         href = a.attrs.get('href', '')
         if href.startswith('github:'):
-            substitute_github_ref(a, defaults)
+            substitute_github_ref(a, defaults, res, location)
             n += 1
 
     return n
 
 
-def substitute_github_ref(a, defaults):
+class FailedRepos(object):
+    failed_repos = {}
+
+
+def substitute_github_ref(a, defaults, res, location):
     href = a.attrs['href']
     try:
         ref = parse_github_file_ref(href)
     except InvalidGithubRef as e:
         msg = 'Could not parse a reference in %s.' % str(a)
-        raise_wrapped(DPSyntaxError, e, msg, compact=True)
+        msg += '\n\n' + indent(e, '  > ')
+        res.note_warning(msg, HTMLIDLocation.for_element(a, location))
+        return
+        # raise_wrapped(DPSyntaxError, e, msg, compact=True)
+
+    if ref.url in FailedRepos.failed_repos:
+        msg = 'Skipped because checkout of %s already failed.' % ref.url
+        res.note_warning(msg, HTMLIDLocation.for_element(a, location))
+        return
 
     if ref.path is None:
         msg = 'There is no path specified.'
-        raise_desc(DPSyntaxError, e, msg, ref=ref)
+        res.note_warning(msg, HTMLIDLocation.for_element(a, location))
+        return
+        # raise_desc(DPSyntaxError, e, msg, ref=ref)
 
-    ref = resolve_reference(ref, defaults)
-    #     logger.debug(ref.url)
+    try:
+        ref = resolve_reference(ref, defaults)
+    except CouldNotResolveRef as e:
+        res.note_error(str(e), HTMLIDLocation.for_element(a, location))
+        FailedRepos.failed_repos[ref.url] = str(e)
+        #     logger.debug(ref.url)
+        return
+
     a.attrs['href'] = ref.url
 
     if not list(a.children):
@@ -82,11 +103,17 @@ def resolve_reference(ref, defaults):
     except InvalidGitRepositoryError as e:
         msg = 'Could not check out the repository'
         msg += '\n\n' + indent(str(ref), '  ')
-        raise_wrapped(CouldNotResolveRef, e, msg)
+        raise_wrapped(CouldNotResolveRef, e, msg, compact=True)
+        raise
+    except CouldNotCheckoutRepo as e:
+        msg = 'Could not check out the repository'
+        raise_wrapped(CouldNotResolveRef, e, msg, compact=True)
+        raise
     except OSError as e:
         msg = 'Could not check out the repository'
         msg += '\n\n' + indent(str(ref), '  ')
         raise_wrapped(CouldNotResolveRef, e, msg)
+        raise
 
     # now look for the file
     all_files = get_all_files(dirname)
@@ -152,6 +179,10 @@ def which_line(contents, fragment, after_line):
     return line + after_line
 
 
+class CouldNotCheckoutRepo(Exception):
+    pass
+
+
 def checkout_repository(tmpdir, org, repo, branch):
     if branch is None:
         branch = 'master'
@@ -162,7 +193,6 @@ def checkout_repository(tmpdir, org, repo, branch):
         if not os.path.exists(path):
             checkout(path, url, branch)
         else:
-
             m = os.path.getmtime(path)
             age = time.time() - m
             if age < 10 * 60:
@@ -180,8 +210,9 @@ def checkout_repository(tmpdir, org, repo, branch):
                     pass
         return path
     except GitCommandError as e:
-        msg = 'Could not checkout repository %s' % path
-        raise_wrapped(DPSemanticError, e, msg)
+        msg = 'Could not checkout repository %s/%s' % (org, repo)
+        msg += '\n using url %s' % url
+        raise_wrapped(CouldNotCheckoutRepo, e, msg, compact=True)
 
 
 def checkout(path, url, branch):
@@ -200,7 +231,8 @@ def checkout(path, url, branch):
         return repo
     except:
         try:
-            shutil.rmtree(path)
+            if os.path.exists(path):
+                shutil.rmtree(path)
         except:
             pass
         raise

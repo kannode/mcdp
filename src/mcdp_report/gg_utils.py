@@ -215,7 +215,7 @@ def gg_get_format(gg, data_format):
         raise ValueError('No known format %r.' % data_format)
 
 
-def resolve_references_to_images(soup, library, raise_errors):
+def resolve_references_to_images(soup, library, raise_errors, res, location):
 
     def resolve_to_realpath(href):
         ''' Returns the realpath of the resource'''
@@ -224,6 +224,7 @@ def resolve_references_to_images(soup, library, raise_errors):
             msg = 'I am not able to download external resources, such as:'
             msg += '\n  ' + href
             logger.error(msg)
+            res.note_error(msg)
             return None
 
         if '/' in href:
@@ -233,8 +234,10 @@ def resolve_references_to_images(soup, library, raise_errors):
             f = library._get_file_data(href)
         except DPSemanticError as e:
             msg = 'Could not find file %r.' % href
-            logger.error(msg)
-            logger.error(str(e))
+            msg += '\n\n' + indent(e, ' > ')
+            # logger.error(msg)
+            # logger.error(str(e))
+            res.note_error(msg)
             return None
 
         realpath = f['realpath']
@@ -248,13 +251,15 @@ def resolve_references_to_images(soup, library, raise_errors):
     from mcdp_report.embedded_images import embed_img_data, embed_pdf_images
 
     embed_img_data(soup, resolve_to_realpath, raise_on_error=raise_errors,
+                   res=res, location=location,
                    embed=False)  # assume link
 
     # convert and embed PDF
-    embed_pdf_images(soup, resolve_to_realpath, density, raise_on_error=raise_errors)
+    embed_pdf_images(soup, resolve_to_realpath, density, raise_on_error=raise_errors,
+                     res=res, location=location)
 
 
-def embed_images_from_library2(soup, library, raise_errors):
+def embed_images_from_library2(soup, library, raise_errors, res, location):
     """ Resolves images from library """
 
     def resolve(href):
@@ -288,8 +293,10 @@ def embed_images_from_library2(soup, library, raise_errors):
 
     from mcdp_report.embedded_images import embed_img_data, embed_pdf_images
 
-    embed_pdf_images(soup, resolve, density, raise_on_error=raise_errors)
-    embed_img_data(soup, resolve, raise_on_error=raise_errors, embed=True)
+    embed_pdf_images(soup, resolve, density, raise_on_error=raise_errors,
+                     res=res, location=location)
+    embed_img_data(soup, resolve, res=res, location=location,
+                   raise_on_error=raise_errors, embed=True)
 
 
 def check_not_lfs_pointer(label, contents):
