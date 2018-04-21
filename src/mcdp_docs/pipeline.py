@@ -140,7 +140,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     s = to_html_stripping_fragment(soup)
 
     if use_mathjax:
-        s = prerender_mathjax(s, symbols)
+        s = prerender_mathjax(s, symbols, res)
 
     soup = bs(s)
     escape_for_mathjax_back(soup)

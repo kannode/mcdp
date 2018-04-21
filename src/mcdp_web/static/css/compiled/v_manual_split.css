@@ -1333,6 +1333,10 @@ p {
 code {
   page-break-inside: avoid;
 }
+/* Otherwise the pres touch each other */
+pre {
+  margin: 0.2em;
+}
 pre code,
 p code,
 td code,

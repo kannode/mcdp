@@ -182,7 +182,9 @@ def prerender_mathjax_(html, aug_res):
 
         try:
             f_out = os.path.join(d, 'out.html')
-            cmd = [use, script, f_html, f_out]
+            cmd = [use,
+                   '--max_old_space_size=4096',
+                   script, f_html, f_out]
             pwd = os.getcwd()
             res2 = system_cmd_result(
                     pwd, cmd,
@@ -203,7 +205,11 @@ def prerender_mathjax_(html, aug_res):
                     msg += '\n\n\tnpm install MathJax-node jsdom'
                     msg += '\n\n' + indent(res2.stderr, '  |')
                     raise PrerenderError(msg)
-
+                elif "FATAL ERROR" in res2.stderr:
+                    msg = 'Fatal error with NodeJS:'
+                    msg += '\n\n' + indent(str(res2), '   ')
+                    # aug_res.note_error(msg)
+                    raise PrerenderError(msg)
                 elif 'parse error' in res2.stderr:
                     lines = [_ for _ in res2.stderr.split('\n')
                              if 'parse error' in _ ]
