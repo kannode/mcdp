@@ -8,13 +8,14 @@ from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPInternalError
 from mcdp_docs.location import LocationUnknown
+from mcdp_docs.task_markers import create_notes_from_elements
 from mcdp_library import MCDPLibrary
 from mcdp_report.gg_utils import embed_images_from_library2
 from mcdp_utils_misc import get_md5, AugmentedResult
 from mcdp_utils_xml import to_html_stripping_fragment, bs, describe_tag
 
 from .check_missing_links import check_if_any_href_is_invalid, fix_subfig_references
-from .elements_abbrevs import check_good_use_of_special_paragraphs, other_abbrevs
+from .elements_abbrevs import check_good_use_of_special_paragraphs, other_abbrevs, substitute_special_paragraphs
 from .github_file_ref.display_file_imp import display_files
 from .lessc import run_lessc
 from .macros import replace_macros
@@ -131,6 +132,9 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     soup = bs(s)
 
     other_abbrevs(soup, res, location)
+
+    substitute_special_paragraphs(soup, res, location)
+    create_notes_from_elements(soup, res, location)
 
     # need to process tabular before mathjax
     escape_for_mathjax(soup)

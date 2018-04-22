@@ -25,7 +25,7 @@ def other_abbrevs(soup, res, location):
     #     other_abbrevs_envs(soup)
 
     substitute_task_markers(soup, res, location)
-    substitute_special_paragraphs(soup, res, location)
+
 
 
 def other_abbrevs_mcdps(soup, res, location):

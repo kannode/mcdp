@@ -411,6 +411,8 @@ def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
         element = id2element.get(eid, None)
         if element is None:
             msg = 'Cannot find the element corresponding to ID %r' % eid
+            msg += '\n\nI cannot mark this note:'
+            msg += '\n\n' + indent(note, '  | ')
             # raise Exception(msg)  # FIXME
             logger.error(msg)
         else:

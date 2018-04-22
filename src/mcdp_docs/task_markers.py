@@ -8,16 +8,15 @@ from mcdp_utils_xml import add_class
 
 
 def substitute_task_markers(soup, res, location):
+    # XXX: this is really not sure
     for sub, klass in MCDPManualConstants.task_markers.items():
         substitute_task_marker(soup, sub, klass, res, location)
 
-    create_warnings_for_task_markers(soup, res, location)
 
-
-def create_warnings_for_task_markers(soup, res, location):
+def create_notes_from_elements(soup, res, location):
     for klass, tag in MCDPManualConstants.classes_that_create_notes.items():
         markers = list(soup.select('.%s' % klass))
-        print('Found %d markers for class %s' % (len(markers), klass))
+        # print('Found %d markers for class %s' % (len(markers), klass))
         for p in markers:
             div = Tag(name='div')
             s = Tag(name='p')
@@ -37,6 +36,7 @@ def create_warnings_for_task_markers(soup, res, location):
 def substitute_task_marker(soup, sub, klass, res, location):
     for selector in MCDPManualConstants.task_markers_selectors:
         for p in list(soup.select(selector)):
+            # print('adding %s to element %s because' % (klass, p))
             substitute_task_marker_p(p, sub, klass, res, location)
 
 
