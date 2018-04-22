@@ -494,9 +494,7 @@ the syntax "#ID", such as:
 """ % href
         msg = msg.replace('ELEMENT', str(a))
         note_error2(a, 'syntax error', msg.strip())
-        # res.note_error(msg, HTMLIDLocation(a.attrs['id']))
         res.note_error(msg, HTMLIDLocation.for_element(a))
-
 
 #         n += 1
 #     logger.debug('substituting_empty_links: %d total, %d errors' %
