@@ -1434,13 +1434,57 @@ details pre {
 blockquote details.error p {
   color: darkred;
 }
+
 blockquote details.warning p {
   color: darkorange;
 }
+
 blockquote details.task p {
   color: darkblue;
 }
 
 details p {
   max-width: 100%;
+}
+
+details.error, details.warning, details.task {
+  display: inline;
+
+  padding: 3px;
+  font-size: 80%;
+  margin-right: 2px;
+  margin-left: 2px;
+}
+
+div details.error,
+div details.warning,
+div details.task {
+  display: block;
+}
+
+details.error summary,
+details.warning summary,
+details.task summary {
+  display: inline-block;
+  padding: 0.1em;
+
+}
+
+details.error[open],
+details.error:not([open]) summary {
+  border: solid 1px red;
+}
+
+details.warning[open],
+details.warning:not([open]) summary {
+  border: solid 1px orange;
+}
+
+details.task[open],
+details.task:not([open]) summary {
+  border: solid 1px darkblue;
+}
+
+details.warning summary {
+  color: orange
 }

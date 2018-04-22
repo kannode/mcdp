@@ -14,7 +14,7 @@ from mcdp_docs.add_edit_links import add_github_links_if_edit_url
 from mcdp_docs.github_file_ref.substitute_github_refs_i import substitute_github_refs
 from mcdp_docs.location import LocationUnknown
 from mcdp_docs.manual_constants import MCDPManualConstants
-from mcdp_utils_misc import AugmentedResult, mark_in_html
+from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_misc.timing import timeit_wall as timeit
 from mcdp_utils_xml import add_class, bs, copy_contents_into
 
@@ -158,7 +158,6 @@ def manual_join(template, files_contents,
                 else:
                     copy_contents_into(content, body)
 
-
                 if add_comments:
                     body.append(NavigableString('\n\n'))
                     body.append(Comment('End of document dump of %r' % docname))
@@ -200,7 +199,7 @@ def manual_join(template, files_contents,
                 if require_toc_placeholder:
                     msg = 'Could not find toc placeholder: %s' % e
                     # logger.error(msg)
-                    if aug is not None:
+                    if aug0 is not None:
                         result.note_error(msg)
                     else:
                         raise Exception(msg)

@@ -47,7 +47,10 @@ def insert_inset(element, short, long_error, klasses=[]):
     """ Inserts an errored details after element """
     details = Tag(name='details')
     summary = Tag(name='summary')
-    summary.append(short)
+    s = Tag(name='strong')
+    s.append(short)
+    summary.append(s)
+
     details.append(summary)
     if isinstance(long_error, Tag):
         pre = Tag(name='div')

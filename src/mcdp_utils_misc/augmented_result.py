@@ -30,19 +30,6 @@ class Note(object):
         self.created_file = module.__file__
         self.prefix = prefix
 
-    # The three main categories of notes
-    # TAG_ERROR = MCDPManualConstants.NOTE_TAG_ERROR
-    # TAG_WARNING = MCDPManualConstants.NOTE_TAG_WARNING
-    # TAG_TASK = MCDPManualConstants.NOTE_TAG_TASK
-
-    # def is_error(self):
-    #     return Note.TAG_ERROR in self.tags
-    #
-    # def is_warning(self):
-    #     return Note.TAG_WARNING in self.tags
-    #
-    # def is_task(self):
-    #     return Note.TAG_TASK in self.tags
 
     def __str__(self):
         s = type(self).__name__
@@ -135,6 +122,7 @@ class Note(object):
         s = Tag(name='span')
         s.append('Created by function ')
         s.append(stag('code', self.created_function))
+        s.append(Tag(name='br'))
         s.append(' in module ')
         s.append(stag('code', self.created_module))
         s.append('.')
@@ -143,14 +131,6 @@ class Note(object):
         p.append(s)
         div.append(s)
         return div
-
-
-class NoteError(Note):
-    pass
-
-
-class NoteWarning(Note):
-    pass
 
 
 class AugmentedResult(object):
@@ -188,11 +168,10 @@ class AugmentedResult(object):
 
     def assert_error_contains(self, s):
         """ Asserts that one of the errors contains the string """
-        for _ in self.notes:
-            if isinstance(_, NoteError):
-                ss = str(_)
-                if s in ss:
-                    return
+        for _ in self.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR):
+            ss = str(_)
+            if s in ss:
+                return
         msg = 'No error contained the string %r' % s
         raise AssertionError(msg)
 
@@ -220,12 +199,7 @@ class AugmentedResult(object):
         if self.notes:
             d = OrderedDict()
             for i, note in enumerate(self.notes):
-                if isinstance(note, NoteWarning):
-                    what = 'Warning'
-                elif isinstance(note, NoteError):
-                    what = 'Error'
-                else:
-                    assert False, note
+                d['tags'] = ",".join(note.tags) 
 
                 d['%s %d' % (what, i)] = note
             s += "\n" + indent(pretty_print_dict(d), '| ')
@@ -233,46 +207,6 @@ class AugmentedResult(object):
             s += '\n' + '| (no notes found)'
         return s
 
-    #
-    # def html_errors(self):
-    #     notes = self.get_errors()
-    #     html = Tag(name='html')
-    #     head = Tag(name='head')
-    #     meta = Tag(name='meta')
-    #     meta.attrs['content'] = "text/html; charset=utf-8"
-    #     meta.attrs['http-equiv'] = "Content-Type"
-    #     head.append(meta)
-    #     html.append(head)
-    #     body = Tag(name='body')
-    #     html.append(body)
-    #     if not notes:
-    #         p = Tag(name='p')
-    #         p.append('There were no errors.')
-    #         body.append(p)
-    #     else:
-    #         p = Tag(name='p')
-    #         p.append('There were %d errors.' % len(notes))
-    #         body.append(p)
-    #
-    #         for i, note in enumerate(notes):
-    #             div = note.as_html()
-    #             div.attrs['class'] = 'error'
-    #             body.append(div)
-    #
-    #     body.append(get_html_style())
-    #     return str(html)
-
-    # def summary_only_errors(self):
-    #     s = "AugmentedResult (%s)" % self.desc
-    #     notes = self.get_errors()
-    #     if notes:
-    #         d = OrderedDict()
-    #         for i, note in enumerate(notes):
-    #             d['error %d' % i] = note
-    #         s += "\n" + indent(pretty_print_dict(d), '| ')
-    #     else:
-    #         s += '\n' + '| (no notes found)'
-    #     return s
 
     @contract(note=Note)
     def add_note(self, note):
@@ -351,6 +285,7 @@ def get_html_style():
 
 def html_list_of_notes(aug, tag, how_to_call_them, klass, header=None):
     notes = aug.get_notes_by_tag(tag)
+    print('%d notes for tag %s' % (len(notes), tag))
     html = Tag(name='html')
     head = Tag(name='head')
     meta = Tag(name='meta')
@@ -394,7 +329,7 @@ def mark_in_html(aug, soup):
                        [MCDPManualConstants.CLASS_NOTE_ERROR])
     mark_in_html_notes(warnings_list, soup, 'warning', 'warnings.html',
                        [MCDPManualConstants.CLASS_NOTE_WARNING])
-    mark_in_html_notes(tasks_list, soup, 'tasks', 'tasks.html',
+    mark_in_html_notes(tasks_list, soup, 'task', 'tasks.html',
                        [MCDPManualConstants.CLASS_NOTE_TASK])
 
 
@@ -418,7 +353,7 @@ def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
         return 'note-%s-%d' % (note_type, x)
 
     def linkto(x):
-        eid_, _ = notes[x]
+        eid_, _ = notes[indices[x]]
         return '#%s' % eid_
 
     from mcdp_utils_xml import stag
@@ -440,7 +375,8 @@ def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
 
             note_html = note.as_html(inline=True)
 
-            inset = insert_inset(element, short=note_type, long_error=note_html, klasses=klasses)
+            inset = insert_inset(element, short=note_type, # XXX
+                                   long_error=note_html, klasses=klasses)
 
             # if note_type == 'error':
             #     inset = note_error2(element, 'error', note_html)

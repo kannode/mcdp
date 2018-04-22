@@ -5,7 +5,7 @@ from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
-from mcdp_utils_xml import note_error2
+from mcdp_utils_xml import note_error2, Tag
 from mcdp_utils_xml.add_class_and_style import has_class
 
 show_debug_message_for_corrected_links = False
@@ -100,7 +100,11 @@ def check_if_any_href_is_invalid(soup, res, location0):
                     del a.attrs['href']
                     # logger.warning('ignoring link %s' % a)
                 else:
-                    msg = 'I do not know the link that is indicated by the link %r.' % href
+                    msg = 'I do not know what is indicated by the link %r.' % href
+                    marker = Tag(name='span')
+                    marker.attrs['class'] = 'inside-unknown-link'
+                    marker.append(' (unknown ref %s)' % core)
+                    a.append(marker)
                     location = HTMLIDLocation.for_element(a, location0)
                     res.note_error(msg, location)
 

@@ -28,31 +28,6 @@ pre {
   }
 }
 
-details.error, details.warning, details.task {
-  display: inline;
-
-  padding: 3px;
-  font-size: 80%;
-  margin-right: 2px;
-  margin-left: 2px;
-}
-
-details.error {
-  border: solid 1px red;
-}
-
-details.warning {
-  border: solid 1px orange;
-}
-
-details.task {
-  border: solid 1px darkblue;
-}
-
-details.warning summary {
-  color: orange
-}
-
 pre.error, pre.DPSemanticError, pre.DPSyntaxError {
   color: darkred;
   // font-weight: bold;
@@ -72,7 +47,6 @@ details.comment, details.doubt, details.question {
   font-size: 80%;
 
   summary {
-
     display: inline-block;
     font-size: smaller;
     padding: 2px;
@@ -82,10 +56,19 @@ details.comment, details.doubt, details.question {
   margin-bottom: 1em;
 }
 
+span.inside-unknown-link {
+  color: red;
+  font-weight: bold;
+  font-size: smaller;
+}
+
 @color-question: #dbfce0;
 @color-doubt: pink;
 @color-comment: #dbe8fc;
 
+details .note-tag {
+  display: none
+}
 details.comment summary {
   color: black;
   background-color: @color-comment;
