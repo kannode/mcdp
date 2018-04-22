@@ -168,6 +168,7 @@ class AugmentedResult(object):
 
     def assert_error_contains(self, s):
         """ Asserts that one of the errors contains the string """
+        from mcdp_docs.manual_constants import MCDPManualConstants
         for _ in self.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR):
             ss = str(_)
             if s in ss:
@@ -199,9 +200,9 @@ class AugmentedResult(object):
         if self.notes:
             d = OrderedDict()
             for i, note in enumerate(self.notes):
-                d['tags'] = ",".join(note.tags) 
+                # d['tags'] = ",".join(note.tags)
 
-                d['%s %d' % (what, i)] = note
+                d['%d' % i] = note
             s += "\n" + indent(pretty_print_dict(d), '| ')
         else:
             s += '\n' + '| (no notes found)'
