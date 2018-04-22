@@ -61,7 +61,7 @@ def manual_join(template, files_contents,
                 hook_before_final_pass=None,
                 require_toc_placeholder=False,
                 permalink_prefix=None,
-                aug=None):
+                aug0=None):
     """
         files_contents: a list of tuples that can be cast to DocToJoin:
         where the string is a unique one to be used for job naming.
@@ -77,8 +77,8 @@ def manual_join(template, files_contents,
     check_isinstance(files_contents, list)
 
     result = AugmentedResult()
-    if aug is not None:
-        result.merge(aug)
+    if aug0 is not None:
+        result.merge(aug0)
 
     @contextmanager
     def timeit(_):
@@ -175,7 +175,7 @@ def manual_join(template, files_contents,
             if bibhere is None:
                 msg = ('Could not find #%s in document. '
                        'Adding one at end of document.') % ID_PUT_BIB_HERE
-                aug.note_warning(msg)
+                result.note_warning(msg)
                 bibhere = Tag(name='div')
                 bibhere.attrs['id'] = ID_PUT_BIB_HERE
                 d.find('body').append(bibhere)
@@ -195,18 +195,18 @@ def manual_join(template, files_contents,
 
         with timeit('generate_and_add_toc'):
             try:
-                generate_and_add_toc(d, raise_error=True, aug=aug)
+                generate_and_add_toc(d, raise_error=True, aug=result)
             except NoTocPlaceholder as e:
                 if require_toc_placeholder:
                     msg = 'Could not find toc placeholder: %s' % e
-                    logger.error(msg)
+                    # logger.error(msg)
                     if aug is not None:
-                        aug.note_error(msg)
+                        result.note_error(msg)
                     else:
                         raise Exception(msg)
 
         with timeit('document_final_pass_after_toc'):
-            document_final_pass_after_toc(soup=d, resolve_references=resolve_references, res=aug)
+            document_final_pass_after_toc(soup=d, resolve_references=resolve_references, res=result)
 
         if extra_css is not None:
             logger.info('adding extra CSS')
@@ -228,7 +228,6 @@ def manual_join(template, files_contents,
                         a.append(r.title)
 
         # do not use to_html_stripping_fragment - this is a complete doc
-
         mark_in_html(result, soup=d)
 
         add_github_links_if_edit_url(soup=d, permalink_prefix=permalink_prefix)

@@ -353,25 +353,25 @@ def prerender(joined_aug, symbols):
 
 def render_pdf(data_aug):
     data = data_aug.get_result()
-    prefix = 'prince_render'
-    d = tempfile.mkdtemp(dir=get_mcdp_tmp_dir(), prefix=prefix)
-    f_html = os.path.join(d, 'file.html')
-    with open(f_html, 'w') as f:
-        f.write(data)
+    prefix = 'prince_render' # TODO: delete dir after
+    with tmpdir(prefix=prefix) as d:
+        f_html = os.path.join(d, 'file.html')
+        with open(f_html, 'w') as f:
+            f.write(data)
 
-    f_out = os.path.join(d, 'out.pdf')
-    cmd = ['prince', '--javascript', '-o', f_out, f_html]
-    pwd = os.getcwd()
-    system_cmd_result(
-            pwd, cmd,
-            display_stdout=False,
-            display_stderr=False,
-            raise_on_error=True)
+        f_out = os.path.join(d, 'out.pdf')
+        cmd = ['prince', '--javascript', '-o', f_out, f_html]
+        pwd = os.getcwd()
+        system_cmd_result(
+                pwd, cmd,
+                display_stdout=False,
+                display_stderr=False,
+                raise_on_error=True)
 
-    with open(f_out) as f:
-        data = f.read()
+        with open(f_out) as f:
+            data = f.read()
 
-    return data
+        return data
 
 
 def write_errors_and_warnings_files(aug, d):
