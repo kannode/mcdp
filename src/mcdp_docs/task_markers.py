@@ -4,7 +4,7 @@ from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_misc import Note
 
-from mcdp_utils_xml import add_class
+from mcdp_utils_xml import add_class, bs
 
 
 def substitute_task_markers(soup, res, location):
@@ -24,7 +24,8 @@ def create_notes_from_elements(soup, res, location):
             div.append(s)
             div2 = Tag(name='div')
             div2.attrs['style'] = 'margin: 1em; font-size: 90%; background-color: #eee; border-radius: 5px; padding: 0.5em;'
-            div2.append(p.__copy__())
+            d = bs(str(p))
+            div2.append(d)
             div.append(div2)
 
             tags = (tag,)

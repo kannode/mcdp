@@ -160,8 +160,7 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
         soup = bs_entire_document(data)
         embed_css_files(soup)
         fo = os.path.join(output_dir, 'dummy.html')
-        ncss = save_css(soup, fo, assets_dir)
-        # print('Extracted %s css files' % ncss)
+        save_css(soup, fo, assets_dir)
         data = to_html_entire_document(soup)
 
     for i in range(nworkers):

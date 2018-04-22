@@ -137,6 +137,7 @@ class LocalFile(Location):
         div = Tag(name='div')
         p = Tag(name='p')
         p.append('Local file ')
+        p.append(Tag(name='br'))
         a = Tag(name='a')
         a.attrs['href'] = self.filename
         a.append(self.filename)
@@ -317,7 +318,7 @@ class GithubLocation(Location):
         p.append('File ')
         # p.append(stag('span', self.path))
         p.append(stag('a', self.path, href=self.edit_url))
-
+        p.append(Tag(name='br'))
         p.append(' in repo ')
 
         repo = '%s/%s' % (self.org, self.repo)

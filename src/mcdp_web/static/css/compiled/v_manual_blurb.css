@@ -703,21 +703,23 @@ pre {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   }
 }
-details.error {
+details.error,
+details.warning,
+details.task {
   display: inline;
-  border: solid 1px red;
   padding: 3px;
   font-size: 80%;
   margin-right: 2px;
   margin-left: 2px;
 }
+details.error {
+  border: solid 1px red;
+}
 details.warning {
-  display: inline;
   border: solid 1px orange;
-  padding: 3px;
-  font-size: 80%;
-  margin-right: 2px;
-  margin-left: 2px;
+}
+details.task {
+  border: solid 1px darkblue;
 }
 details.warning summary {
   color: orange;
@@ -2261,8 +2263,9 @@ section[status=deprecated] {
   padding-right: 5px;
   padding-left: 5px;
 }
-/*TODO : put upstream*/
-details.error {
+details.error,
+details.warning,
+details.task {
   margin: 0.4em;
 }
 @media print {
@@ -2277,7 +2280,7 @@ details.error {
   div.transmuted-details p {
     max-width: 100%;
   }
-  blockquote div.transmuted-details p {
+  blockquote div.transmuted-details.error p {
     color: darkred;
   }
 }
@@ -2293,12 +2296,18 @@ details[open] {
 details[open] summary {
   margin-bottom: 1em;
 }
-details.error pre {
+details pre {
   font-family: "Anka/Coder Narrow";
   font-size: 90%;
 }
-blockquote details p {
+blockquote details.error p {
   color: darkred;
+}
+blockquote details.warning p {
+  color: darkorange;
+}
+blockquote details.task p {
+  color: darkblue;
 }
 details p {
   max-width: 100%;

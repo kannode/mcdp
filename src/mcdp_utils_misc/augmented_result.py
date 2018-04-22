@@ -349,7 +349,7 @@ def get_html_style():
     return s
 
 
-def html_list_of_notes(aug, tag, how_to_call_them, klass):
+def html_list_of_notes(aug, tag, how_to_call_them, klass, header=None):
     notes = aug.get_notes_by_tag(tag)
     html = Tag(name='html')
     head = Tag(name='head')
@@ -359,6 +359,8 @@ def html_list_of_notes(aug, tag, how_to_call_them, klass):
     head.append(meta)
     html.append(head)
     body = Tag(name='body')
+    if header is not None:
+        body.append(header)
     html.append(body)
     if not notes:
         p = Tag(name='p')
@@ -415,6 +417,10 @@ def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
     def idfor(x):
         return 'note-%s-%d' % (note_type, x)
 
+    def linkto(x):
+        eid_, _ = notes[x]
+        return '#%s' % eid_
+
     from mcdp_utils_xml import stag
 
     # TODO: there is the case where there are multiple notes that refer to the same element..
@@ -454,14 +460,14 @@ def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
                 a = Tag(name='a')
                 a.attrs['class'] = 'note-navigation'
                 a.append('previous ')
-                a.attrs['href'] = '#%s' % idfor(b - 1)
+                a.attrs['href'] = linkto(b - 1)
                 summary.insert(0, a)
 
             if b < N - 1:
                 a = Tag(name='a')
                 a.attrs['class'] = 'note-navigation'
                 a.append(' next')
-                a.attrs['href'] = '#%s' % idfor(b + 1)
+                a.attrs['href'] = linkto(b + 1)
                 summary.append(a)
             summary.append(' (%d of %s) ' % (b + 1, len(notes)))
             summary.append('\n')

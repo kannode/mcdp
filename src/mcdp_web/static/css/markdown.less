@@ -28,26 +28,25 @@ pre {
   }
 }
 
-details.error {
+details.error, details.warning, details.task {
   display: inline;
-  border: solid 1px red;
+
   padding: 3px;
   font-size: 80%;
   margin-right: 2px;
   margin-left: 2px;
 }
 
-details.error summary {
-
+details.error {
+  border: solid 1px red;
 }
 
 details.warning {
-  display: inline;
   border: solid 1px orange;
-  padding: 3px;
-  font-size: 80%;
-  margin-right: 2px;
-  margin-left: 2px;
+}
+
+details.task {
+  border: solid 1px darkblue;
 }
 
 details.warning summary {

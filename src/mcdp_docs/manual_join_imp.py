@@ -228,7 +228,7 @@ def manual_join(template, files_contents,
                         a.append(r.title)
 
         # do not use to_html_stripping_fragment - this is a complete doc
-        mark_in_html(result, soup=d)
+        # mark_in_html(result, soup=d)
 
         add_github_links_if_edit_url(soup=d, permalink_prefix=permalink_prefix)
 

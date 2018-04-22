@@ -20,10 +20,10 @@ from mcdp_docs.prerender_math import prerender_mathjax
 from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
-from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, Note, \
-    html_list_of_notes
+from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
+    html_list_of_notes, mark_in_html
 from mcdp_utils_misc.fileutils import read_data_from_file
-from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class
+from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag
 from quickapp import QuickApp
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
@@ -283,6 +283,9 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
             raise_wrapped(UserError, e, msg, compact=True)
         else:
             joined_aug = context.comp(make_composite, compose_config_interpreted, joined_aug)
+
+    joined_aug = context.comp(mark_errors_and_rest, joined_aug)
+
     context.comp(write, joined_aug, output_file)
 
     if out_split_dir is not None:
@@ -295,22 +298,33 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
 
         context.comp(write_errors_and_warnings_files, joined_aug, out_split_dir,
                      extra_dep=[written_aug])
+        context.comp(write_manifest_html, out_split_dir)
 
     if out_pdf is not None:
         joined_aug_with_pdf_stylesheet = context.comp(add_style, joined_aug, stylesheet_pdf)
         prerendered = context.comp(prerender, joined_aug_with_pdf_stylesheet, symbols=symbols)
         pdf_data = context.comp(render_pdf, prerendered)
         context.comp(write_data_to_file, pdf_data, out_pdf)
+        context.comp(write_manifest_pdf, os.path.dirname(out_pdf))
 
-    context.comp(write_manifest_html, out_split_dir)
-    context.comp(write_manifest_pdf, os.path.dirname(out_pdf))
+
+
     # if os.path.exists(MCDPManualConstants.pdf_metadata_template):
     #     context.comp(generate_metadata, root_dir)
+
+
+def mark_errors_and_rest(joined_aug):
+    soup = bs_entire_document(joined_aug.get_result())
+    mark_in_html(joined_aug, soup)
+    res = AugmentedResult()
+    res.set_result(to_html_entire_document(soup))
+    return res
 
 
 def add_style(data_aug, stylesheet):
     soup = bs_entire_document(data_aug.get_result())
     head = soup.find('head')
+    assert head is not None
     link = Tag(name='link')
     link['rel'] = 'stylesheet'
     link['type'] = 'text/css'
@@ -377,12 +391,26 @@ def render_pdf(data_aug):
         return data
 
 
+def get_notes_panel(aug):
+    s = Tag(name='div')
+    nwarnings = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING))
+    ntasks = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_TASK))
+    nerrors = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR))
+    s.append(stag('a', '%d errors' % nerrors, href='errors.html'))
+    s.append(', ')
+    s.append(stag('a', '%d warnings' % nwarnings, href='warnings.html'))
+    s.append(', ')
+    s.append(stag('a', '%d tasks' % ntasks, href='tasks.html'))
+    return s
+
+
 def write_errors_and_warnings_files(aug, d):
+    header = get_notes_panel(aug)
     assert isinstance(aug, AugmentedResult)
     manifest = []
-    nwarnings = len(aug.get_notes_by_tag(Note.TAG_WARNING))
+    nwarnings = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING))
     fn = os.path.join(d, 'warnings.html')
-    html = html_list_of_notes(aug, Note.TAG_WARNING, 'warnings', 'warning')
+    html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_WARNING, 'warnings', 'warning', header=header)
     write_data_to_file(html, fn, quiet=True)
     if nwarnings:
         manifest.append(dict(display='%d warnings' % nwarnings,
@@ -390,9 +418,9 @@ def write_errors_and_warnings_files(aug, d):
         msg = 'There were %d warnings: %s' % (nwarnings, fn)
         logger.warn(msg)
 
-    ntasks = len(aug.get_notes_by_tag(Note.TAG_TASK))
+    ntasks = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_TASK))
     fn = os.path.join(d, 'tasks.html')
-    html = html_list_of_notes(aug, Note.TAG_TASK, 'tasks', 'task')
+    html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_TASK, 'tasks', 'task', header=header)
     write_data_to_file(html, fn, quiet=True)
     if nwarnings:
         manifest.append(dict(display='%d tasks' % ntasks,
@@ -400,9 +428,9 @@ def write_errors_and_warnings_files(aug, d):
         msg = 'There are %d open tasks: %s' % (ntasks, fn)
         logger.info(msg)
 
-    nerrors = len(aug.get_notes_by_tag(Note.TAG_ERROR))
+    nerrors = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR))
     fn = os.path.join(d, 'errors.html')
-    html = html_list_of_notes(aug, Note.TAG_ERROR, 'errors', 'error')
+    html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_ERROR, 'errors', 'error', header=header)
     write_data_to_file(html, fn, quiet=True)
     if nerrors:
         manifest.append(dict(display='%d errors' % nerrors,
