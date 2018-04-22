@@ -82,6 +82,16 @@ class LocationUnknown(Location):
     def __init__(self, level=1):  # 1 = our caller @UnusedVariable
         self.caller_location = None  # location_from_stack(level)
 
+    def as_html(self, inline=False):
+        div = Tag(name='div')
+        if inline:
+            pass
+        else:
+            p = Tag(name='p')
+            p.append('Location not known more precisely.')
+            div.append(p)
+        return div
+
     def __repr__(self):
         return "Location unknown"
 
@@ -163,19 +173,19 @@ class HTMLIDLocation(Location):
     def as_html(self, inline=False):
         div = Tag(name='div')
 
-        p = Tag(name='p')
-        p.append('Jump to ')
-        a = Tag(name='a')
-        if inline:
-            href = '#%s' % self.element_id
-        else:
+        if not inline:
+            p = Tag(name='p')
+            p.append('Jump to ')
+            a = Tag(name='a')
+            # if inline:
+            #     href = '#%s' % self.element_id
+            # else:
             href = 'link.html#%s' % self.element_id
-        a.attrs['href'] = href
-        a.append('element in output file')
-        p.append(a)
-        p.append('.')
-
-        div.append(p)
+            a.attrs['href'] = href
+            a.append('element in output file')
+            p.append(a)
+            p.append('.')
+            div.append(p)
 
         if self.parent is not None:
             div.append(self.parent.as_html(inline=False))
@@ -213,10 +223,10 @@ class SnippetLocation(Location):
             p.append('Jump to ')
             a = Tag(name='a')
 
-            if inline:
-                href = '#%s' % self.element_id
-            else:
-                href = 'link.html#%s' % self.element_id
+            # if inline:
+            #     href = '#%s' % self.element_id
+            # else:
+            href = 'link.html#%s' % self.element_id
             a.attrs['href'] = href
             a.append('element in output file')
             p.append(a)
@@ -318,7 +328,6 @@ class GithubLocation(Location):
         p.append(stag('a', str(self.branch), href=self.branch_url))
         p.append(' commit ')
         p.append(stag('a', self.commit[-8:], href=self.commit_url))
-
         return p
 
     def get_stack(self):

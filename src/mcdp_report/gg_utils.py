@@ -218,7 +218,7 @@ def gg_get_format(gg, data_format):
 def resolve_references_to_images(soup, library, raise_errors, res, location):
 
     def resolve_to_realpath(href):
-        ''' Returns the realpath of the resource'''
+        """ Returns the realpath of the resource"""
         #print('resolving %r' % href)
         if href.startswith('http'):
             msg = 'I am not able to download external resources, such as:'

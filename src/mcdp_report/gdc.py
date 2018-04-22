@@ -261,7 +261,7 @@ def get_images(dirname, exts=None):
 
 @contract(image_source=ImagesSource)
 def choose_best_icon(iconoptions, image_source):
-    ''' Returns the name of a file, or raise exception KeyError. '''
+    """ Returns the name of a file, or raise exception KeyError. """
 #     logger.debug('Looking for %s in %s.' % (str(iconoptions), imagepaths))
     exts = MCDPConstants.exts_for_icons
     iconoptions = [_ for _ in iconoptions if _ is not None]

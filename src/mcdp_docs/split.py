@@ -310,7 +310,7 @@ split_main = Split.get_sys_main()
 
 
 def remove_spurious(output_dir, filenames):
-    ignore = ['link.html', 'errors.html', 'warnings.html']
+    ignore = ['link.html', 'errors.html', 'warnings.html', 'tasks.html']
     found = os.listdir(output_dir)
     for f in found:
         if not f.endswith('.html'):

@@ -5,7 +5,6 @@ from collections import namedtuple
 import mcdp
 from mcdp import MCDPConstants
 
-
 class MCDPManualConstants(object):
     activate_tilde_as_nbsp = False
 
@@ -51,7 +50,6 @@ class MCDPManualConstants(object):
 
     OTHER_THINGS_TO_INDEX = ['figure', 'div', 'cite']
 
-
     allowed_prefixes_h = {
         'h1': ['sec', 'app', 'part'],
         'h2': ['sub', 'appsub'],
@@ -68,7 +66,7 @@ class MCDPManualConstants(object):
         'fig', 'tab', 'code',
         'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
     ]
-    
+
     ATTR_NOTOC = 'notoc'
     ATTR_NONUMBER = 'nonumber'
     exclude_from_toc = [
@@ -99,10 +97,8 @@ class MCDPManualConstants(object):
     # cite_prefixes = ['bib']
     div_latex_prefixes = ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm']
 
-
     special_paragraphs = {
-        'TODO: ': 'todo',
-        'TOWRITE: ': 'special-par-towrite',
+
         'Task: ': 'special-par-task',
         'Remark: ': 'special-par-remark',
         'Note: ': 'special-par-note',
@@ -113,7 +109,7 @@ class MCDPManualConstants(object):
         'Warning:': 'special-par-warning',
         'Q:': 'special-par-question',
         'A:': 'special-par-answer',
-        "Assigned: ": 'special-par-assigned',
+
         "Author: ": 'special-par-author',
         "Maintainer: ": 'special-par-maintainer',
         "Point of contact: ": 'special-par-point-of-contact',
@@ -134,6 +130,10 @@ class MCDPManualConstants(object):
         'Comment: ': 'comment',
         'Question: ': 'question',
         'Doubt: ': 'doubt',
+        "Assigned: ": 'special-par-assigned',
+        'TODO: ': 'todo',
+        'TOWRITE: ': 'special-par-towrite',
+
     }
 
     # For these classes we will create a <details> environment
@@ -153,10 +153,26 @@ class MCDPManualConstants(object):
 
     task_markers_selectors = ['p', 'h2', 'h3']
 
-    classes_that_create_warnings = ['question', 'doubt', 'todo']
+    NOTE_TAG_ERROR= 'error'
+    NOTE_TAG_WARNING = 'warning'
+    NOTE_TAG_TASK = 'task'
+
+    classes_that_create_notes = {
+        'question': NOTE_TAG_TASK,
+        'doubt': NOTE_TAG_TASK,
+        'todo': NOTE_TAG_TASK,
+        'status-XXX': NOTE_TAG_TASK,
+        'special-par-towrite': NOTE_TAG_TASK,
+        'special-par-assigned': NOTE_TAG_TASK,
+    }
+
+    CLASS_NOTE_WARNING = 'warning'
+    CLASS_NOTE_TASK = 'task'
+    CLASS_NOTE_ERROR = 'error'
 
     embed_img_data_extensions = ['png', 'jpg', 'jpeg', 'JPEG', 'PNG', 'JPG', 'svg', 'SVG']
 
+    max_width_for_image = 1024
 
 Label = namedtuple('Label', 'what number label_self')
 

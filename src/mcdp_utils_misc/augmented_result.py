@@ -6,14 +6,17 @@ from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
+from mcdp_docs.manual_constants import MCDPManualConstants
+from mcdp_utils_xml import insert_inset
 
 from .pretty_printing import pretty_print_dict
 
 
 class Note(object):
 
-    def __init__(self, msg, locations=None, stacklevel=0, prefix=()):
+    def __init__(self, msg, locations=None, stacklevel=0, prefix=(), tags=()):
         self.msg = msg
+        self.tags = tuple(tags)
         if locations is None:
             locations = OrderedDict()
         from mcdp_docs.location import Location
@@ -27,6 +30,21 @@ class Note(object):
         self.created_module = module.__name__
         self.created_file = module.__file__
         self.prefix = prefix
+
+    # The three main categories of notes
+    TAG_ERROR = MCDPManualConstants.NOTE_TAG_ERROR
+
+    TAG_WARNING = MCDPManualConstants.NOTE_TAG_WARNING
+    TAG_TASK = MCDPManualConstants.NOTE_TAG_TASK
+
+    def is_error(self):
+        return Note.TAG_ERROR in self.tags
+
+    def is_warning(self):
+        return Note.TAG_WARNING in self.tags
+
+    def is_task(self):
+        return Note.TAG_TASK in self.tags
 
     def __str__(self):
         s = type(self).__name__
@@ -61,12 +79,19 @@ class Note(object):
     def as_html(self, inline=False):
         div = Tag(name='div')
         div.attrs['class'] = 'note'
-        pre = Tag(name='pre')
-        if self.msg:
-            pre.append(self.msg)
+        container = Tag(name='div')
+        if self.msg is not None:
+            if isinstance(self.msg, Tag):
+                container.append(self.msg)
+            else:
+                pre = Tag(name='pre')
+                pre.append(self.msg)
+                container.append(pre)
         else:
-            pre.append("No messages given.")
-        div.append(pre)
+            p = Tag(name='p')
+            p.append("No message given.")
+            container.append(p)
+        div.append(container)
 
         if self.locations:
 
@@ -88,9 +113,9 @@ class Note(object):
 
                 div.append(dl)
             else:
-                p = Tag(name='p')
-                p.append("Location:")
-                div.append(p)
+                # p = Tag(name='p')
+                # p.append("Location:")
+                # div.append(p)
 
                 location = list(self.locations.values())[0]
                 div.append(location.as_html(inline=inline))
@@ -136,18 +161,16 @@ class AugmentedResult(object):
         self.output = []
 
     def __str__(self):
-        ne = len(self.get_errors())
-        nw = len(self.get_warnings())
-        return 'AugmentedResult(%s err, %s warn, %r)' % (ne, nw, self.result)
+        # ne = len(self.get_errors())
+        # nw = len(self.get_warnings())
+        n = len(self.notes)
+        return 'AugmentedResult(%s notes)' % n
 
-    def get_errors(self):
-        return [_ for _ in self.notes if isinstance(_, NoteError)]
-
-    def get_warnings(self):
-        return [_ for _ in self.notes if isinstance(_, NoteWarning)]
+    def get_notes_by_tag(self, tag):
+        return [_ for _ in self.notes if tag in _.tags]
 
     def assert_no_error(self):
-        errors = self.get_errors()
+        errors = self.get_notes_by_tag(Note.TAG_ERROR)
         if errors:
             msg = 'We have obtained %d errors.' % len(errors)
             d = OrderedDict()
@@ -203,87 +226,67 @@ class AugmentedResult(object):
             s += '\n' + '| (no notes found)'
         return s
 
-    def html_errors(self):
-        notes = self.get_errors()
-        html = Tag(name='html')
-        head = Tag(name='head')
-        meta = Tag(name='meta')
-        meta.attrs['content'] = "text/html; charset=utf-8"
-        meta.attrs['http-equiv'] = "Content-Type"
-        head.append(meta)
-        html.append(head)
-        body = Tag(name='body')
-        html.append(body)
-        if not notes:
-            p = Tag(name='p')
-            p.append('There were no errors.')
-            body.append(p)
-        else:
-            p = Tag(name='p')
-            p.append('There were %d errors.' % len(notes))
-            body.append(p)
+    #
+    # def html_errors(self):
+    #     notes = self.get_errors()
+    #     html = Tag(name='html')
+    #     head = Tag(name='head')
+    #     meta = Tag(name='meta')
+    #     meta.attrs['content'] = "text/html; charset=utf-8"
+    #     meta.attrs['http-equiv'] = "Content-Type"
+    #     head.append(meta)
+    #     html.append(head)
+    #     body = Tag(name='body')
+    #     html.append(body)
+    #     if not notes:
+    #         p = Tag(name='p')
+    #         p.append('There were no errors.')
+    #         body.append(p)
+    #     else:
+    #         p = Tag(name='p')
+    #         p.append('There were %d errors.' % len(notes))
+    #         body.append(p)
+    #
+    #         for i, note in enumerate(notes):
+    #             div = note.as_html()
+    #             div.attrs['class'] = 'error'
+    #             body.append(div)
+    #
+    #     body.append(get_html_style())
+    #     return str(html)
 
-            for i, note in enumerate(notes):
-                div = note.as_html()
-                div.attrs['class'] = 'error'
-                body.append(div)
-
-        body.append(get_html_style())
-        return str(html)
-
-    def html_warnings(self):
-        notes = self.get_warnings()
-        html = Tag(name='html')
-        head = Tag(name='head')
-        meta = Tag(name='meta')
-        meta.attrs['content'] = "text/html; charset=utf-8"
-        meta.attrs['http-equiv'] = "Content-Type"
-        head.append(meta)
-        html.append(head)
-        body = Tag(name='body')
-        html.append(body)
-        if not notes:
-            p = Tag(name='p')
-            p.append('There were no warnings.')
-            body.append(p)
-        else:
-            p = Tag(name='p')
-            p.append('There were %d warnings.' % len(notes))
-            body.append(p)
-
-            for i, note in enumerate(notes):
-                div = note.as_html()
-                div.attrs['class'] = 'warning'
-                body.append(div)
-
-        body.append(get_html_style())
-        return str(html)
-
-    def summary_only_errors(self):
-        s = "AugmentedResult (%s)" % self.desc
-        notes = self.get_errors()
-        if notes:
-            d = OrderedDict()
-            for i, note in enumerate(notes):
-                d['error %d' % i] = note
-            s += "\n" + indent(pretty_print_dict(d), '| ')
-        else:
-            s += '\n' + '| (no notes found)'
-        return s
+    # def summary_only_errors(self):
+    #     s = "AugmentedResult (%s)" % self.desc
+    #     notes = self.get_errors()
+    #     if notes:
+    #         d = OrderedDict()
+    #         for i, note in enumerate(notes):
+    #             d['error %d' % i] = note
+    #         s += "\n" + indent(pretty_print_dict(d), '| ')
+    #     else:
+    #         s += '\n' + '| (no notes found)'
+    #     return s
 
     @contract(note=Note)
     def add_note(self, note):
         self.notes.append(note)
 
-    def note_error(self, msg, locations=None):
-        note = NoteError(msg, locations, stacklevel=1)
+    def note_error(self, msg, locations=None, tags=()):
+        tags = tags + (Note.TAG_ERROR,)
+        note = Note(msg, locations, stacklevel=1, tags=tags)
         self.add_note(note)
         logger.error(str(note))
 
-    def note_warning(self, msg, locations=None):
-        note = NoteWarning(msg, locations, stacklevel=1)
+    def note_warning(self, msg, locations=None, tags=()):
+        tags = tags + (Note.TAG_WARNING,)
+        note = Note(msg, locations, stacklevel=1, tags=tags)
         self.add_note(note)
         # logger.warn(str(note))
+
+    def note_task(self, msg, locations=None, tags=()):
+        tags = tags + (Note.TAG_TASK,)
+        note = Note(msg, locations, stacklevel=1, tags=tags)
+        self.add_note(note)
 
     @contract(prefix='str|tuple')
     def merge(self, other, prefix=()):
@@ -305,7 +308,7 @@ class AugmentedResult(object):
 
 def get_html_style():
     style = """
-    div.error, div.warning {
+    div.error, div.warning, div.task {
         border-radius: 10px;
         display: inline-block;
         padding: 1em;
@@ -326,24 +329,62 @@ def get_html_style():
         border: solid 1px orange;
         color: darkorange;
     }
+    div.task {
+        border: solid 1px blue;
+        color: darkblue;
+    }
     """
     s = Tag(name='style')
     s.append(style)
     return s
 
 
+def html_list_of_notes(aug, tag, how_to_call_them, klass):
+    notes = aug.get_notes_by_tag(tag)
+    html = Tag(name='html')
+    head = Tag(name='head')
+    meta = Tag(name='meta')
+    meta.attrs['content'] = "text/html; charset=utf-8"
+    meta.attrs['http-equiv'] = "Content-Type"
+    head.append(meta)
+    html.append(head)
+    body = Tag(name='body')
+    html.append(body)
+    if not notes:
+        p = Tag(name='p')
+        p.append('There were no %s.' % how_to_call_them)
+        body.append(p)
+    else:
+        p = Tag(name='p')
+        p.append('There were %d %s.' % (len(notes), how_to_call_them))
+        body.append(p)
+
+        for i, note in enumerate(notes):
+            div = note.as_html()
+            div.attrs['class'] = klass
+            body.append(div)
+    body.append(get_html_style())
+    return str(html)
+
+
 @contract(aug=AugmentedResult)
 def mark_in_html(aug, soup):
     """ Marks the errors and warnings in the html soup."""
-    warnings = aug.get_warnings()
-    errors = aug.get_errors()
+    warnings = aug.get_notes_by_tag(Note.TAG_WARNING)
+    errors = aug.get_notes_by_tag(Note.TAG_ERROR)
+    tasks = aug.get_notes_by_tag(Note.TAG_TASK)
     warnings_list = list(_mark_in_html_iterate_id_note_with_location(warnings))
     errors_list = list(_mark_in_html_iterate_id_note_with_location(errors))
-    mark_in_html_notes(errors_list, soup, 'error')
-    mark_in_html_notes(warnings_list, soup, 'warning')
+    tasks_list = list(_mark_in_html_iterate_id_note_with_location(tasks))
+    mark_in_html_notes(errors_list, soup, 'error', 'errors.html',
+                       [MCDPManualConstants.CLASS_NOTE_ERROR])
+    mark_in_html_notes(warnings_list, soup, 'warning', 'warnings.html',
+                       [MCDPManualConstants.CLASS_NOTE_WARNING])
+    mark_in_html_notes(tasks_list, soup, 'tasks', 'tasks.html',
+                       [MCDPManualConstants.CLASS_NOTE_TASK])
 
 
-def mark_in_html_notes(notes, soup, note_type):
+def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
     from mcdp_docs.check_missing_links import get_id2element
     id2element, duplicates = get_id2element(soup, 'id')
     ids_ordered = list(id2element)
@@ -362,7 +403,7 @@ def mark_in_html_notes(notes, soup, note_type):
     def idfor(x):
         return 'note-%s-%d' % (note_type, x)
 
-    from mcdp_utils_xml import stag, note_error2, note_warning2
+    from mcdp_utils_xml import stag
 
     for b, i in enumerate(indices):
         eid, note = notes[i]
@@ -378,13 +419,15 @@ def mark_in_html_notes(notes, soup, note_type):
 
             note_html = note.as_html(inline=True)
 
-            if note_type == 'error':
-                inset = note_error2(element, 'error', note_html)
-            elif note_type == 'warning':
-                # inset = note_error2(element, 'warning', note_html)
-                inset = note_warning2(element, 'warning', note_html)
-            else:
-                assert False
+            inset = insert_inset(element, short=note_type, long_error=note_html, klasses=klasses)
+
+            # if note_type == 'error':
+            #     inset = note_error2(element, 'error', note_html)
+            # elif note_type == 'warning':
+            #     # inset = note_error2(element, 'warning', note_html)
+            #     inset = note_warning2(element, 'warning', note_html)
+            # else:
+            #     assert False
 
             # if inset is not None:
             inset.attrs['id'] = idfor(b)
@@ -407,7 +450,7 @@ def mark_in_html_notes(notes, soup, note_type):
                 summary.append(a)
             summary.append(' (%d of %s) ' % (b + 1, len(notes)))
             summary.append('\n')
-            summary.append(stag('a', 'index', href='errors.html'))
+            summary.append(stag('a', 'index', href=index_url))
             summary.append('\n')
 
             # summary.append(p)

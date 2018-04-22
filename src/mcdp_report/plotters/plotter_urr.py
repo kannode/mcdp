@@ -89,16 +89,16 @@ class PlotterURRpR_12(PlotterURRpR):
 
     def toR2(self, z):
         (a, b), _ = z
-        return (a, b)
+        return a, b
 
 class PlotterURRpR_13(PlotterURRpR):
 
     def toR2(self, z):
         (a, _), c = z
-        return (a, c)
+        return a, c
 
 class PlotterURRpR_23(PlotterURRpR):
 
     def toR2(self, z):
         (_, b), c = z
-        return (b, c)
+        return b, c

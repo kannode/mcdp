@@ -20,8 +20,8 @@ from mcdp_docs.prerender_math import prerender_mathjax
 from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
-from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, get_mcdp_tmp_dir, \
-    tmpdir
+from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, Note, \
+    html_list_of_notes
 from mcdp_utils_misc.fileutils import read_data_from_file
 from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class
 from quickapp import QuickApp
@@ -29,7 +29,7 @@ from reprep.utils import natsorted
 from system_cmd import system_cmd_result
 
 from .check_bad_input_files import check_bad_input_file_presence
-from .github_edit_links import add_edit_links, add_edit_links2
+from .github_edit_links import add_edit_links2
 from .manual_constants import MCDPManualConstants
 from .manual_join_imp import DocToJoin, manual_join
 from .minimal_doc import get_minimal_document
@@ -302,6 +302,8 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
         pdf_data = context.comp(render_pdf, prerendered)
         context.comp(write_data_to_file, pdf_data, out_pdf)
 
+    context.comp(write_manifest_html, out_split_dir)
+    context.comp(write_manifest_pdf, os.path.dirname(out_pdf))
     # if os.path.exists(MCDPManualConstants.pdf_metadata_template):
     #     context.comp(generate_metadata, root_dir)
 
@@ -315,7 +317,7 @@ def add_style(data_aug, stylesheet):
     from mcdp_report.html import get_css_filename
     link['href'] = get_css_filename('compiled/%s' % stylesheet)
     head.append(link)
-    html = to_html_entire_document((soup))
+    html = to_html_entire_document(soup)
     data_aug.set_result(html)
     return data_aug
 
@@ -333,7 +335,7 @@ def make_composite(compose_config, joined_aug):
     res = AugmentedResult()
     res.merge(joined_aug)
     res.merge(aug)
-    res.set_result((results))
+    res.set_result(results)
     return res
 
 
@@ -347,7 +349,7 @@ def prerender(joined_aug, symbols):
 
     joined = to_html_entire_document(soup)
     res = AugmentedResult()
-    result =  prerender_mathjax(joined, symbols=symbols, res=res)
+    result = prerender_mathjax(joined, symbols=symbols, res=res)
     res.set_result(result)
     return res
 
@@ -376,19 +378,32 @@ def render_pdf(data_aug):
 
 
 def write_errors_and_warnings_files(aug, d):
+    assert isinstance(aug, AugmentedResult)
     manifest = []
-    nwarnings = len(aug.get_warnings())
+    nwarnings = len(aug.get_notes_by_tag(Note.TAG_WARNING))
     fn = os.path.join(d, 'warnings.html')
-    write_data_to_file(aug.html_warnings(), fn, quiet=True)
+    html = html_list_of_notes(aug, Note.TAG_WARNING, 'warnings', 'warning')
+    write_data_to_file(html, fn, quiet=True)
     if nwarnings:
         manifest.append(dict(display='%d warnings' % nwarnings,
                              filename='warnings.html'))
         msg = 'There were %d warnings: %s' % (nwarnings, fn)
         logger.warn(msg)
 
-    nerrors = len(aug.get_errors())
+    ntasks = len(aug.get_notes_by_tag(Note.TAG_TASK))
+    fn = os.path.join(d, 'tasks.html')
+    html = html_list_of_notes(aug, Note.TAG_TASK, 'tasks', 'task')
+    write_data_to_file(html, fn, quiet=True)
+    if nwarnings:
+        manifest.append(dict(display='%d tasks' % ntasks,
+                             filename='tasks.html'))
+        msg = 'There are %d open tasks: %s' % (ntasks, fn)
+        logger.info(msg)
+
+    nerrors = len(aug.get_notes_by_tag(Note.TAG_ERROR))
     fn = os.path.join(d, 'errors.html')
-    write_data_to_file(aug.html_errors(), fn, quiet=True)
+    html = html_list_of_notes(aug, Note.TAG_ERROR, 'errors', 'error')
+    write_data_to_file(html, fn, quiet=True)
     if nerrors:
         manifest.append(dict(display='%d errors' % nerrors,
                              filename='errors.html'))
@@ -396,10 +411,19 @@ def write_errors_and_warnings_files(aug, d):
         msg = 'I am sorry to say that there were %d errors.\n\nPlease see: %s' % (nerrors, fn)
         logger.error('\n\n\n' + indent(msg, ' ' * 15) + '\n\n')
 
-    manifest.append(dict(display='PDF', filename='../out.pdf'))
-    manifest.append(dict(display='html', filename='index.html'))
-
     fn = os.path.join(d, 'errors_and_warnings.manifest.yaml')
+    write_data_to_file(yaml.dump(manifest), fn, quiet=False)
+
+
+def write_manifest_html(d):
+    manifest = [dict(display='html', filename='out/index.html')]
+    fn = os.path.join(d, 'output-html.manifest.yaml')
+    write_data_to_file(yaml.dump(manifest), fn, quiet=False)
+
+
+def write_manifest_pdf(d):
+    manifest = [dict(display='PDF', filename='out.pdf')]
+    fn = os.path.join(d, 'output-pdf.manifest.yaml')
     write_data_to_file(yaml.dump(manifest), fn, quiet=False)
 
 

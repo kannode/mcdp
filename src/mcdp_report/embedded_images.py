@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import base64
 import cStringIO
 import mimetypes
@@ -281,23 +282,25 @@ def embed_img_data(soup, resolve, raise_on_error,
                     msg = 'Expecting a path from %r, but does not exist %s' % (href, realpath)
                     raise Exception(msg)  # XXX
 
-
-                tag['src'] = get_link_to_image_file(realpath)
+                max_width = MCDPManualConstants.max_width_for_image
+                tag['src'] = get_link_to_image_file(realpath, max_width)
 
             break
 
-def get_link_to_image_file(filename, max_width=800):
+def get_link_to_image_file(filename, max_width):
     basename, ext = os.path.splitext(os.path.basename(filename).lower())
     if ext in ['.jpg', '.jpeg']:
         with open(filename) as f:
             im = Image.open(f)
-            print filename, im.size
+            # print filename, im.size
             if im.size[0] > max_width:
                 b = basename + '-' + get_md5(filename)[:4] + '.jpg'
                 dest = os.path.join(get_mcdp_tmp_dir(), 'images', b)
                 height = int(im.size[1]*max_width/im.size[0])
                 new_size = (max_width, height)
-                print('resizing to %s in %s' % (str(new_size), dest))
+                msg = 'Resizing image %s from %s to %s' % (filename, im.size, new_size)
+                logger.info(msg)
+                # print('resizing to %s in %s' % (str(new_size), dest))
                 if not os.path.exists(dest):
                     make_sure_dir_exists(dest)
                     resized = im.resize(new_size)

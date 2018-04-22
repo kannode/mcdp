@@ -444,7 +444,7 @@ def create_simplewrap(gdc, ndp, plotting_info):  # @UnusedVariable
 
                 if shortlabel is None:
                     shortlabel = ''
-                label = label % (shortlabel, width, height, best_icon)
+                label %= shortlabel, width, height, best_icon
             else:
                 # print('Image %r not found' % imagename)
                 sname = None
@@ -483,9 +483,9 @@ def create_simplewrap(gdc, ndp, plotting_info):  # @UnusedVariable
         label = make_short_label(label)
         sname = 'limit'
 
-    if isinstance(ndp.dp, (FunctionNode)):
+    if isinstance(ndp.dp, FunctionNode):
         label = get_suggested_identifier(ndp.dp.fname)
-    if isinstance(ndp.dp, (ResourceNode)):
+    if isinstance(ndp.dp, ResourceNode):
         label = get_suggested_identifier(ndp.dp.rname)
 
 #     if label[:2] != '<T':
