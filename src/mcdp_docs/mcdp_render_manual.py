@@ -41,8 +41,8 @@ class RenderManual(QuickApp):
     """ Renders the PyMCDP manual """
 
     def define_options(self, params):
-        params.add_string('src', help="""
-        Directories with all contents; separate multiple entries with a colon.""")
+        params.add_string('src', help="Directories with all contents; separate multiple entries with a colon.")
+        params.add_string('resources', help='Extra directories for resources (but not Markdown)', default='')
 
         params.add_string('output_file', help='Output file')
         params.add_string('stylesheet', help='Stylesheet for html version', default=None)
@@ -73,9 +73,14 @@ class RenderManual(QuickApp):
 
         logger.setLevel(logging.DEBUG)
 
-        src = options.src
-        src_dirs = [_.strip() for _ in src.split(":") if _ and _.strip()]
+        def split_colons(x):
+            return [_.strip() for _ in x.split(":") if _ and _.strip()]
+
+        src_dirs = split_colons(options.src)
+        resources_dirs = split_colons(options.resources)
+
         self.info("Src dirs: \n" + "\n -".join(src_dirs))
+        self.info("Resources dirs: \n" + "\n -".join(resources_dirs))
 
         raise_errors = options.raise_errors
         # out_dir = options.output
@@ -107,6 +112,7 @@ class RenderManual(QuickApp):
 
         manual_jobs(context,
                     src_dirs=src_dirs,
+                    resources_dirs=resources_dirs,
                     out_split_dir=out_split_dir,
                     output_file=output_file,
                     generate_pdf=generate_pdf,
@@ -175,7 +181,7 @@ def look_for_files(srcdirs, pattern):
 
 
 @contract(src_dirs='seq(str)')
-def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, stylesheet,
+def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, generate_pdf, stylesheet,
                 stylesheet_pdf,
                 use_mathjax, raise_errors, resolve_references=True,
                 remove=None, filter_soup=None, symbols=None,
@@ -226,7 +232,7 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
             raise Exception(msg)
 
         html_contents = context.comp(render_book, generate_pdf=generate_pdf,
-                                     src_dirs=src_dirs,
+                                     src_dirs=src_dirs+resources_dirs,
                                      data=contents, realpath=filename,
                                      use_mathjax=use_mathjax,
                                      symbols=symbols,
@@ -306,8 +312,6 @@ def manual_jobs(context, src_dirs, out_split_dir, output_file, generate_pdf, sty
         pdf_data = context.comp(render_pdf, prerendered)
         context.comp(write_data_to_file, pdf_data, out_pdf)
         context.comp(write_manifest_pdf, os.path.dirname(out_pdf))
-
-
 
     # if os.path.exists(MCDPManualConstants.pdf_metadata_template):
     #     context.comp(generate_metadata, root_dir)
