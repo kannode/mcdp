@@ -6,7 +6,6 @@ from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
-from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_xml import insert_inset
 
 from .pretty_printing import pretty_print_dict
@@ -32,19 +31,18 @@ class Note(object):
         self.prefix = prefix
 
     # The three main categories of notes
-    TAG_ERROR = MCDPManualConstants.NOTE_TAG_ERROR
+    # TAG_ERROR = MCDPManualConstants.NOTE_TAG_ERROR
+    # TAG_WARNING = MCDPManualConstants.NOTE_TAG_WARNING
+    # TAG_TASK = MCDPManualConstants.NOTE_TAG_TASK
 
-    TAG_WARNING = MCDPManualConstants.NOTE_TAG_WARNING
-    TAG_TASK = MCDPManualConstants.NOTE_TAG_TASK
-
-    def is_error(self):
-        return Note.TAG_ERROR in self.tags
-
-    def is_warning(self):
-        return Note.TAG_WARNING in self.tags
-
-    def is_task(self):
-        return Note.TAG_TASK in self.tags
+    # def is_error(self):
+    #     return Note.TAG_ERROR in self.tags
+    #
+    # def is_warning(self):
+    #     return Note.TAG_WARNING in self.tags
+    #
+    # def is_task(self):
+    #     return Note.TAG_TASK in self.tags
 
     def __str__(self):
         s = type(self).__name__
@@ -78,6 +76,14 @@ class Note(object):
 
     def as_html(self, inline=False):
         div = Tag(name='div')
+
+        for tag in self.tags:
+            s = Tag(name='span')
+            s.attrs['style'] = 'font-size: 70%; font-family: arial; border: solid 1px black; padding: 2px; '
+            s.attrs['class'] = 'note-tag'
+            s.append(tag)
+            div.append(s)
+
         div.attrs['class'] = 'note'
         container = Tag(name='div')
         if self.msg is not None:
@@ -170,7 +176,8 @@ class AugmentedResult(object):
         return [_ for _ in self.notes if tag in _.tags]
 
     def assert_no_error(self):
-        errors = self.get_notes_by_tag(Note.TAG_ERROR)
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        errors = self.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR)
         if errors:
             msg = 'We have obtained %d errors.' % len(errors)
             d = OrderedDict()
@@ -272,19 +279,22 @@ class AugmentedResult(object):
         self.notes.append(note)
 
     def note_error(self, msg, locations=None, tags=()):
-        tags = tags + (Note.TAG_ERROR,)
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        tags = tuple(tags) + (MCDPManualConstants.NOTE_TAG_ERROR,)
         note = Note(msg, locations, stacklevel=1, tags=tags)
         self.add_note(note)
         logger.error(str(note))
 
     def note_warning(self, msg, locations=None, tags=()):
-        tags = tags + (Note.TAG_WARNING,)
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        tags = tuple(tags) + (MCDPManualConstants.NOTE_TAG_WARNING,)
         note = Note(msg, locations, stacklevel=1, tags=tags)
         self.add_note(note)
         # logger.warn(str(note))
 
     def note_task(self, msg, locations=None, tags=()):
-        tags = tags + (Note.TAG_TASK,)
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        tags = tuple(tags) + (MCDPManualConstants.NOTE_TAG_TASK,)
         note = Note(msg, locations, stacklevel=1, tags=tags)
         self.add_note(note)
 
@@ -370,9 +380,11 @@ def html_list_of_notes(aug, tag, how_to_call_them, klass):
 @contract(aug=AugmentedResult)
 def mark_in_html(aug, soup):
     """ Marks the errors and warnings in the html soup."""
-    warnings = aug.get_notes_by_tag(Note.TAG_WARNING)
-    errors = aug.get_notes_by_tag(Note.TAG_ERROR)
-    tasks = aug.get_notes_by_tag(Note.TAG_TASK)
+    from mcdp_docs.manual_constants import MCDPManualConstants
+
+    warnings = aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING)
+    errors = aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR)
+    tasks = aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_TASK)
     warnings_list = list(_mark_in_html_iterate_id_note_with_location(warnings))
     errors_list = list(_mark_in_html_iterate_id_note_with_location(errors))
     tasks_list = list(_mark_in_html_iterate_id_note_with_location(tasks))
@@ -405,6 +417,7 @@ def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
 
     from mcdp_utils_xml import stag
 
+    # TODO: there is the case where there are multiple notes that refer to the same element..
     for b, i in enumerate(indices):
         eid, note = notes[i]
 

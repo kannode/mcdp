@@ -23,8 +23,8 @@ def create_notes_from_elements(soup, res, location):
             s.append('The following was marked as "%s".' % klass)
             div.append(s)
             div2 = Tag(name='div')
-            div2.attrs['style'] = 'margin: 1em; font-size: 50%; background-color: #aaa; padding: 0.5em;'
-            div2.append(p)
+            div2.attrs['style'] = 'margin: 1em; font-size: 90%; background-color: #eee; border-radius: 5px; padding: 0.5em;'
+            div2.append(p.__copy__())
             div.append(div2)
 
             tags = (tag,)

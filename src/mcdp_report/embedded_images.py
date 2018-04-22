@@ -251,7 +251,7 @@ def embed_img_data(soup, resolve, raise_on_error,
             continue
 
         if href.startswith('http'):
-            msg = 'I will not embed remote files, such as %s: ' % href
+            msg = 'I will not embed remote files, such as\n   %s' % href
             res.note_warning(msg, HTMLIDLocation.for_element(tag, location))
             continue
 
@@ -263,7 +263,7 @@ def embed_img_data(soup, resolve, raise_on_error,
             data = resolve(href)
 
             if data is None:
-                msg = 'embed_img_data: Could not find file %s' % href
+                msg = 'embed_img_data: Could not find file:\n     %s' % href
 
                 if raise_on_error:
                     raise Exception(msg)  # XXX

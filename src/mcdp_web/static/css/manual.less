@@ -1380,16 +1380,14 @@ section[status=deprecated] {
   padding-right: @section-padding;
 }
 
-/// TODO: "details" Note navigation: put somewhere else
+/// "details" Note navigation: put somewhere else
 
 .note-navigation span {
   padding-right: 5px;
   padding-left: 5px;
 }
 
-/*TODO : put upstream*/
-
-details.error {
+details.error, details.warning, details.task {
   margin: 0.4em;
 }
 
@@ -1407,7 +1405,7 @@ details.error {
     max-width: 100%;
   }
 
-  blockquote div.transmuted-details p {
+  blockquote div.transmuted-details.error p {
     color: darkred;
   }
 
@@ -1428,13 +1426,19 @@ details[open] summary {
   margin-bottom: 1em;
 }
 
-details.error pre {
+details pre {
   font-family: "Anka/Coder Narrow";
   font-size: 90%;
 }
 
-blockquote details p {
+blockquote details.error p {
   color: darkred;
+}
+blockquote details.warning p {
+  color: darkorange;
+}
+blockquote details.task p {
+  color: darkblue;
 }
 
 details p {
