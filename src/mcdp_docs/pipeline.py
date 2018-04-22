@@ -51,7 +51,8 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
         location = LocationUnknown()
     from mcdp_report.gg_utils import resolve_references_to_images
     s0 = s
-    check_good_use_of_special_paragraphs(s0, realpath)
+
+    check_good_use_of_special_paragraphs(s0, res, location)
     raise_missing_image_errors = raise_errors
 
     # Imports here because of circular dependencies
@@ -129,7 +130,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # this parses the XML
     soup = bs(s)
 
-    other_abbrevs(soup)
+    other_abbrevs(soup, res, location)
 
     # need to process tabular before mathjax
     escape_for_mathjax(soup)

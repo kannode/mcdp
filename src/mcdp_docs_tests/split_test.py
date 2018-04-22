@@ -55,12 +55,12 @@ def get_split_test_document(s):
         </style>
         <body></body></html>
         """
-    complete = manual_join(template=template,
+    complete_aug = manual_join(template=template,
                             files_contents=files_contents,
                             stylesheet=stylesheet, remove=None, extra_css=None,
                             hook_before_toc=None)
 
-    return complete
+    return complete_aug.get_result()
 
 
 test_md = """

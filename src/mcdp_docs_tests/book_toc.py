@@ -290,8 +290,8 @@ Citing only number:
 
     files_contents = [DocToJoin(docname='a', contents=s, source_info=None)]
     stylesheet = 'v_manual_blurb_ready'
-    res = manual_join(template=template, files_contents=files_contents, stylesheet=stylesheet)
-
+    res_aug = manual_join(template=template, files_contents=files_contents, stylesheet=stylesheet)
+    res = res_aug.get_result()
     fn = 'out/comptests/test_toc_numbers1.html'  # XXX: write on test folder
     make_sure_dir_exists(fn)
     logger.info('written on %s' % fn)

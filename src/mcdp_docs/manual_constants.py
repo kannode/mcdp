@@ -100,6 +100,61 @@ class MCDPManualConstants(object):
     div_latex_prefixes = ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm']
 
 
+    special_paragraphs = {
+        'TODO: ': 'todo',
+        'TOWRITE: ': 'special-par-towrite',
+        'Task: ': 'special-par-task',
+        'Remark: ': 'special-par-remark',
+        'Note: ': 'special-par-note',
+        'Symptom: ': 'special-par-symptom',
+        'Resolution: ': 'special-par-resolution',
+        'Bad:': 'special-par-bad',
+        'Better:': 'special-par-better',
+        'Warning:': 'special-par-warning',
+        'Q:': 'special-par-question',
+        'A:': 'special-par-answer',
+        "Assigned: ": 'special-par-assigned',
+        "Author: ": 'special-par-author',
+        "Maintainer: ": 'special-par-maintainer',
+        "Point of contact: ": 'special-par-point-of-contact',
+        "Slack channel: ": 'special-par-slack-channel',
+        # Reference and See are the same thing
+        'See: ': 'special-par-see',
+        'Reference: ': 'special-par-see',
+        'Requires: ': 'special-par-requires',
+        'Results: ': 'special-par-results',
+        'Result: ': 'special-par-results',
+        'Next steps: ': 'special-par-next',
+        'Next Steps: ': 'special-par-next',
+        'Next: ': 'special-par-next',
+        'Motto: ': 'special-par-motto',
+        'Recommended: ': 'special-par-recommended',
+        'See also: ': 'special-par-see-also',
+
+        'Comment: ': 'comment',
+        'Question: ': 'question',
+        'Doubt: ': 'doubt',
+    }
+
+    # For these classes we will create a <details> environment
+    special_paragraphs_foldable = [
+        'comment',
+        'question',
+        'doubt',
+    ]
+
+    task_markers = {
+        '(TODO)': 'status-todo',
+        '(DONE)': 'status-done',
+        '(IN PROGRESS)': 'status-inprogress',
+        'XXX': 'status-XXX',
+        '???': 'status-XXX',
+    }
+
+    task_markers_selectors = ['p', 'h2', 'h3']
+
+    classes_that_create_warnings = ['question', 'doubt', 'todo']
+
 
 Label = namedtuple('Label', 'what number label_self')
 

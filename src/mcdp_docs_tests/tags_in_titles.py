@@ -36,11 +36,11 @@ Another.
     s2 = render_complete(library, s, raise_errors, realpath, generate_pdf=False)
     files_contents= [DocToJoin(docname='one', contents=s2, source_info=None)]
     stylesheet = 'v_manual_blurb_ready'
-    res = manual_join(template=template, files_contents=files_contents, 
+    res_aug = manual_join(template=template, files_contents=files_contents,
                 stylesheet=stylesheet, remove=None, extra_css=None,
                 remove_selectors=None,
                 hook_before_toc=None)
-    soup = bs(res)
+    soup = bs(res.get_result())
     element = soup.find(id='frag')
     print element
     if '&lt;code&gt;' in str(element):
@@ -80,12 +80,12 @@ Another.
     s2 = render_complete(library, s, raise_errors, realpath, generate_pdf=False)
     files_contents= [DocToJoin(docname='one', contents=s2, source_info=None)]
     stylesheet = 'v_manual_blurb_ready'
-    res = manual_join(template, files_contents, 
+    res_aug = manual_join(template, files_contents,
                 stylesheet, remove=None, extra_css=None,
                 remove_selectors=None,
                 hook_before_toc=None)
 
-    soup = bs(res)
+    soup = bs(res.get_result())
     element = soup.find(id='main_toc')
     print element
     if 'fragment' in str(element):
