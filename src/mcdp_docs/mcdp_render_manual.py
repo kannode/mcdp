@@ -20,7 +20,8 @@ from mcdp_docs.prerender_math import prerender_mathjax
 from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
-from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, get_mcdp_tmp_dir
+from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, get_mcdp_tmp_dir, \
+    tmpdir
 from mcdp_utils_misc.fileutils import read_data_from_file
 from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class
 from quickapp import QuickApp
