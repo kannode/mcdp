@@ -73,7 +73,7 @@ def extract_assets_from_file(data, fo, assets_dir):
     n = nimg + nsave + ncss
     if n:
         pass
-        #print('Total of %d subs (img %d save %d css %d)' % (n, nimg, nsave, ncss))
+        # print('Total of %d subs (img %d save %d css %d)' % (n, nimg, nsave, ncss))
     write_html_doc_to_file(soup, fo, quiet=True)
     return res
 
@@ -128,8 +128,8 @@ def save_images_locally(soup, fo, assets_dir):
                 data = f.read()
                 md5 = get_md5(data)
 
-            _, ext = os.path.splitext(src)
-            basename = 'data-from-img-%s%s' % (md5, ext)
+            b0, ext = os.path.splitext(os.path.basename((src)))
+            basename = 'data-from-img-%s-%s%s' % (b0, md5[:8], ext)
             dest_abs = os.path.join(assets_dir, basename)
             dest_rel = os.path.relpath(dest_abs, os.path.dirname(fo))
 

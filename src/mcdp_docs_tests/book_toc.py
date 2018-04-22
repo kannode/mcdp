@@ -87,10 +87,10 @@ def test_toc_first():
     files_contents = [DocToJoin(docname='a', contents=s, source_info=None)]
 
     stylesheet = 'v_manual_blurb_ready'
-    res = manual_join(template=template, files_contents=files_contents,
-                      stylesheet=stylesheet)
+    res_aug = manual_join(template=template, files_contents=files_contents,
+                          stylesheet=stylesheet)
 
-    soup = bs(res)
+    soup = bs(res_aug.get_result())
 
     #     print(indent(soup.prettify(), 't > '))
     #     body = soup.find('body')

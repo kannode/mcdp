@@ -155,6 +155,8 @@ class MCDPManualConstants(object):
 
     classes_that_create_warnings = ['question', 'doubt', 'todo']
 
+    embed_img_data_extensions = ['png', 'jpg', 'jpeg', 'JPEG', 'PNG', 'JPG', 'svg', 'SVG']
+
 
 Label = namedtuple('Label', 'what number label_self')
 

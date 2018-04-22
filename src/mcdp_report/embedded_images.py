@@ -4,14 +4,16 @@ import mimetypes
 import os
 import re
 
+from PIL import Image
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from contracts import contract
 from contracts.utils import check_isinstance, raise_wrapped
 from mcdp import logger
 from mcdp_docs.location import HTMLIDLocation
+from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_report.pdf_conversion import ConversionError
-from mcdp_utils_misc import get_md5, write_data_to_file
+from mcdp_utils_misc import get_md5, write_data_to_file, get_mcdp_tmp_dir, make_sure_dir_exists
 from mcdp_utils_xml import add_style
 
 from .pdf_conversion import png_from_pdf
@@ -224,12 +226,13 @@ def get_ext_for_mime(mime):
     return ext
 
 
-embed_img_data_extensions = ['png', 'jpg', 'jpeg', 'JPEG', 'PNG', 'JPG', 'svg', 'SVG']
+
+
+
 
 
 def embed_img_data(soup, resolve, raise_on_error,
                    res, location,
-                   img_extensions=embed_img_data_extensions,
                    embed=True):
     """
         resolve: ref -> str  or None --- how to get the data
@@ -237,6 +240,9 @@ def embed_img_data(soup, resolve, raise_on_error,
         if embed = True, embeds the data. Expects resolve to return the data.
         if embed = False, just resolves the links. Expects resolve to return the path.
     """
+
+
+    img_extensions = MCDPManualConstants.embed_img_data_extensions
 
     for tag in soup.select('img[src]'):
         href = tag['src']
@@ -267,17 +273,42 @@ def embed_img_data(soup, resolve, raise_on_error,
             realpath = data['realpath']
 
             check_isinstance(data, dict)
-            if embed:
 
+            if embed:
                 tag['src'] = data_encoded_for_src(file_data, ext)
             else:
-
                 if not os.path.exists(realpath):
                     msg = 'Expecting a path from %r, but does not exist %s' % (href, realpath)
                     raise Exception(msg)  # XXX
-                tag['src'] = realpath
+
+
+                tag['src'] = get_link_to_image_file(realpath)
+
             break
 
+def get_link_to_image_file(filename, max_width=800):
+    basename, ext = os.path.splitext(os.path.basename(filename).lower())
+    if ext in ['.jpg', '.jpeg']:
+        with open(filename) as f:
+            im = Image.open(f)
+            print filename, im.size
+            if im.size[0] > max_width:
+                b = basename + '-' + get_md5(filename)[:4] + '.jpg'
+                dest = os.path.join(get_mcdp_tmp_dir(), 'images', b)
+                height = int(im.size[1]*max_width/im.size[0])
+                new_size = (max_width, height)
+                print('resizing to %s in %s' % (str(new_size), dest))
+                if not os.path.exists(dest):
+                    make_sure_dir_exists(dest)
+                    resized = im.resize(new_size)
+                    resized.save(dest)
+
+                return dest
+            # im.save(file + ".thumbnail", "JPEG")
+
+        return filename
+    else:
+        return filename
 
 def embed_svg_images(soup, extensions=('png', 'jpg')):
     """

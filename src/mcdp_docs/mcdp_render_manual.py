@@ -354,7 +354,7 @@ def prerender(joined_aug, symbols):
 
 def render_pdf(data_aug):
     data = data_aug.get_result()
-    prefix = 'prince_render' # TODO: delete dir after
+    prefix = 'prince_render'
     with tmpdir(prefix=prefix) as d:
         f_html = os.path.join(d, 'file.html')
         with open(f_html, 'w') as f:

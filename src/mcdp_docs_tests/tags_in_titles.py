@@ -40,7 +40,7 @@ Another.
                 stylesheet=stylesheet, remove=None, extra_css=None,
                 remove_selectors=None,
                 hook_before_toc=None)
-    soup = bs(res.get_result())
+    soup = bs(res_aug.get_result())
     element = soup.find(id='frag')
     print element
     if '&lt;code&gt;' in str(element):
@@ -85,7 +85,7 @@ Another.
                 remove_selectors=None,
                 hook_before_toc=None)
 
-    soup = bs(res.get_result())
+    soup = bs(res_aug.get_result())
     element = soup.find(id='main_toc')
     print element
     if 'fragment' in str(element):
