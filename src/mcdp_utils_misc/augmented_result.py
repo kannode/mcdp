@@ -6,7 +6,7 @@ from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
-from mcdp_utils_xml import insert_inset
+from mcdp_utils_xml import insert_inset, bs, to_html_stripping_fragment
 
 from .pretty_printing import pretty_print_dict
 
@@ -15,7 +15,7 @@ class Note(object):
 
     def __init__(self, msg, locations=None, stacklevel=0, prefix=(), tags=()):
         if isinstance(msg, Tag):
-            tag = bs(to_html(msg))
+            tag = bs(to_html_stripping_fragment(msg))
         else:
             self.msg = msg
         self.tags = tuple(tags)
