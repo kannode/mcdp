@@ -321,6 +321,7 @@ def mark_errors_and_rest(joined_aug):
     soup = bs_entire_document(joined_aug.get_result())
     mark_in_html(joined_aug, soup)
     res = AugmentedResult()
+    res.merge(joined_aug)
     res.set_result(to_html_entire_document(soup))
     return res
 
@@ -503,22 +504,6 @@ def get_main_template(root_dir):
 
     template = to_html_entire_document(soup)
     return template
-
-
-#
-# def generate_metadata(src_dir):
-#     template = MCDPManualConstants.pdf_metadata_template
-#     if not os.path.exists(template):
-#         msg = 'Metadata template does not exist: %s' % template
-#         raise ValueError(msg)
-#
-#     out = MCDPManualConstants.pdf_metadata
-#     s = open(template).read()
-#
-#     from .pipeline import replace_macros
-#
-#     s = replace_macros(s)
-#     write_data_to_file(s, out)
 
 
 def write(s_aug, out):

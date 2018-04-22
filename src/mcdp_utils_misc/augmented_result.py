@@ -14,7 +14,10 @@ from .pretty_printing import pretty_print_dict
 class Note(object):
 
     def __init__(self, msg, locations=None, stacklevel=0, prefix=(), tags=()):
-        self.msg = msg
+        if isinstance(msg, Tag):
+            tag = bs(to_html(msg))
+        else:
+            self.msg = msg
         self.tags = tuple(tags)
         if locations is None:
             locations = OrderedDict()
