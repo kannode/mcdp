@@ -369,7 +369,7 @@ def remove_spurious(output_dir, filenames):
             data = spurious.replace('OTHER', OTHER)
             write_data_to_file(data, fn, quiet=True)
 
-
+# language=html
 spurious = """
 <html>
 <head><title>Spurious file</title></head>

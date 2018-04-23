@@ -292,11 +292,14 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     #         c = (('unused', docname), contents)
     #         files_contents.append(c)
 
+    crossrefs = str(crossrefs)
+
     joined_aug = context.comp(manual_join, template=template, files_contents=files_contents,
                               stylesheet=None, remove=remove, references=references,
                               resolve_references=resolve_references,
-                              crossrefs=str(crossrefs),
-                              permalink_prefix=permalink_prefix)
+                              crossrefs=crossrefs,
+                              permalink_prefix=permalink_prefix,
+                              jobbid='join-%s' % get_md5(crossrefs)[:8])
 
     context.comp(write_crossref_info, joined_aug, out_split_dir, permalink_prefix=permalink_prefix)
 

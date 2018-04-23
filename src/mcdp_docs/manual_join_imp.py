@@ -279,12 +279,6 @@ def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
     logger.info('checking errors')
     check_various_errors(soup)
 
-    # cross = Tag(name='div')
-    # if crossrefs is None:
-    #     crossrefs = Tag(name='div')
-    # cross.append(crossrefs.__copy__())
-    # cross.append(soup.__copy__())
-
     from .check_missing_links import check_if_any_href_is_invalid
     logger.info('checking hrefs')
     check_if_any_href_is_invalid(soup, res, location, extra_refs=crossrefs)

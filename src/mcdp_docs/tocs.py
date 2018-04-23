@@ -8,7 +8,7 @@ from contracts.utils import indent
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_utils_misc import AugmentedResult
-from mcdp_utils_xml import add_class, bs, note_error2
+from mcdp_utils_xml import add_class, bs
 
 from .manual_constants import MCDPManualConstants, get_style_duckietown
 from .toc_number import render_number, number_styles
@@ -426,7 +426,7 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
 
     """
     if extra_refs is None:
-        extra_refs =  Tag(name='div')
+        extra_refs = Tag(name='div')
     if res is None:
         res = AugmentedResult()
 
@@ -504,7 +504,6 @@ the syntax "#ID", such as:
         msg = msg.replace('ELEMENT', str(a))
         # note_error2(a, 'syntax error', msg.strip())
         res.note_error(msg, HTMLIDLocation.for_element(a))
-
 
 
 def add_id_if_not_present(a):
