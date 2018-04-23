@@ -503,7 +503,7 @@ the syntax "#ID", such as:
 
 def add_id_if_not_present(a):
     if not 'id' in a.attrs:
-        a.attrs['id'] = 'ay-%s' % str(id(a))
+        a.attrs['id'] = 'add-id-%s-%s' % (a.name, str(id(a)))
 
 
 def sub_link(a, element_id, element, raise_errors, res):

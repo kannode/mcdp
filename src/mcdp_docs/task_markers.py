@@ -12,6 +12,16 @@ def substitute_task_markers(soup, res, location):
     for sub, klass in MCDPManualConstants.task_markers.items():
         substitute_task_marker(soup, sub, klass, res, location)
 
+def get_sanitized_copy(element):
+    ''' Strips all IDs '''
+    d = bs(str(element))
+    if 'id' in d.attrs:
+        del d.attrs['id']
+    for e in d.descendants:
+        if isinstance(e, Tag):
+            if 'id' in e.attrs:
+                del e.attrs['id']
+    return d
 
 def create_notes_from_elements(soup, res, location):
     for klass, tag in MCDPManualConstants.classes_that_create_notes.items():
@@ -24,8 +34,8 @@ def create_notes_from_elements(soup, res, location):
             div.append(s)
             div2 = Tag(name='div')
             div2.attrs['style'] = 'margin: 1em; font-size: 90%; background-color: #eee; border-radius: 5px; padding: 0.5em;'
-            d = bs(str(p))
-            div2.append(d)
+            # Copy:
+            div2.append(get_sanitized_copy(p))
             div.append(div2)
 
             tags = (tag,)

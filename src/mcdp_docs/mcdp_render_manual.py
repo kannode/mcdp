@@ -259,7 +259,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 
     root_dir = src_dirs[0]
 
-    template = get_main_template(root_dir)
+    template = get_main_template(root_dir, resources_dirs)
 
     references = OrderedDict()
     #     base_url = 'http://book.duckietown.org/master/duckiebook/pdoc'
@@ -483,12 +483,20 @@ def job_bib_contents(context, bib_files):
     return context.comp(run_bibtex2html, contents, job_id=job_id)
 
 
-def get_main_template(root_dir):
+def get_main_template(root_dir, resources_dirs):
     fn = os.path.join(root_dir, MCDPManualConstants.main_template)
-    if not os.path.exists(fn):
-        msg = 'Could not find template {}'.format(fn)
-        raise ValueError(msg)
+    if os.path.exists(fn):
+        return parse_main_template(fn)
 
+    for d in resources_dirs:
+        fns = locate_files(d, MCDPManualConstants.main_template)
+        for fn in fns:
+            return parse_main_template(fn)
+
+    msg = 'Could not find template {}'.format(fn)
+    raise ValueError(msg)
+
+def parse_main_template(fn):
     template = open(fn).read()
 
     soup = bs_entire_document(template)
