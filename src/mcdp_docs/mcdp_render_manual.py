@@ -232,7 +232,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
             raise Exception(msg)
 
         html_contents = context.comp(render_book, generate_pdf=generate_pdf,
-                                     src_dirs=src_dirs+resources_dirs,
+                                     src_dirs=src_dirs + resources_dirs,
                                      data=contents, realpath=filename,
                                      use_mathjax=use_mathjax,
                                      symbols=symbols,
@@ -311,7 +311,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         prerendered = context.comp(prerender, joined_aug_with_pdf_stylesheet, symbols=symbols)
         pdf_data = context.comp(render_pdf, prerendered)
         context.comp(write_data_to_file, pdf_data, out_pdf)
-        context.comp(write_manifest_pdf, os.path.dirname(out_pdf))
+        context.comp(write_manifest_pdf, out_pdf)
 
     # if os.path.exists(MCDPManualConstants.pdf_metadata_template):
     #     context.comp(generate_metadata, root_dir)
@@ -449,13 +449,15 @@ def write_errors_and_warnings_files(aug, d):
 
 
 def write_manifest_html(d):
-    manifest = [dict(display='html', filename='out/index.html')]
+    manifest = [dict(display='html', filename='index.html')]
     fn = os.path.join(d, 'output-html.manifest.yaml')
     write_data_to_file(yaml.dump(manifest), fn, quiet=False)
 
 
-def write_manifest_pdf(d):
-    manifest = [dict(display='PDF', filename='out.pdf')]
+def write_manifest_pdf(out_pdf):
+    d = os.path.dirname(out_pdf)
+    basename = os.path.basename(out_pdf)
+    manifest = [dict(display='PDF', filename=basename)]
     fn = os.path.join(d, 'output-pdf.manifest.yaml')
     write_data_to_file(yaml.dump(manifest), fn, quiet=False)
 
@@ -495,6 +497,7 @@ def get_main_template(root_dir, resources_dirs):
 
     msg = 'Could not find template {}'.format(fn)
     raise ValueError(msg)
+
 
 def parse_main_template(fn):
     template = open(fn).read()
