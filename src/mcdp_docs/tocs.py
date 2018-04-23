@@ -620,6 +620,9 @@ def sub_link(a, element_id, element, raise_errors, res):
         add_class(frag, 'reflabel')
         a.append(frag)
 
+        if 'base_url' in element.attrs:
+            a['href'] = element.attrs['base_url'] + a['href']
+
 
 def string_starts_with(prefixes, s):
     return any([s.startswith(_) for _ in prefixes])
