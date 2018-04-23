@@ -412,8 +412,11 @@ Please remove the "#".
 
 @contract(raise_errors=bool)
 def substituting_empty_links(soup, raise_errors=False, res=None,
-                             element_to_modify=None):
+                             extra_refs=None):
     """
+        soup: where to look for references
+        elemtn_to_modify: what to modify (if None, it is equal to soup)
+
 
         default style is [](#sec:systems)  "Chapter 10"
 
@@ -422,25 +425,27 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
             <a href='#sec:name' class='only_number'></a>
 
     """
-    if element_to_modify is None:
-        element_to_modify= soup
+    if extra_refs is None:
+        extra_refs =  Tag(name='div')
     if res is None:
         res = AugmentedResult()
-    #     logger.debug('substituting_empty_links')
 
-    #     n = 0
-    for le in get_empty_links_to_fragment(element_to_index=soup,
-                                          element_to_modify=element_to_modify):
+    for le in get_empty_links_to_fragment(soup, extra_refs=extra_refs):
         a = le.linker
         element_id = le.eid
         element = le.linked
+
+        if not element:
+            msg = ('Cannot find %s' % element_id)
+            res.note_error(msg, HTMLIDLocation.for_element(a))
+
+            if raise_errors:
+                raise ValueError(msg)
+            continue
+
         sub_link(a, element_id, element, raise_errors, res)
 
-    # Now mark as errors the ones that
     for a in get_empty_links(soup):
-        # if not 'id' in a.attrs:
-        #     a.attrs['id'] = 'ax-%s' % str(id(a))
-
         href = a.attrs.get('href', '(not present)')
         if not href:
             href = '""'
@@ -473,7 +478,7 @@ So, you need to provide some text, such as:
 """
             msg = msg.replace('ELEMENT', str(a))
             msg = msg.replace('MYURL', href)
-            note_error2(a, 'syntax error', msg.strip())
+            # note_error2(a, 'syntax error', msg.strip())
 
             res.note_error(msg, HTMLIDLocation.for_element(a))
 
@@ -497,12 +502,9 @@ the syntax "#ID", such as:
 
 """ % href
         msg = msg.replace('ELEMENT', str(a))
-        note_error2(a, 'syntax error', msg.strip())
+        # note_error2(a, 'syntax error', msg.strip())
         res.note_error(msg, HTMLIDLocation.for_element(a))
 
-#         n += 1
-#     logger.debug('substituting_empty_links: %d total, %d errors' %
-#                  (n, nerrors))
 
 
 def add_id_if_not_present(a):
@@ -515,24 +517,10 @@ def sub_link(a, element_id, element, raise_errors, res):
         a: the link with href= #element_id
         element: the link to which we refer
     """
+    assert isinstance(element, Tag)
     CLASS_ONLY_NUMBER = MCDPManualConstants.CLASS_ONLY_NUMBER
     CLASS_NUMBER_NAME = MCDPManualConstants.CLASS_NUMBER_NAME
     CLASS_ONLY_NAME = MCDPManualConstants.CLASS_ONLY_NAME
-
-    if not element:
-        msg = ('Cannot find %s' % element_id)
-
-        res.note_error(msg, HTMLIDLocation.for_element(a))
-
-        # nerrors += 1
-        if raise_errors:
-            raise ValueError(msg)
-        return
-    # if there is a query, remove it
-    #     if le.query is not None:
-    #         new_href = '#' + le.eid
-    #         a.attrs['href'] = new_href
-    #         logger.info('setting new href= %s' % (new_href))
 
     if MCDPManualConstants.ATTR_NONUMBER in element.attrs:
         label_what_number = None
@@ -558,7 +546,7 @@ def sub_link(a, element_id, element, raise_errors, res):
 
         classes = list(a.attrs.get('class', []))  # bug: I was modifying
 
-    if 'toc_link' in classes:
+    if MCDPManualConstants.CLASS_TOC_LINK in classes:
 
         if not CLASS_ONLY_NAME in classes:
             s = Tag(name='span')
@@ -653,7 +641,7 @@ def get_empty_links(soup):
         yield element
 
 
-def get_empty_links_to_fragment(element_to_index, element_to_modify):
+def get_empty_links_to_fragment(element_to_modify, extra_refs):
     """
         Find all empty links that have a reference to a fragment.
         yield LinkElement
@@ -661,7 +649,7 @@ def get_empty_links_to_fragment(element_to_index, element_to_modify):
     logger.debug('building index')
     # first find all elements by id
     id2element = {}
-    for x in list(element_to_index.descendants):
+    for x in list(element_to_modify.descendants) + list(extra_refs.descendants):
         if isinstance(x, Tag) and 'id' in x.attrs:
             id2element[x.attrs['id']] = x
 

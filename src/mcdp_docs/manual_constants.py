@@ -85,7 +85,7 @@ class MCDPManualConstants(object):
     TOC_PLACEHOLDER_SELECTOR = 'div#toc'
     # this is what we generate (and splits looks for)
     MAIN_TOC_ID = 'main_toc'
-
+    CLASS_TOC_LINK = 'toc_link'
     enable_syntax_higlighting = True
     enforce_status_attribute = True
     enforce_lang_attribute = True

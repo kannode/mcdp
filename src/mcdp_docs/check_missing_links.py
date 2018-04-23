@@ -42,14 +42,24 @@ def get_id2element(soup, att):
     return id2element, duplicates
 
 
-def check_if_any_href_is_invalid(soup, res, location0):
+def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None):
     """
         Checks if references are invalid and tries to correct them.
 
+        also works the magic
     """
 
+    if extra_refs is None:
+        extra_refs = Tag(name='div')
+    else:
+        print('using extra cross refs')
+
     # let's first find all the IDs
-    id2element, duplicates = get_id2element(soup, 'id')
+    id2element_current, duplicates = get_id2element(soup, 'id')
+    id2element_extra, _  = get_id2element(extra_refs, 'id')
+    id2element = {}
+    id2element.update(id2element_extra)
+    id2element.update(id2element_current)
 
     for a in soup.select('[href^="#"]'):
         href = a['href']
@@ -88,7 +98,16 @@ def check_if_any_href_is_invalid(soup, res, location0):
                 res.note_error(msg, location)
 
             elif len(matches) == 1:
-                a['href'] = '#' + matches[0]
+
+                element = id2element[matches[0]]
+                if 'base_url' in element.attrs:
+                    a['href'] = element.attrs['base_url'] + '#' + matches[0]
+                else:
+                    a['href'] = '#' + matches[0]
+
+                if matches[0] not in id2element_current:
+                    msg = 'Using foreign resolve for %s -> %s' % (matches[0], a['href'])
+                    logger.info(msg)
 
                 if show_debug_message_for_corrected_links:
                     msg = '%s not found, but corrected in %s' % (href, matches[0])

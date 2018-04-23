@@ -61,6 +61,7 @@ def manual_join(template, files_contents,
                 hook_before_final_pass=None,
                 require_toc_placeholder=False,
                 permalink_prefix=None,
+                crossrefs=None,
                 aug0=None):
     """
         files_contents: a list of tuples that can be cast to DocToJoin:
@@ -76,6 +77,10 @@ def manual_join(template, files_contents,
         references = {}
     check_isinstance(files_contents, list)
 
+    if crossrefs is None:
+        crossrefs = Tag(name='no-cross-refs')
+    else:
+        crossrefs = bs(crossrefs)
     result = AugmentedResult()
     if aug0 is not None:
         result.merge(aug0)
@@ -205,7 +210,8 @@ def manual_join(template, files_contents,
                         raise Exception(msg)
 
         with timeit('document_final_pass_after_toc'):
-            document_final_pass_after_toc(soup=d, resolve_references=resolve_references, res=result)
+            document_final_pass_after_toc(soup=d, crossrefs=crossrefs,
+                                          resolve_references=resolve_references, res=result)
 
         if extra_css is not None:
             logger.info('adding extra CSS')
@@ -265,7 +271,7 @@ def document_final_pass_before_toc(soup, remove, remove_selectors):
         move_things_around(soup=soup)
 
 
-def document_final_pass_after_toc(soup, resolve_references=True, res=None, location=LocationUnknown()):
+def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True, res=None, location=LocationUnknown()):
     if res is None:
         res = AugmentedResult()
     """ This is done to a final document """
@@ -273,15 +279,23 @@ def document_final_pass_after_toc(soup, resolve_references=True, res=None, locat
     logger.info('checking errors')
     check_various_errors(soup)
 
-    from mcdp_docs.check_missing_links import check_if_any_href_is_invalid
+    # cross = Tag(name='div')
+    # if crossrefs is None:
+    #     crossrefs = Tag(name='div')
+    # cross.append(crossrefs.__copy__())
+    # cross.append(soup.__copy__())
+
+    from .check_missing_links import check_if_any_href_is_invalid
     logger.info('checking hrefs')
-    check_if_any_href_is_invalid(soup, res, location)
+    check_if_any_href_is_invalid(soup, res, location, extra_refs=crossrefs)
 
     # Note that this should be done *after* check_if_any_href_is_invalid()
     # because that one might fix some references
     if resolve_references:
         logger.info('substituting empty links')
-        substituting_empty_links(soup, raise_errors=False, res=res)
+
+
+        substituting_empty_links(soup, raise_errors=False, res=res, extra_refs=crossrefs)
 
     warn_for_duplicated_ids(soup)
 

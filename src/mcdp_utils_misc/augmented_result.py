@@ -295,7 +295,7 @@ def get_html_style():
 
 def html_list_of_notes(aug, tag, how_to_call_them, klass, header=None):
     notes = aug.get_notes_by_tag(tag)
-    print('%d notes for tag %s' % (len(notes), tag))
+    # print('%d notes for tag %s' % (len(notes), tag))
     html = Tag(name='html')
     head = Tag(name='head')
     meta = Tag(name='meta')

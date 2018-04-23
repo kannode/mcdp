@@ -21,7 +21,7 @@ from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
-    html_list_of_notes, mark_in_html
+    html_list_of_notes, mark_in_html, bs
 from mcdp_utils_misc.fileutils import read_data_from_file
 from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag
 from quickapp import QuickApp
@@ -135,6 +135,22 @@ def get_bib_files(src_dirs):
     """ Looks for .bib files in the source dirs; returns list of filenames """
     return look_for_files(src_dirs, "*.bib")
 
+def get_cross_refs(src_dirs, permalink_prefix):
+    files = look_for_files(src_dirs, "crossref.html")
+    soup = Tag(name='div')
+    for f in files:
+        data = open(f).read()
+        s = bs(data)
+        for img in list(s.find_all('img')):
+            img.extract()
+
+        for e in list(s.select('[base_url]')):
+            if e.attrs['base_url'] == permalink_prefix:
+
+                e.extract()
+        soup.append(s)
+    # print soup
+    return soup
 
 @contract(src_dirs='seq(str)', returns='list(str)')
 def get_markdown_files(src_dirs):
@@ -244,6 +260,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                         source_info=source_info)
         files_contents.append(tuple(doc))  # compmake doesn't do namedtuples
 
+    crossrefs = get_cross_refs(resources_dirs, permalink_prefix)
     bib_files = get_bib_files(src_dirs)
 
     logger.debug('Found bib files:\n%s' % "\n".join(bib_files))
@@ -278,7 +295,10 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     joined_aug = context.comp(manual_join, template=template, files_contents=files_contents,
                               stylesheet=None, remove=remove, references=references,
                               resolve_references=resolve_references,
+                              crossrefs=str(crossrefs),
                               permalink_prefix=permalink_prefix)
+
+    context.comp(write_crossref_info, joined_aug, out_split_dir, permalink_prefix=permalink_prefix)
 
     if compose_config is not None:
         try:
@@ -316,8 +336,18 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         context.comp(write_data_to_file, pdf_data, out_pdf)
         context.comp(write_manifest_pdf, out_pdf)
 
-    # if os.path.exists(MCDPManualConstants.pdf_metadata_template):
-    #     context.comp(generate_metadata, root_dir)
+def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
+    soup = bs_entire_document(joined_aug.get_result())
+
+    cross = Tag(name='body')
+    for e in soup.select('[label-name]'):
+        e2 = e.__copy__()
+        e2.attrs['base_url'] = permalink_prefix
+        cross.append(e2)
+    for img in list(cross.find_all('img')):
+        img.extract()
+    fn = os.path.join(out_split_dir, 'crossref.html')
+    write_data_to_file(str(cross), fn)
 
 def get_extra_content(aug):
     extra_panel_content = Tag(name='div')

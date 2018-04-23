@@ -206,8 +206,8 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
                 main_toc = bs(generate_toc(soup)).ul
                 main_toc.attrs['class'] = 'toc' # XXX: see XXX13
                 assert main_toc is not None
-                substituting_empty_links(soup, raise_errors=False, res=res,
-                                         element_to_modify=main_toc)
+                substituting_empty_links(main_toc, raise_errors=False, res=res,
+                                         extra_refs=soup)
 
             else:
                 msg = 'Could not find main toc (id #%s)' % MCDPManualConstants.MAIN_TOC_ID
@@ -330,7 +330,7 @@ split_main = Split.get_sys_main()
 
 
 def remove_spurious(output_dir, filenames):
-    ignore = ['link.html', 'errors.html', 'warnings.html', 'tasks.html']
+    ignore = ['link.html', 'errors.html', 'warnings.html', 'tasks.html', 'crossref.html']
     found = os.listdir(output_dir)
     for f in found:
         if not f.endswith('.html'):
@@ -351,9 +351,8 @@ def remove_spurious(output_dir, filenames):
             soup = read_html_doc_from_file(fn)
             e = soup.find('section')
             if e is not None and 'id' in e.attrs:
-                id_ = e.attrs['id'].replace(':section', '')
-
                 if False:
+                    id_ = e.attrs['id'].replace(':section', '')
                     if 'autoid' not in id_:
                         id_ = remove_prefix(id_)
                         url = 'http://purl.org/dt/master/' + id_
