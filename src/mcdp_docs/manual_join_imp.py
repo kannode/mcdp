@@ -1070,7 +1070,7 @@ def generate_and_add_toc(soup, raise_error=False, aug=None):
     else:
         toc_ul.extract()
         assert toc_ul.name == 'ul'
-        toc_ul['class'] = 'toc'
+        toc_ul['class'] = 'toc' # XXX: see XXX13
         toc_ul['id'] = MCDPManualConstants.MAIN_TOC_ID
 
         toc_selector = MCDPManualConstants.TOC_PLACEHOLDER_SELECTOR

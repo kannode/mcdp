@@ -2428,6 +2428,11 @@ div#tocdiv .toc_a_for_part {
   font-weight: bold;
   font-size: 120%;
 }
+div#tocdiv #extra-panel-content {
+  position: fixed;
+  bottom: 2em;
+  font-size: 16px;
+}
 .navigation {
   display: block;
   margin-bottom: 1em;

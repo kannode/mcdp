@@ -296,8 +296,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 
     if out_split_dir is not None:
         joined_aug_with_html_stylesheet = context.comp(add_style, joined_aug, stylesheet)
-        extra_panel_content = Tag(name='div')
-        extra_panel_content.append('Extra content')
+
+        extra_panel_content = context.comp(get_extra_content, joined_aug_with_html_stylesheet)
         written_aug = context.comp_dynamic(create_split_jobs,
                                            data_aug=joined_aug_with_html_stylesheet,
                                            mathjax=True,
@@ -319,6 +319,11 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     # if os.path.exists(MCDPManualConstants.pdf_metadata_template):
     #     context.comp(generate_metadata, root_dir)
 
+def get_extra_content(aug):
+    extra_panel_content = Tag(name='div')
+    extra_panel_content.attrs['id'] = 'extra-panel-content'
+    extra_panel_content.append(get_notes_panel(aug))
+    return extra_panel_content
 
 def mark_errors_and_rest(joined_aug):
     soup = bs_entire_document(joined_aug.get_result())

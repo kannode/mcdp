@@ -204,6 +204,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
                 logger.info('Generating TOC because it is not there')
 
                 main_toc = bs(generate_toc(soup)).ul
+                main_toc.attrs['class'] = 'toc' # XXX: see XXX13
                 assert main_toc is not None
                 substituting_empty_links(soup, raise_errors=False, res=res,
                                          element_to_modify=main_toc)
