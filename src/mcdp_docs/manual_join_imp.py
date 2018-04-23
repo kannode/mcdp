@@ -288,8 +288,11 @@ def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
     if resolve_references:
         logger.info('substituting empty links')
 
-
         substituting_empty_links(soup, raise_errors=False, res=res, extra_refs=crossrefs)
+
+    for a in soup.select('a[href_external]'):
+        a.attrs['href'] = a.attrs['href_external']
+        add_class(a, 'interdoc')
 
     warn_for_duplicated_ids(soup)
 
