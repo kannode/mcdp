@@ -296,10 +296,13 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 
     if out_split_dir is not None:
         joined_aug_with_html_stylesheet = context.comp(add_style, joined_aug, stylesheet)
+        extra_panel_content = Tag(name='div')
+        extra_panel_content.append('Extra content')
         written_aug = context.comp_dynamic(create_split_jobs,
                                            data_aug=joined_aug_with_html_stylesheet,
                                            mathjax=True,
                                            preamble=symbols,
+                                           extra_panel_content=extra_panel_content,
                                            output_dir=out_split_dir, nworkers=0)
 
         context.comp(write_errors_and_warnings_files, written_aug, out_split_dir,

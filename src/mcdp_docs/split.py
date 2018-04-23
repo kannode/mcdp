@@ -10,6 +10,7 @@ from contracts import contract
 from mcdp import logger
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_docs.manual_constants import MCDPManualConstants
+from mcdp_docs.tocs import generate_toc, substituting_empty_links
 from mcdp_utils_misc import get_md5, write_data_to_file
 from mcdp_utils_misc.augmented_result import AugmentedResult
 from mcdp_utils_misc.timing import timeit_wall
@@ -40,7 +41,7 @@ else:
         yield
 
 
-def make_page(contents, head0, add_toc):
+def make_page(contents, head0, add_toc, extra_panel_content):
     """ Returns html (Beautiful Soup document) """
     html = Tag(name='html')
 
@@ -59,6 +60,9 @@ def make_page(contents, head0, add_toc):
             p.append(a)
             tocdiv.append(p)
             tocdiv.append(add_toc)
+
+            if extra_panel_content is not None:
+                tocdiv.append(extra_panel_content)
             body.append(tocdiv)
 
     section_name = get_first_header_title(contents)
@@ -135,22 +139,15 @@ class Split(QuickApp):
         create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers=nworkers)
 
 
-def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers=0):
+def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers=0,
+                      extra_panel_content=None,
+                      add_toc_if_not_existing=True):
     data = data_aug.get_result()
     if nworkers == 0:
         nworkers = max(1, cpu_count() - 2)
 
     res = AugmentedResult()
     res.merge(data_aug)
-
-    # XXX: do it better
-    if MCDPManualConstants.MAIN_TOC_ID not in data:
-        msg = 'Could not find main toc (id #%s)' % MCDPManualConstants.MAIN_TOC_ID
-        # logger.error(msg)
-        res.note_error(msg)
-
-        place = '<div id="%s">TOC NOT FOUND</div>\n' % MCDPManualConstants.MAIN_TOC_ID
-        data = data.replace('<body>', '<body>' + place)
 
     h = get_md5(data)[-4:]
     jobs = []
@@ -166,7 +163,9 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
 
     for i in range(nworkers):
         promise = context.comp_dynamic(go, i, nworkers, data, mathjax, preamble, output_dir,
+                                       add_toc_if_not_existing=add_toc_if_not_existing,
                                        assets_dir=assets_dir,
+                                       extra_panel_content=extra_panel_content,
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
         jobs.append(promise)
 
@@ -186,7 +185,8 @@ def notification(aug, jobs_aug, output_dir):
 
 
 @contract(returns=AugmentedResult)
-def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir):
+def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir,
+       add_toc_if_not_existing, extra_panel_content):
     res = AugmentedResult()
     soup = bs_entire_document(data)
     # embed_css_files(soup)
@@ -197,11 +197,27 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         main_toc = soup.find(id=MCDPManualConstants.MAIN_TOC_ID)
 
         if main_toc is None:
-            msg = 'Could not find the element #%s.' % MCDPManualConstants.MAIN_TOC_ID
-            raise ValueError(msg)
+            # msg = 'Could not find the element #%s.' % MCDPManualConstants.MAIN_TOC_ID
+            # raise ValueError(msg)
+
+            if add_toc_if_not_existing:
+                logger.info('Generating TOC because it is not there')
+
+                main_toc = bs(generate_toc(soup)).ul
+                assert main_toc is not None
+                substituting_empty_links(soup, raise_errors=False, res=res,
+                                         element_to_modify=main_toc)
+
+            else:
+                msg = 'Could not find main toc (id #%s)' % MCDPManualConstants.MAIN_TOC_ID
+                # logger.error(msg)
+                res.note_error(msg)
+                main_toc = Tag(name='div')
+                main_toc.append('TOC NOT FOUND')
 
         main_toc = main_toc.__copy__()
-        del main_toc.attrs['id']
+        if 'id' in main_toc.attrs:
+            del main_toc.attrs['id']
 
     body = soup.html.body
 
@@ -231,7 +247,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         write_data_to_file(str(linkjs), os.path.join(output_dir, linkbasejs), quiet=True)
 
     if preamble is not None:
-        if preamble.endswith('.tex'): # XXX
+        if preamble.endswith('.tex'):  # XXX
             preamble = open(preamble).read()
 
     ids_to_use = []
@@ -268,13 +284,14 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         #        with timeit('main_toc copy'):
         #            main_toc = main_toc0.__copy__()
         with timeit('main_toc copy hack'):
-            main_toc = bs(main_toc0_s)
+            main_toc = bs(main_toc0_s).ul
+            assert main_toc is not None
         #        with timeit('main_toc copy pickle'):
         #            main_toc = cPickle.loads(main_toc0_pickle)
 
         # Trick: we add the main_toc, and then ... (look below)
         with timeit('make_page'):
-            html = make_page(contents, head0, main_toc)
+            html = make_page(contents, head0, main_toc, extra_panel_content)
 
         #        logger.debug('%d/%d: %s' % (i, n, filename))
         with timeit("direct job"):

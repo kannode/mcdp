@@ -411,7 +411,8 @@ Please remove the "#".
 
 
 @contract(raise_errors=bool)
-def substituting_empty_links(soup, raise_errors=False, res=None):
+def substituting_empty_links(soup, raise_errors=False, res=None,
+                             element_to_modify=None):
     """
 
         default style is [](#sec:systems)  "Chapter 10"
@@ -421,12 +422,15 @@ def substituting_empty_links(soup, raise_errors=False, res=None):
             <a href='#sec:name' class='only_number'></a>
 
     """
+    if element_to_modify is None:
+        element_to_modify= soup
     if res is None:
         res = AugmentedResult()
     #     logger.debug('substituting_empty_links')
 
     #     n = 0
-    for le in get_empty_links_to_fragment(soup):
+    for le in get_empty_links_to_fragment(element_to_index=soup,
+                                          element_to_modify=element_to_modify):
         a = le.linker
         element_id = le.eid
         element = le.linked
@@ -649,7 +653,7 @@ def get_empty_links(soup):
         yield element
 
 
-def get_empty_links_to_fragment(soup):
+def get_empty_links_to_fragment(element_to_index, element_to_modify):
     """
         Find all empty links that have a reference to a fragment.
         yield LinkElement
@@ -657,13 +661,13 @@ def get_empty_links_to_fragment(soup):
     logger.debug('building index')
     # first find all elements by id
     id2element = {}
-    for x in list(soup.descendants):
+    for x in list(element_to_index.descendants):
         if isinstance(x, Tag) and 'id' in x.attrs:
             id2element[x.attrs['id']] = x
 
     logger.debug('building index done')
 
-    for element in get_empty_links(soup):
+    for element in get_empty_links(element_to_modify):
         if not 'href' in element.attrs:
             continue
 
