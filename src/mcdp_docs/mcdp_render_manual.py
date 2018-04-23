@@ -302,7 +302,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                                            preamble=symbols,
                                            output_dir=out_split_dir, nworkers=0)
 
-        context.comp(write_errors_and_warnings_files, joined_aug, out_split_dir,
+        context.comp(write_errors_and_warnings_files, written_aug, out_split_dir,
                      extra_dep=[written_aug])
         context.comp(write_manifest_html, out_split_dir)
 
@@ -337,8 +337,10 @@ def add_style(data_aug, stylesheet):
     link['href'] = get_css_filename('compiled/%s' % stylesheet)
     head.append(link)
     html = to_html_entire_document(soup)
-    data_aug.set_result(html)
-    return data_aug
+    res = AugmentedResult()
+    res.merge(data_aug)
+    res.set_result(html)
+    return res
 
 
 def make_composite(compose_config, joined_aug):

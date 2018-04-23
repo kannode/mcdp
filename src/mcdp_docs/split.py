@@ -141,6 +141,7 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
         nworkers = max(1, cpu_count() - 2)
 
     res = AugmentedResult()
+    res.merge(data_aug)
 
     # XXX: do it better
     if MCDPManualConstants.MAIN_TOC_ID not in data:
@@ -173,13 +174,15 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
 
 
 def notification(aug, jobs_aug, output_dir):
+    res = AugmentedResult()
+    res.merge(aug)
     for job_aug in jobs_aug:
-        aug.merge(job_aug)
+        res.merge(job_aug)
     main = os.path.join(output_dir, 'index.html')
     msg = '\n \n      The HTML version is ready at %s ' % main
     msg += '\n \n \nPlease wait a few more seconds for the PDF version.'
     logger.info(msg)
-    return aug
+    return res
 
 
 @contract(returns=AugmentedResult)
