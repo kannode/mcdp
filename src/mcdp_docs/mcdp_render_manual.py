@@ -299,7 +299,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                               resolve_references=resolve_references,
                               crossrefs=crossrefs,
                               permalink_prefix=permalink_prefix,
-                              jobbid='join-%s' % get_md5(crossrefs)[:8])
+                              job_id='join-%s' % get_md5(crossrefs)[:8])
 
     context.comp(write_crossref_info, joined_aug, out_split_dir, permalink_prefix=permalink_prefix)
 
