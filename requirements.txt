@@ -1,5 +1,8 @@
+PyGithub
 
-
+pytz
+circleclient
+requests
 watchdog
 pyramid
 pyramid_jinja2
