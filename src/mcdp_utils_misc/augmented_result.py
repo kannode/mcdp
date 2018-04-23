@@ -6,7 +6,7 @@ from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
-from mcdp_utils_xml import insert_inset, bs, to_html_stripping_fragment
+from mcdp_utils_xml import insert_inset, bs,bs_entire_document, to_html_stripping_fragment
 
 from .pretty_printing import pretty_print_dict
 
@@ -15,9 +15,15 @@ class Note(object):
 
     def __init__(self, msg, locations=None, stacklevel=0, prefix=(), tags=()):
         if isinstance(msg, Tag):
-            tag = bs(to_html_stripping_fragment(msg))
-        else:
+            if msg.parent is not None:
+                raise Exception('no parents: %s' % msg)
+            # frag = bs(str(msg))
+            # frag.name = 'div'
             self.msg = msg
+        elif isinstance(msg, str):
+            self.msg = msg
+        else:
+            raise TypeError(msg)
         self.tags = tuple(tags)
         if locations is None:
             locations = OrderedDict()
@@ -78,7 +84,7 @@ class Note(object):
         container = Tag(name='div')
         if self.msg is not None:
             if isinstance(self.msg, Tag):
-                container.append(self.msg)
+                container.append(self.msg.__copy__())
             else:
                 pre = Tag(name='pre')
                 pre.append(self.msg)
@@ -247,7 +253,7 @@ class AugmentedResult(object):
 
         for note in other.notes:
             if note.msg not in have:
-                note2 = copy.deepcopy(note)
+                note2 = copy.copy(note)
                 note2.prefix = prefix + note2.prefix
                 self.notes.append(note2)
 
