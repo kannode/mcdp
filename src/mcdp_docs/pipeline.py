@@ -225,7 +225,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
         check_lang_codes(soup, res, location)
 
     # Fixes the IDs (adding 'sec:'); add IDs to missing ones
-    globally_unique_id_part = 'autoid-DO-NOT-USE-THIS-VERY-UNSTABLE-LINK-' + get_md5(s0)[:5]
+    globally_unique_id_part = 'autoid-DO-NOT-USE-THIS-VERY-UNSTABLE-LINK-' + get_md5(realpath)[:8]
     fix_ids_and_add_missing(soup, globally_unique_id_part, res, location)
 
     check_no_patently_wrong_links(soup, res, location)
