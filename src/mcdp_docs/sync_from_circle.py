@@ -264,14 +264,19 @@ def go():
     print('fn: %s' % fn)
     print('circle token: %s' % token)
 
+
     from github import Github
-    github_token = os.environ['GITHUB_TOKEN']
-    try:
-        g = Github(github_token)
-        active_branches = [_.name for _ in g.get_organization(username).get_repo(project).get_branches()]
-    except ssl.SSLError as e:
-        print('error: %s' % e)
+    if not 'GITHUB_TOKEN' in os.environ:
+        print('Set GITHUB_TOKEN for me to be smarter')
         active_branches = None
+    else:
+        github_token = os.environ['GITHUB_TOKEN']
+        try:
+            g = Github(github_token)
+            active_branches = [_.name for _ in g.get_organization(username).get_repo(project).get_branches()]
+        except ssl.SSLError as e:
+            print('error: %s' % e)
+            active_branches = None
 
     print('active branches: %s' % active_branches)
     res = client.build.recent(username, project, limit=50, offset=0)
