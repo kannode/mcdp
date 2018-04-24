@@ -8,6 +8,7 @@ from multiprocessing import cpu_count
 from bs4.element import Tag
 from contracts import contract
 from mcdp import logger
+from mcdp_docs.check_missing_links import get_id2element
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_docs.tocs import generate_toc, substituting_empty_links
@@ -204,7 +205,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
                 logger.info('Generating TOC because it is not there')
 
                 main_toc = bs(generate_toc(soup)).ul
-                main_toc.attrs['class'] = 'toc' # XXX: see XXX13
+                main_toc.attrs['class'] = 'toc'  # XXX: see XXX13
                 assert main_toc is not None
                 substituting_empty_links(main_toc, raise_errors=False, res=res,
                                          extra_refs=soup)
@@ -215,10 +216,14 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
                 res.note_error(msg)
                 main_toc = Tag(name='div')
                 main_toc.append('TOC NOT FOUND')
+        else:
+            main_toc = main_toc.__copy__()
 
-        main_toc = main_toc.__copy__()
         if 'id' in main_toc.attrs:
             del main_toc.attrs['id']
+
+    # XXX: this is not the place to do it
+    mark_toc_links_as_errored(main_toc, soup)
 
     body = soup.html.body
 
@@ -314,6 +319,42 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
     return context.comp(wait_assets, res, asset_jobs)
 
 
+def mark_toc_links_as_errored(main_toc, soup):
+    id2element, duplicates = get_id2element(soup, 'id')
+
+    for a in main_toc.select('a.toc_link'):
+        _id = a['href'][1:]
+        if _id in id2element:
+            element = id2element[_id]
+            section = element.parent
+            if 'status' in section.attrs:
+                a['status'] = section.attrs['status']
+
+            nerrors = 0
+            ntasks = 0
+            nwarnings = 0
+            for d in section.select('details'):
+                classes=  d.attrs['class']
+                if 'error' in classes:
+                    nerrors += 1
+                if 'task' in classes:
+                    ntasks += 1
+                if 'warning' in classes:
+                    nwarnings += 1
+
+            summary = []
+            if nerrors:
+                summary.append('%dE' % nerrors)
+            if nwarnings:
+                summary.append('%dW' % nwarnings)
+            if ntasks:
+                summary.append('%dT' % ntasks)
+            if summary:
+                a.attrs['summary'] = " ".join(summary)
+
+            print 'found %s %s %s' % (section.name, summary, section.attrs)
+
+
 def wait_assets(res, asset_jobs):
     for a in asset_jobs:
         res.merge(a)
@@ -368,6 +409,7 @@ def remove_spurious(output_dir, filenames):
 
             data = spurious.replace('OTHER', OTHER)
             write_data_to_file(data, fn, quiet=True)
+
 
 # language=html
 spurious = """

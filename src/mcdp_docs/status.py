@@ -20,6 +20,7 @@ allowed_statuses['deprecated'] = 'This part is deprecated and will be eventually
 allowed_statuses['recently-updated'] = 'This part has been recently updated.'
 
 
+
 def all_headers(soup):
     headers = MCDPManualConstants.HEADERS_TO_INDEX
     #['h1', 'h2', 'h3', 'h4', 'h5']

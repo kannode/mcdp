@@ -151,6 +151,9 @@ def get_cross_refs(src_dirs, permalink_prefix):
         for img in list(s.find_all('img')):
             img.extract()
 
+        for e in s.select('[base_url]'):
+            e['external_crossref_file'] = f
+
         for e in list(s.select('[base_url]')):
             if e.attrs['base_url'] == permalink_prefix:
                 e.extract()
@@ -459,14 +462,15 @@ def render_pdf(data_aug):
 
 def get_notes_panel(aug):
     s = Tag(name='div')
+    s.attrs['class'] = 'notes-panel'
     nwarnings = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING))
     ntasks = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_TASK))
     nerrors = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR))
-    s.append(stag('a', '%d errors' % nerrors, href='errors.html'))
+    s.append(stag('a', '%d errors' % nerrors, href='errors.html', _class='notes-panel-errors'))
     s.append(', ')
-    s.append(stag('a', '%d warnings' % nwarnings, href='warnings.html'))
+    s.append(stag('a', '%d warnings' % nwarnings, href='warnings.html', _class='notes-panel-errors'))
     s.append(', ')
-    s.append(stag('a', '%d tasks' % ntasks, href='tasks.html'))
+    s.append(stag('a', '%d tasks' % ntasks, href='tasks.html', _class='notes-panel-errors'))
     return s
 
 

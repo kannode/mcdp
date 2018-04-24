@@ -37,7 +37,7 @@ div#tocdiv {
 
   .link-same-file {
     padding: 1px;
-    background-color: #ddd !important;
+    //background-color: #ddd !important;
     color: darkblue;
   }
 
@@ -82,4 +82,38 @@ div#tocdiv {
   // padding-left: 2em;
   // text-align: left;
   float: left;
+}
+
+a.toc_link {
+  &[status="unknown"] {
+    background-color: orange;
+  }
+
+  &[status="draft"] {
+    background-color: red;
+  }
+
+  &[status="beta"] {
+    background-color: yellow;
+  }
+
+  &[status="ready"] {
+      /*background-color: yellow;*/
+  }
+
+  &[status="to-update"] {
+    background-color: blue;
+  }
+
+  &[status="deprecated"] {
+    background-color: yellow;
+  }
+
+  &[status="recently-updated"] {
+    background-color: green;
+  }
+}
+
+a[summary]::after {
+    content: ' (' attr(summary) ')';
 }

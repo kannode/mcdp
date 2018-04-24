@@ -2420,7 +2420,6 @@ div#tocdiv .link-different-file {
 }
 div#tocdiv .link-same-file {
   padding: 1px;
-  background-color: #ddd !important;
   color: darkblue;
 }
 div#tocdiv .toc_a_for_part {
@@ -2448,6 +2447,30 @@ div#tocdiv #extra-panel-content {
 }
 .link_prev {
   float: left;
+}
+a.toc_link[status="unknown"] {
+  background-color: orange;
+}
+a.toc_link[status="draft"] {
+  background-color: red;
+}
+a.toc_link[status="beta"] {
+  background-color: yellow;
+}
+a.toc_link[status="ready"] {
+  /*background-color: yellow;*/
+}
+a.toc_link[status="to-update"] {
+  background-color: blue;
+}
+a.toc_link[status="deprecated"] {
+  background-color: yellow;
+}
+a.toc_link[status="recently-updated"] {
+  background-color: green;
+}
+a[summary]::after {
+  content: ' (' attr(summary) ')';
 }
 .main-section-for-page {
   min-height: 65vh;
