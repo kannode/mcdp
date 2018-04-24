@@ -2395,12 +2395,12 @@ pre + p {
     padding-left: 25em;
   }
   #tocdiv {
-    font-size: 8pt;
     display: block;
-    width: 25em;
+    width: calc(23em);
     left: 0;
     top: 0;
     position: absolute;
+    padding: 1em;
   }
   #tocdiv ul {
     list-style-type: none;
@@ -2411,26 +2411,23 @@ pre + p {
   #tocdiv a {
     color: black;
   }
-}
-div#tocdiv {
-  padding: 2em;
-}
-div#tocdiv .link-different-file {
-  padding: 1px;
-}
-div#tocdiv .link-same-file {
-  padding: 1px;
-  color: darkblue;
-}
-div#tocdiv .toc_a_for_part {
-  text-align: left !important;
-  font-weight: bold;
-  font-size: 120%;
-}
-div#tocdiv #extra-panel-content {
-  position: fixed;
-  bottom: 2em;
-  font-size: 16px;
+  #tocdiv .link-different-file {
+    padding: 1px;
+  }
+  #tocdiv .link-same-file {
+    padding: 1px;
+    color: darkblue;
+  }
+  #tocdiv .toc_a_for_part {
+    text-align: left !important;
+    font-weight: bold;
+    font-size: 120%;
+  }
+  #tocdiv #extra-panel-content {
+    position: fixed;
+    bottom: 2em;
+    font-size: 16px;
+  }
 }
 .navigation {
   display: block;
@@ -2448,28 +2445,28 @@ div#tocdiv #extra-panel-content {
 .link_prev {
   float: left;
 }
-a.toc_link[status]::before {
+.show_status a.toc_link[status]::before {
   margin-right: 3px;
   font-family: sans-serif;
   font-size: 50%;
 }
-a.toc_link[status=draft]::before {
+.show_status a.toc_link[status=draft]::before {
   content: 'DRAFT';
   color: red;
 }
-a.toc_link[status=beta]::before {
+.show_status a.toc_link[status=beta]::before {
   content: 'BETA';
   color: #733c00;
 }
-a.toc_link[status=to-update]::before {
+.show_status a.toc_link[status=to-update]::before {
   content: 'OUTDATED';
   color: #051d64;
 }
-a.toc_link[status=deprecated]::before {
+.show_status a.toc_link[status=deprecated]::before {
   content: 'DEPRECATED';
   color: purple;
 }
-a[summary]::after {
+.show_todos a[summary]::after {
   content: attr(summary);
   color: blue;
   font-size: 60%;

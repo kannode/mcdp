@@ -375,6 +375,25 @@ def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
 def get_extra_content(aug):
     extra_panel_content = Tag(name='div')
     extra_panel_content.attrs['id'] = 'extra-panel-content'
+    html = """
+    
+<p>show: <a onclick='show_status();'>section status</a>
+<a onclick='show_todos();'>section errors, todos</a></p>
+
+<script>
+function show_status() {
+    document.body.classList.add("show_status");
+}
+
+function show_todos() {
+    document.body.classList.add("show_todos");
+}
+
+</script>
+
+    
+    """
+    extra_panel_content.append(bs(html))
     extra_panel_content.append(get_notes_panel(aug))
     return extra_panel_content
 
