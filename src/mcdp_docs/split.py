@@ -330,9 +330,8 @@ def mark_toc_links_as_errored(main_toc, soup):
             if 'status' in section.attrs:
                 a['status'] = section.attrs['status']
 
-
             ndrafts = len(list(section.select('[status=draft]')))
-            print('%d contained' % ndrafts)
+            # print('%d contained' % ndrafts)
             if ndrafts:
                 a['status'] = 'draft'
 
@@ -340,7 +339,7 @@ def mark_toc_links_as_errored(main_toc, soup):
             ntasks = 0
             nwarnings = 0
             for d in section.select('details'):
-                classes=  d.attrs['class']
+                classes = d.attrs['class']
                 if 'error' in classes:
                     nerrors += 1
                 if 'task' in classes:
@@ -350,15 +349,18 @@ def mark_toc_links_as_errored(main_toc, soup):
 
             summary = []
             if nerrors:
-                summary.append('%dE' % nerrors)
+                summary.append('%d errors' % nerrors)
+                a.attrs['nerrors'] = str(nerrors)
             if nwarnings:
-                summary.append('%dW' % nwarnings)
+                summary.append('%d warnings' % nwarnings)
+                a.attrs['nwarnings'] = str(nwarnings)
             if ntasks:
-                summary.append('%dT' % ntasks)
+                summary.append('%d tasks' % ntasks)
+                a.attrs['ntasks'] = str(ntasks)
             if summary:
                 a.attrs['summary'] = " ".join(summary)
 
-            print 'found %s %s %s' % (section.name, summary, section.attrs)
+            # print 'found %s %s %s' % (section.name, summary, section.attrs)
 
 
 def wait_assets(res, asset_jobs):

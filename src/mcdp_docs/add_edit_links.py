@@ -46,7 +46,8 @@ def add_github_links_if_edit_url(soup, permalink_prefix=None):
     logger.info('Found %d elements with attribute %r' % (nfound, attname))
 
 
-if __name__ == '__main__':
+
+def go():
     sys.stderr.write('Loading from stdin...\n')
 
     contents = sys.stdin.read()
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     soup = BeautifulSoup(contents, 'lxml', from_encoding='utf-8')
     #     soup = bs(contents)
     #     print 'soup: %s' % soup
-    ssoup = str(soup)
+    # ssoup = str(soup)
     #     print ('\n\nstart: %s  ... %s' % (ssoup[:100], ssoup[-100:]))
 
     permalink_prefix = 'http://purl.org/dth/'
@@ -71,3 +72,7 @@ if __name__ == '__main__':
     else:
         sys.stderr.write('Writing to stdout\n')
         sys.stdout.write(contents2)
+
+
+if __name__ == '__main__':
+    go()

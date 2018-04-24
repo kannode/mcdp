@@ -146,7 +146,14 @@ a.toc_link {
 }
 
 a[summary]::after {
-  content: ' (' attr(summary) ')';
+  content: attr(summary);
   color: blue;
+  font-size: 60%;
   font-family: sans-serif;
+  text-align: right;
+  display: block;
+}
+
+a[summary][nerrors]::after {
+  color: red;
 }

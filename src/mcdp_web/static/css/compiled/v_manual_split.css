@@ -2470,9 +2470,15 @@ a.toc_link[status=deprecated]::before {
   color: purple;
 }
 a[summary]::after {
-  content: ' (' attr(summary) ')';
+  content: attr(summary);
   color: blue;
+  font-size: 60%;
   font-family: sans-serif;
+  text-align: right;
+  display: block;
+}
+a[summary][nerrors]::after {
+  color: red;
 }
 .main-section-for-page {
   min-height: 65vh;
