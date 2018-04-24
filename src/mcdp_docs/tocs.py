@@ -6,6 +6,7 @@ from bs4.element import Tag, NavigableString
 from contracts import contract
 from contracts.utils import indent
 from mcdp.logs import logger
+from mcdp_docs.check_missing_links import get_id2element
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml import add_class, bs
@@ -430,7 +431,7 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
     if res is None:
         res = AugmentedResult()
 
-    for le in get_empty_links_to_fragment(soup, extra_refs=extra_refs):
+    for le in get_empty_links_to_fragment(soup, extra_refs=extra_refs, res=res):
         a = le.linker
         element_id = le.eid
         element = le.linked
@@ -643,17 +644,28 @@ def get_empty_links(soup):
         yield element
 
 
-def get_empty_links_to_fragment(element_to_modify, extra_refs):
+def get_empty_links_to_fragment(element_to_modify, extra_refs, res):
     """
         Find all empty links that have a reference to a fragment.
         yield LinkElement
     """
     logger.debug('building index')
     # first find all elements by id
+
+    id2element_local, duplicates = get_id2element(element_to_modify, 'id')
+    id2element_extra, duplicates2 = get_id2element(extra_refs, 'id')
+
+    for k in id2element_extra:
+        if k in id2element_local:
+            msg = 'ID %s in cross references also contained locally.' % k
+            msg += '\n\n' + indent(id2element_local[k], '', 'local: ')
+            msg += '\n\n' + indent(id2element_extra[k], '', 'crossrefs: ')
+            res.note_error(msg, HTMLIDLocation.for_element(id2element_local[k]))
+            logger.error(msg)
+
     id2element = {}
-    for x in list(element_to_modify.descendants) + list(extra_refs.descendants):
-        if isinstance(x, Tag) and 'id' in x.attrs:
-            id2element[x.attrs['id']] = x
+    id2element.update(id2element_extra)
+    id2element.update(id2element_local)
 
     logger.debug('building index done')
 

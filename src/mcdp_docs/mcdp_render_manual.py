@@ -135,22 +135,29 @@ def get_bib_files(src_dirs):
     """ Looks for .bib files in the source dirs; returns list of filenames """
     return look_for_files(src_dirs, "*.bib")
 
+
 def get_cross_refs(src_dirs, permalink_prefix):
     files = look_for_files(src_dirs, "crossref.html")
+
     soup = Tag(name='div')
     for f in files:
+        print('looking at f')
         data = open(f).read()
+        if permalink_prefix in data:
+            msg = 'skipping own file'
+            logger.info(msg)
+            continue
         s = bs(data)
         for img in list(s.find_all('img')):
             img.extract()
 
         for e in list(s.select('[base_url]')):
             if e.attrs['base_url'] == permalink_prefix:
-
                 e.extract()
         soup.append(s)
     # print soup
     return soup
+
 
 @contract(src_dirs='seq(str)', returns='list(str)')
 def get_markdown_files(src_dirs):
@@ -261,6 +268,10 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         files_contents.append(tuple(doc))  # compmake doesn't do namedtuples
 
     crossrefs = get_cross_refs(resources_dirs, permalink_prefix)
+
+    out_collected_crossrefs = os.path.join(out_split_dir, '..', 'collected_crossref.html')
+    write_data_to_file(str(crossrefs), out_collected_crossrefs)
+
     bib_files = get_bib_files(src_dirs)
 
     logger.debug('Found bib files:\n%s' % "\n".join(bib_files))
@@ -339,6 +350,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         context.comp(write_data_to_file, pdf_data, out_pdf)
         context.comp(write_manifest_pdf, out_pdf)
 
+
 def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
     soup = bs_entire_document(joined_aug.get_result())
 
@@ -352,11 +364,13 @@ def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
     fn = os.path.join(out_split_dir, 'crossref.html')
     write_data_to_file(str(cross), fn)
 
+
 def get_extra_content(aug):
     extra_panel_content = Tag(name='div')
     extra_panel_content.attrs['id'] = 'extra-panel-content'
     extra_panel_content.append(get_notes_panel(aug))
     return extra_panel_content
+
 
 def mark_errors_and_rest(joined_aug):
     soup = bs_entire_document(joined_aug.get_result())
