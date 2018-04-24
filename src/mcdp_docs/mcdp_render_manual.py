@@ -23,7 +23,7 @@ from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
     html_list_of_notes, mark_in_html, bs
 from mcdp_utils_misc.fileutils import read_data_from_file
-from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag
+from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, NavigableString
 from quickapp import QuickApp
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
@@ -357,6 +357,9 @@ def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
     cross = Tag(name='body')
     for e in soup.select('[label-name]'):
         e2 = e.__copy__()
+        for a in list(e2.descendants):
+            if isinstance(a, Tag) and 'id' in a.attrs:
+                del a.attrs['id']
         e2.attrs['base_url'] = permalink_prefix
         cross.append(e2)
     for img in list(cross.find_all('img')):
