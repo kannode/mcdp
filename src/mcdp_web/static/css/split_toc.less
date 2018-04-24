@@ -85,35 +85,66 @@ div#tocdiv {
 }
 
 a.toc_link {
-  &[status="unknown"] {
-    background-color: orange;
+
+  &[status]::before {
+    margin-right: 3px;
+    font-family: sans-serif;
+    font-size: 50%;
   }
 
-  &[status="draft"] {
-    background-color: red;
+  &[status=draft]::before {
+    content: 'DRAFT';
+    color: red;
   }
 
-  &[status="beta"] {
-    background-color: yellow;
+  &[status=unknown]::before {
+    content: '?';
+    color: #051d64;
   }
 
-  &[status="ready"] {
-      /*background-color: yellow;*/
+  &[status=beta]::before {
+    content: 'BETA';
+    color: #733c00;
   }
 
-  &[status="to-update"] {
-    background-color: blue;
+  &[status=to-update]::before {
+    content: 'OUTDATED';
+    color: #051d64;
   }
 
-  &[status="deprecated"] {
-    background-color: yellow;
+  &[status=deprecated]::before {
+    content: 'DEPRECATED';
+    color: purple;
   }
 
-  &[status="recently-updated"] {
-    background-color: green;
-  }
+  //&[status="unknown"] {
+  //
+  //}
+  //
+  //&[status="draft"] {
+  //  background-color: #FFdddd;
+  //}
+  //
+  //&[status="beta"] {
+  //  background-color: rgba(255, 255, 0, 0.4);
+  //}
+  //
+  //&[status="ready"] {
+  //}
+  //
+  //&[status="to-update"] {
+  //  background-color: rgba(0, 0, 255, 0.47);
+  //}
+  //
+  //&[status="deprecated"] {
+  //  background-color: rgba(247, 0, 255, 0.26);
+  //}
+  //
+  //&[status="recently-updated"] {
+  //  background-color: rgba(0, 128, 0, 0.38);
+  //}
 }
 
 a[summary]::after {
-    content: ' (' attr(summary) ')';
+  content: ' (' attr(summary) ')';
 }

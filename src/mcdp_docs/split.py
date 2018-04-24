@@ -330,6 +330,13 @@ def mark_toc_links_as_errored(main_toc, soup):
             if 'status' in section.attrs:
                 a['status'] = section.attrs['status']
 
+
+            ndrafts = len(list(section.select('[status=draft]')))
+            print('%d contained' % ndrafts)
+            if ndrafts:
+                a['status'] = 'draft'
+
+
             nerrors = 0
             ntasks = 0
             nwarnings = 0

@@ -2448,26 +2448,30 @@ div#tocdiv #extra-panel-content {
 .link_prev {
   float: left;
 }
-a.toc_link[status="unknown"] {
-  background-color: orange;
+a.toc_link[status]::before {
+  margin-right: 3px;
+  font-family: sans-serif;
+  font-size: 50%;
 }
-a.toc_link[status="draft"] {
-  background-color: red;
+a.toc_link[status=draft]::before {
+  content: 'DRAFT';
+  color: red;
 }
-a.toc_link[status="beta"] {
-  background-color: yellow;
+a.toc_link[status=unknown]::before {
+  content: '?';
+  color: #051d64;
 }
-a.toc_link[status="ready"] {
-  /*background-color: yellow;*/
+a.toc_link[status=beta]::before {
+  content: 'BETA';
+  color: #733c00;
 }
-a.toc_link[status="to-update"] {
-  background-color: blue;
+a.toc_link[status=to-update]::before {
+  content: 'OUTDATED';
+  color: #051d64;
 }
-a.toc_link[status="deprecated"] {
-  background-color: yellow;
-}
-a.toc_link[status="recently-updated"] {
-  background-color: green;
+a.toc_link[status=deprecated]::before {
+  content: 'DEPRECATED';
+  color: purple;
 }
 a[summary]::after {
   content: ' (' attr(summary) ')';
