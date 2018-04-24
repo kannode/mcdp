@@ -141,11 +141,11 @@ def get_cross_refs(src_dirs, permalink_prefix):
 
     soup = Tag(name='div')
     for f in files:
-        print('looking at f')
+        logger.debug('cross ref file %s' % f)
         data = open(f).read()
         if permalink_prefix in data:
             msg = 'skipping own file'
-            logger.info(msg)
+            logger.debug(msg)
             continue
         s = bs(data)
         for img in list(s.find_all('img')):
@@ -361,7 +361,8 @@ def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
         cross.append(e2)
     for img in list(cross.find_all('img')):
         img.extract()
-    fn = os.path.join(out_split_dir, 'crossref.html')
+    fn = os.path.join(out_split_dir, '..', 'crossref.html')
+    print('writing cross ref info')
     write_data_to_file(str(cross), fn)
 
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict
 import fnmatch
 import os
 import time
+from collections import defaultdict
 
 from contracts import contract
 from contracts.utils import check_isinstance
@@ -43,35 +43,36 @@ def locate_files(directory, pattern, followlinks=True,
     filenames = []
 
     def matches_pattern(x):
-        return any(fnmatch.fnmatch(x, p) for p in patterns)
+        return any(fnmatch.fnmatch(x, _) or (x == _) for _ in patterns)
 
     def should_ignore_resource(x):
-        return any(fnmatch.fnmatch(x, ip) for ip in ignore_patterns)
+        return any(fnmatch.fnmatch(x, _) or (x == _) for _ in ignore_patterns)
 
-    def accept_dirname_to_go_inside(root, d):
-        if should_ignore_resource(d):
+    def accept_dirname_to_go_inside(root_, d_):
+        if should_ignore_resource(d_):
             return False
-        dd = os.path.realpath(os.path.join(root, d))
+        dd = os.path.realpath(os.path.join(root_, d_))
         if dd in visited:
             return False
         visited.add(dd)
         return True
 
-    def accept_dirname_as_match(d):
+    def accept_dirname_as_match(_):
         return include_directories and \
-               not should_ignore_resource(d) and \
-               matches_pattern(d)
+               not should_ignore_resource(_) and \
+               matches_pattern(_)
 
-    def accept_filename_as_match(fn):
+    def accept_filename_as_match(_):
         return include_files and \
-               not should_ignore_resource(fn) and \
-               matches_pattern(fn)
+               not should_ignore_resource(_) and \
+               matches_pattern(_)
 
     ntraversed = 0
     for root, dirnames, files in os.walk(directory, followlinks=followlinks):
         ntraversed += 1
         dirnames[:] = [_ for _ in dirnames if accept_dirname_to_go_inside(root, _)]
         for f in files:
+            # logger.info('look ' + root + '/' + f)
             if accept_filename_as_match(f):
                 filename = os.path.join(root, f)
                 filenames.append(filename)
@@ -104,5 +105,5 @@ def locate_files(directory, pattern, followlinks=True,
         n = len(filenames)
         nuniques = len(set(filenames))
         logger.debug('%.4f s for locate_files(%s,%s): %d traversed, found %d filenames (%d uniques)' %
-              (seconds, directory, pattern, ntraversed, n, nuniques))
+                     (seconds, directory, pattern, ntraversed, n, nuniques))
     return filenames
