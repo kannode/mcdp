@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 import datetime
 import fnmatch
@@ -22,6 +21,7 @@ from circleclient import circleclient
 import dateutil.parser
 import pytz
 import yaml
+
 
 class Build(object):
 
@@ -108,7 +108,7 @@ class Build(object):
             duration = stop_time - start_time
             duration_human = duration_compact(duration.total_seconds())
         else:
-            duration = None
+            # duration = None
             duration_human = None
         return duration_human
 
@@ -264,7 +264,6 @@ def go():
     print('fn: %s' % fn)
     print('circle token: %s' % token)
 
-
     from github import Github
     if not 'GITHUB_TOKEN' in os.environ:
         print('Set GITHUB_TOKEN for me to be smarter')
@@ -303,6 +302,10 @@ def go():
     body.append(parsed)
     html = Tag(name='html')
     head = Tag(name='head')
+    meta = Tag(name='meta')
+    meta.attrs['content'] = "text/html; charset=utf-8"
+    meta.attrs['http-equiv'] = "Content-Type"
+    head.append(meta)
 
     html.append(head)
     html.append(body)
@@ -310,6 +313,7 @@ def go():
     #    fn = os.path.join(d0, 'summary.html')
     with open(fn, 'w') as f:
         f.write(str(html))
+
     print('Created ' + fn)
 
 
@@ -722,7 +726,7 @@ def locate_files(directory, pattern, followlinks=True,
 
     return filenames
 
-
+# language=css
 css = """
 
 body {
@@ -807,6 +811,7 @@ span.group {
 
 """
 
+# language=html
 TEMPLATE = """
 
 <style>CSS</style>

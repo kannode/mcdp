@@ -336,7 +336,6 @@ def mark_toc_links_as_errored(main_toc, soup):
             if ndrafts:
                 a['status'] = 'draft'
 
-
             nerrors = 0
             ntasks = 0
             nwarnings = 0

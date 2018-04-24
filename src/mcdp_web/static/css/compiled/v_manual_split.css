@@ -2457,10 +2457,6 @@ a.toc_link[status=draft]::before {
   content: 'DRAFT';
   color: red;
 }
-a.toc_link[status=unknown]::before {
-  content: '?';
-  color: #051d64;
-}
 a.toc_link[status=beta]::before {
   content: 'BETA';
   color: #733c00;
@@ -2475,6 +2471,8 @@ a.toc_link[status=deprecated]::before {
 }
 a[summary]::after {
   content: ' (' attr(summary) ')';
+  color: blue;
+  font-family: sans-serif;
 }
 .main-section-for-page {
   min-height: 65vh;

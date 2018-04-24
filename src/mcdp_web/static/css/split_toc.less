@@ -97,10 +97,10 @@ a.toc_link {
     color: red;
   }
 
-  &[status=unknown]::before {
-    content: '?';
-    color: #051d64;
-  }
+  //&[status=unknown]::before {
+  //  content: '?';
+  //  color: #051d64;
+  //}
 
   &[status=beta]::before {
     content: 'BETA';
@@ -147,4 +147,6 @@ a.toc_link {
 
 a[summary]::after {
   content: ' (' attr(summary) ')';
+  color: blue;
+  font-family: sans-serif;
 }
