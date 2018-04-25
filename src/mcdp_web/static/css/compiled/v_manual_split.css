@@ -2471,19 +2471,19 @@ pre + p {
   background-color: rgba(167, 0, 170, 0.22);
 }
 .show_recent_changes a[github-last-modified-days='0']::after {
-  content: 'modified today';
+  content: 'modified today by ' attr(github-last-modified-author);
   color: darkgreen;
 }
 .show_recent_changes a[github-last-modified-days='1']::after {
-  content: 'modified yesterday';
+  content: 'modified yesterday by ' attr(github-last-modified-author);
   color: darkgreen;
 }
-.show_recent_changes a[github-last-modified-days='2']::before,
-.show_recent_changes a[github-last-modified-days='3']::before,
-.show_recent_changes a[github-last-modified-days='4']::before,
-.show_recent_changes a[github-last-modified-days='5']::before,
-.show_recent_changes a[github-last-modified-days='6']::before {
-  content: ' modified ' attr(github-last-modified-days) ' days ago';
+.show_recent_changes a[github-last-modified-days='2']::after,
+.show_recent_changes a[github-last-modified-days='3']::after,
+.show_recent_changes a[github-last-modified-days='4']::after,
+.show_recent_changes a[github-last-modified-days='5']::after,
+.show_recent_changes a[github-last-modified-days='6']::after {
+  content: ' modified ' attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
   color: darkgreen;
 }
 .show_recent_changes a[github-last-modified-days='0']::after,

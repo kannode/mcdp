@@ -136,12 +136,12 @@
 
 .show_recent_changes {
   a[github-last-modified-days='0']::after {
-    content: 'modified today';
+    content: 'modified today by ' attr(github-last-modified-author);
     color: darkgreen;
   }
 
   a[github-last-modified-days='1']::after {
-    content: 'modified yesterday';
+    content: 'modified yesterday by 'attr(github-last-modified-author);
     color: darkgreen;
   }
 
@@ -150,8 +150,8 @@
   a[github-last-modified-days='4'],
   a[github-last-modified-days='5'],
   a[github-last-modified-days='6'] {
-    &::before {
-      content: ' modified ' attr(github-last-modified-days) ' days ago';
+    &::after {
+      content: ' modified ' attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
       color: darkgreen;
     }
   }

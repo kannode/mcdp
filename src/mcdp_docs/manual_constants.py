@@ -175,6 +175,7 @@ class MCDPManualConstants(object):
     ATTR_GITHUB_EDIT_URL = 'github-edit-url'
     ATTR_GITHUB_BLOB_URL = 'github-blob-url'
     ATTR_GITHUB_LAST_MODIFIED_DAYS = 'github-last-modified-days'
+    ATTR_GITHUB_LAST_MODIFIED_AUTHOR = 'github-last-modified-author'
 
 
     ATTR_HAS_LOCAL_MODIFICATIONS = 'has-local-changes'

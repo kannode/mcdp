@@ -46,6 +46,8 @@ def add_edit_links2(soup, location):
 
         delta = datetime.now() - l.last_modified
         days =  delta.days
+
+        h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR] = l.author
         h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = str(days)
         if l.has_local_modifications:
             h.attrs[MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS] = 1

@@ -334,14 +334,20 @@ def mark_toc_links_as_errored(main_toc, soup):
 
             # compute last modified
             min_ = 100000
+            author = '?'
             for x in section.select('[%s]' % MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS):
                 n = x.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS]
                 n = int(n)
+
                 min_ = min(n, min_)
+                if min_ == n:
+                    author = x.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR]
 
             element.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = \
             section.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = \
             a.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = str(min_)
+
+            a.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR] = author
 
             ndrafts = len(list(section.select('[%s=draft]' % MCDPManualConstants.ATTR_STATUS)))
             # print('%d contained' % ndrafts)
