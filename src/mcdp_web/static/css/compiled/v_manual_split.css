@@ -2391,15 +2391,15 @@ pre + p {
 }
 @media screen {
   body {
-    padding-left: 25 em;
+    padding-left: 25em;
   }
   #tocdiv {
     display: block;
-    width: calc(25 em - 1 em - 1 em);
+    width: calc(25em - 1em - 1em);
     left: 0;
     top: 0;
     position: absolute;
-    padding: 1 em;
+    padding: 1em;
   }
   #tocdiv ul {
     list-style-type: none;
@@ -2425,10 +2425,9 @@ pre + p {
   #tocdiv #extra-panel-content {
     position: fixed;
     bottom: 2em;
-    font-size: 16px;
     margin: 0;
-    padding: 1 em;
-    width: calc(25 em - 1 em - 1 em);
+    padding: 1em;
+    width: calc(25em - 1em - 1em);
   }
 }
 .navigation {

@@ -382,9 +382,9 @@ def get_extra_content(aug):
     
 <p>show: 
 
-<a id='button-show_status' style='cursor:pointer' onclick='show_status();'>section status</a>
-<a id='button-show_todos'  style='cursor:pointer' onclick='show_todos();'>errors &amp; todos</a>
-<a id='button-show_local_changes' style='cursor:pointer' onclick='show_local_changes()'>local changes</a>
+<a id='button-show_status' class='button' onclick='show_status();'>section status</a> 
+<a id='button-show_todos'  class='button' onclick='show_todos();'>errors &amp; todos</a> 
+<a id='button-show_local_changes' class='button' onclick='show_local_changes()'>local changes</a>
 </p>
 
 <style>
@@ -394,7 +394,14 @@ def get_extra_content(aug):
     font-weight: bold;
     background-color: yellow;
 }
-
+.button {
+    border: solid 1px black;
+    padding: 3px;
+    display: inline-block;
+    font-size: smaller;
+    font-family: sans-serif;
+    cursor: pointer;
+}
 </style>
 <script>
 
