@@ -5,7 +5,7 @@ from contracts.utils import indent
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
 
-STATUS_ATTR = 'status'
+
 STATUS_UNKNOWN = 'unknown'
 
 allowed_statuses = OrderedDict()
@@ -23,7 +23,6 @@ allowed_statuses['recently-updated'] = 'This part has been recently updated.'
 
 def all_headers(soup):
     headers = MCDPManualConstants.HEADERS_TO_INDEX
-    #['h1', 'h2', 'h3', 'h4', 'h5']
     for h in soup.find_all(headers):
         yield h
 
@@ -32,11 +31,11 @@ def check_status_codes(soup, realpath, res, location):
     for h in all_headers(soup):
         if MCDPManualConstants.ATTR_NOTOC in h.attrs:
             continue
-        if STATUS_ATTR in h.attrs:
-            s = h.attrs[STATUS_ATTR]
+        if MCDPManualConstants.ATTR_STATUS in h.attrs:
+            s = h.attrs[MCDPManualConstants.ATTR_STATUS]
             if not s in allowed_statuses:
-                msg = 'Invalid status code %r; expected one of %r' % (s, allowed_statuses)
-                msg += '\n' + indent(str(h), '  ')
+                msg = 'Invalid status code %r.\n I expected one of: %s' % (s, ", ".join(allowed_statuses))
+                # msg += '\n' + indent(str(h), '  ')
                 res.note_error(msg, HTMLIDLocation.for_element(h, location))
         else:
             # Only warn for h1 that are not part:
@@ -45,7 +44,7 @@ def check_status_codes(soup, realpath, res, location):
                     # let's not worry about the Software repo for now
                     h2 = h.__copy__()
                     h2.attrs.pop('github-blob-url', None)
-                    h2.attrs.pop('github-edit-url', None)
+                    h2.attrs.pop(MCDPManualConstants.ATTR_GITHUB_EDIT_URL, None)
                     msg = 'Status not found for this header:\n\n  %s' % str(h2)
                     msg += '\n\n in file %s' % realpath
                     msg += '\n\nPlease set the status for all the top-level headers.'
@@ -56,7 +55,7 @@ def check_status_codes(soup, realpath, res, location):
                             msg += '\n' + indent(v, '', '%23s   ' % ('status=%s' % k))
                     res.note_error(msg, HTMLIDLocation.for_element(h, location))
 
-            h.attrs[STATUS_ATTR] = STATUS_UNKNOWN
+            h.attrs[MCDPManualConstants.ATTR_STATUS] = STATUS_UNKNOWN
 
 
 

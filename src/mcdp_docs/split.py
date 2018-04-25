@@ -327,13 +327,21 @@ def mark_toc_links_as_errored(main_toc, soup):
         if _id in id2element:
             element = id2element[_id]
             section = element.parent
-            if 'status' in section.attrs:
-                a['status'] = section.attrs['status']
 
-            ndrafts = len(list(section.select('[status=draft]')))
+            for attname in MCDPManualConstants.attrs_to_copy_to_link:
+                if attname in section.attrs:
+                    a.attrs[attname] = section.attrs[attname]
+
+
+            ndrafts = len(list(section.select('[%s=draft]' % MCDPManualConstants.ATTR_STATUS)))
             # print('%d contained' % ndrafts)
             if ndrafts:
-                a['status'] = 'draft'
+                a[MCDPManualConstants.ATTR_STATUS] = 'draft'
+
+            nchanges = len(list(section.select('[%s]'%MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS)))
+            if nchanges:
+                a[MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS] = '%d' % nchanges
+
 
             nerrors = 0
             ntasks = 0

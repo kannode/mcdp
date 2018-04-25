@@ -1516,7 +1516,7 @@ p.special-par-motto {
   letter-spacing: 0.4pt;
   display: inline-block;
   line-height: 2.124;
-  box-shadow: 3px 0px 10px 2px rgba(100, 100, 100, 0.74);
+  box-shadow: 3px 0 10px 2px rgba(100, 100, 100, 0.74);
   border: solid 1px black;
   padding: 1em;
   margin-top: 1.5em;
@@ -1676,7 +1676,7 @@ div.check::before {
 div.check {
   margin-left: 2em;
   background-color: #fff3db;
-  box-shadow: 4px 4px 10px 0px #ebddc1;
+  box-shadow: 4px 4px 10px 0 #ebddc1;
   margin-top: 1.5em;
   margin-bottom: 1.5em;
   padding: 0.3em;
@@ -1692,7 +1692,6 @@ p.special-par-task::before {
   font-size: 60%;
   font-variant: small-caps;
   font-family: monospace;
-  font-spacing: 1px;
   padding: 1.4px;
 }
 .status-done::after {
@@ -2072,7 +2071,7 @@ kbd + kbd {
 }
 kbd {
   display: inline-block;
-  padding: .06em 0.4em;
+  padding: 0.06em 0.4em;
   font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
   font-size: 50%;
   /* line-height: 1.4; */
@@ -2376,7 +2375,7 @@ pre + p {
   margin-top: 1.5em;
 }
 @page {
-  size: 6.125in 9.250in;
+  size: 6.125in 9.25in;
   margin-top: 1.7cm;
   margin-bottom: 0.312in;
 }
@@ -2392,15 +2391,15 @@ pre + p {
 }
 @media screen {
   body {
-    padding-left: 25em;
+    padding-left: 25 em;
   }
   #tocdiv {
     display: block;
-    width: calc(23em);
+    width: calc(25 em - 1 em - 1 em);
     left: 0;
     top: 0;
     position: absolute;
-    padding: 1em;
+    padding: 1 em;
   }
   #tocdiv ul {
     list-style-type: none;
@@ -2427,6 +2426,9 @@ pre + p {
     position: fixed;
     bottom: 2em;
     font-size: 16px;
+    margin: 0;
+    padding: 1 em;
+    width: calc(25 em - 1 em - 1 em);
   }
 }
 .navigation {
@@ -2466,6 +2468,16 @@ pre + p {
   content: 'DEPRECATED';
   color: purple;
 }
+.show_local_changes a[has-local-changes] {
+  background-color: rgba(167, 0, 170, 0.22);
+}
+.show_local_changes a[has-local-changes]::after {
+  color: purple;
+  content: 'local changes';
+  margin-right: 3px;
+  font-family: sans-serif;
+  font-size: 50%;
+}
 .show_todos a[summary]::after {
   content: attr(summary);
   color: blue;
@@ -2474,7 +2486,7 @@ pre + p {
   text-align: right;
   margin-left: 1em;
 }
-a[summary][nerrors]::after {
+.show_todos a[summary][nerrors]::after {
   color: red;
 }
 .main-section-for-page {

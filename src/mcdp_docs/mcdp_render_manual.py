@@ -21,9 +21,9 @@ from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
-    html_list_of_notes, mark_in_html, bs
+    html_list_of_notes, mark_in_html
 from mcdp_utils_misc.fileutils import read_data_from_file
-from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag
+from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs
 from quickapp import QuickApp
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
@@ -34,7 +34,7 @@ from .manual_constants import MCDPManualConstants
 from .manual_join_imp import DocToJoin, manual_join
 from .minimal_doc import get_minimal_document
 from .read_bibtex import run_bibtex2html
-from .source_info_imp import get_source_info, make_last_modified
+from .source_info_imp import get_source_info, make_last_modified, NoSourceInfo
 
 
 class RenderManual(QuickApp):
@@ -226,8 +226,6 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         stylesheet_pdf = stylesheet
     # outdir = os.path.dirname(out_split_dir)  # XXX
     filenames = get_markdown_files(src_dirs)
-    print('using:')
-    print("\n".join(filenames))
 
     if not filenames:
         msg = "Could not find any file for composing the book."
@@ -248,7 +246,11 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         out_part_basename = '%03d-%s-%s' % (i, docname, contents_hash)
         job_id = '%s-%s-%s' % (docname, get_md5(filename)[:8], contents_hash)
 
-        source_info = get_source_info(filename)
+        try:
+            source_info = get_source_info(filename)
+        except NoSourceInfo as e:
+            logger.warn('No source info for %s:\n%s' % (filename, e))
+            source_info = None
 
         for d in src_dirs:
             if filename.startswith(d):
@@ -380,12 +382,15 @@ def get_extra_content(aug):
     
 <p>show: 
 
-<a id='button-show_status' href="#button-show_status" style='cursor:pointer' onclick='show_status();'>section status</a>
-<a id='button-show_todos' href='#button-show_todos' style='cursor:pointer' onclick='show_todos();'>errors &amp; todos</a></p>
+<a id='button-show_status' style='cursor:pointer' onclick='show_status();'>section status</a>
+<a id='button-show_todos'  style='cursor:pointer' onclick='show_todos();'>errors &amp; todos</a>
+<a id='button-show_local_changes' style='cursor:pointer' onclick='show_local_changes()'>local changes</a>
+</p>
 
 <style>
 .show_todos #button-show_todos,
-.show_status #button-show_status {
+.show_status #button-show_status,
+.show_local_changes #button-show_local_changes {
     font-weight: bold;
     background-color: yellow;
 }
@@ -423,10 +428,15 @@ function show_status() {
     adjust('show_status');
 }; 
 
+function show_local_changes() {
+    toggle('show_local_changes');
+    adjust('show_local_changes');
+}; 
+
 
 adjust('show_todos');
 adjust('show_status');
-
+adjust('show_local_changes');
 </script>
 
     
@@ -661,22 +671,25 @@ def render_book(src_dirs, generate_pdf,
         librarian.find_libraries('.')
 
     load_library_hooks = [librarian.load_library]
-    library = MCDPLibrary(load_library_hooks=load_library_hooks)
+    library_ = MCDPLibrary(load_library_hooks=load_library_hooks)
 
     for src_dir in src_dirs:
-        library.add_search_dir(src_dir)
+        library_.add_search_dir(src_dir)
 
     d = tempfile.mkdtemp()
-    library.use_cache_dir(d)
+    library_.use_cache_dir(d)
+
+    location = LocalFile(realpath)
+
+    # print('location:\n%s' % location)
 
     def filter_soup0(soup, library):
         if filter_soup is not None:
             filter_soup(soup=soup, library=library)
         add_edit_links2(soup, location)
 
-    location = LocalFile(realpath)
     try:
-        html_contents = render_complete(library=library,
+        html_contents = render_complete(library=library_,
                                         s=data,
                                         raise_errors=raise_errors,
                                         realpath=realpath,

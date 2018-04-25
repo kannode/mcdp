@@ -164,10 +164,10 @@ def generate_toc(soup, max_depth=None, max_levels=2):
 
     root = stack[0]
 
-    logger.debug('numbering items')
+    # logger.debug('numbering items')
     number_items2(root)
-    if False:
-        logger.debug(toc_summary(root))
+    # if False:
+    #     logger.debug(toc_summary(root))
     #
     #     logger.debug('toc iterating')
     #     # iterate over chapters (below each h1)
@@ -220,7 +220,7 @@ class Item(object):
             self.header_level = self.id.split(":")[0]
         else:
             self.header_level = 'unknown'
-            logger.warn(self.id)
+            # logger.warn(self.id)
 
     def copy_excluding_levels(self, exclude_levels):
         items = []
@@ -649,7 +649,7 @@ def get_empty_links_to_fragment(element_to_modify, extra_refs, res):
         Find all empty links that have a reference to a fragment.
         yield LinkElement
     """
-    logger.debug('building index')
+    # logger.debug('building index')
     # first find all elements by id
 
     id2element_local, duplicates = get_id2element(element_to_modify, 'id')
@@ -667,7 +667,7 @@ def get_empty_links_to_fragment(element_to_modify, extra_refs, res):
     id2element.update(id2element_extra)
     id2element.update(id2element_local)
 
-    logger.debug('building index done')
+    # logger.debug('building index done')
 
     for element in get_empty_links(element_to_modify):
         if not 'href' in element.attrs:

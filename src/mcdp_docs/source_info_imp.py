@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import datetime
+import os
 import time
 from collections import namedtuple
 
 import git
 from bs4.element import Tag
-from contracts.utils import check_isinstance
+from contracts.utils import check_isinstance, raise_wrapped
 from mcdp_docs.github_edit_links import NoRootRepo
 from mcdp_docs.tocs import LABEL_NAME
 from mcdp_utils_misc import memoize_simple, AugmentedResult
@@ -15,22 +17,40 @@ from .manual_constants import MCDPManualConstants
 from .manual_join_imp import DocToJoin
 
 
-@memoize_simple
+# @memoize_simple
 def get_repo_object(root):
     repo = git.Repo(root)
+
     return repo
 
 
-SourceInfo = namedtuple('SourceInfo', 'commit author last_modified')
+class NoSourceInfo(Exception):
+    pass
 
 
+SourceInfo = namedtuple('SourceInfo', 'commit author last_modified has_local_modifications')
+
+@memoize_simple
+def get_changed_files(repo_root):
+    repo = get_repo_object(repo_root)
+    diff =repo.head.commit.diff(None)
+    changed = list([os.path.realpath(x.a_path) for x in diff.iter_change_type('M')])
+    repo.git = None
+    print('Changed in %s' % repo_root)
+    print "\n".join(changed)
+    return changed
+
+
+@memoize_simple
 def get_source_info(filename):
     """ Returns a SourceInfo object or None if the file is not
         part of the repository. """
     try:
-        root = get_repo_root(filename)
-    except NoRootRepo:
-        return None
+        root = get_repo_root(os.path.realpath(filename))
+    except NoRootRepo as e:
+        msg = 'Could not get root repo for %s' % filename
+        raise_wrapped(NoSourceInfo, e, msg, compact=True)
+        raise
     repo = get_repo_object(root)
     path = filename
     try:
@@ -40,9 +60,15 @@ def get_source_info(filename):
         return None
     author = commit.author
     last_modified = time.gmtime(commit.committed_date)
+    last_modified = datetime.datetime.fromtimestamp(time.mktime(last_modified))
+
+    has_local_modifications = os.path.realpath(filename) in get_changed_files(root)
+
+
     commit = commit.hexsha
+    repo.git = None
     # print('%s last modified by %s on %s ' % (filename, author, last_modified))
-    return SourceInfo(commit=commit, author=author, last_modified=last_modified)
+    return SourceInfo(commit=commit, author=author, last_modified=last_modified, has_local_modifications=has_local_modifications)
 
 
 def make_last_modified(files_contents, nmax=100):

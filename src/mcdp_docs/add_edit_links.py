@@ -3,6 +3,7 @@ import sys
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
+from mcdp_docs.manual_constants import MCDPManualConstants
 
 from .logs import logger
 
@@ -12,9 +13,10 @@ def add_github_links_if_edit_url(soup, permalink_prefix=None):
         If an element has an attribute 'github-edit-url' then add little icons.
     
     """
-    attname = 'github-edit-url'
+    attname = MCDPManualConstants.ATTR_GITHUB_EDIT_URL
     nfound = 0
-    for h in soup.findAll(['h1', 'h2', 'h3', 'h4'], attrs={attname: True}):
+
+    for h in soup.findAll(MCDPManualConstants.headers_for_edit_links, attrs={attname: True}):
         nfound += 1
         s = Tag(name='span')
         a = Tag(name='a')
@@ -32,12 +34,10 @@ def add_github_links_if_edit_url(soup, permalink_prefix=None):
             if permalink_prefix is not None:
                 if not 'autoid' in hid:
                     url = permalink_prefix + str(hid)
-                    # logger.debug('adding link to %r' % url)
                     a.attrs['href'] = url
                     a.string = '🔗'
                     a.attrs['class'] = 'purl-link'
                     a.attrs['title'] = "Use this link as the permanent link to share with people."
-                    #             s.append(Tag(name='br'))
                     s.append(a)
 
         s.attrs['class'] = 'github-etc-links'

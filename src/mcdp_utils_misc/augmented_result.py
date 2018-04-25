@@ -6,7 +6,7 @@ from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
-from mcdp_utils_xml import insert_inset, bs,bs_entire_document, to_html_stripping_fragment
+from mcdp_utils_xml import insert_inset
 
 from .pretty_printing import pretty_print_dict
 
@@ -38,7 +38,6 @@ class Note(object):
         self.created_module = module.__name__
         self.created_file = module.__file__
         self.prefix = prefix
-
 
     def __str__(self):
         s = type(self).__name__
@@ -217,7 +216,6 @@ class AugmentedResult(object):
             s += '\n' + '| (no notes found)'
         return s
 
-
     @contract(note=Note)
     def add_note(self, note):
         self.notes.append(note)
@@ -385,18 +383,10 @@ def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
 
             note_html = note.as_html(inline=True)
 
-            inset = insert_inset(element, short=note_type, # XXX
-                                   long_error=note_html, klasses=klasses)
+            inset = insert_inset(element, short=note_type,  # XXX
+                                 long_error=note_html,
+                                 klasses=klasses)
 
-            # if note_type == 'error':
-            #     inset = note_error2(element, 'error', note_html)
-            # elif note_type == 'warning':
-            #     # inset = note_error2(element, 'warning', note_html)
-            #     inset = note_warning2(element, 'warning', note_html)
-            # else:
-            #     assert False
-
-            # if inset is not None:
             inset.attrs['id'] = idfor(b)
 
             summary = inset.find('summary')
@@ -419,8 +409,6 @@ def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
             summary.append('\n')
             summary.append(stag('a', 'index', href=index_url))
             summary.append('\n')
-
-            # summary.append(p)
 
 
 def _mark_in_html_iterate_id_note_with_location(notes):

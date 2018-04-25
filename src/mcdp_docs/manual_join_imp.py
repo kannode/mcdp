@@ -872,7 +872,9 @@ def copy_attributes_from_header(section, header):
     section.attrs['id'] = pure_id + ':section'
     for c in header.attrs.get('class', []):
         add_class(section, c)
-    for a in ['status', 'lang', 'type']:
+
+
+    for a in MCDPManualConstants.attrs_to_copy_from_header_to_section:
         if a in header.attrs:
             section.attrs[a] = header.attrs[a]
 

@@ -59,8 +59,6 @@ class MCDPManualConstants(object):
     }
 
     HEADERS_TO_FIX = HEADERS_TO_INDEX = list(allowed_prefixes_h)
-    # HEADERS_TO_FIX = ['h1', 'h2', 'h3', 'h4', 'h5']
-    # HEADERS_TO_INDEX = ['h1', 'h2', 'h3', 'h4', 'h5']
     all_possible_prefixes_that_can_be_implied = [
         'part', 'sec', 'sub', 'subsub', 'par', 'subpar', 'app', 'appsub', 'appsubsub',
         'fig', 'tab', 'code',
@@ -171,8 +169,20 @@ class MCDPManualConstants(object):
     CLASS_NOTE_ERROR = 'error'
 
     embed_img_data_extensions = ['png', 'jpg', 'jpeg', 'JPEG', 'PNG', 'JPG', 'svg', 'SVG']
-
     max_width_for_image = 1024
+
+    headers_for_edit_links = ['h1', 'h2', 'h3', 'h4']
+    ATTR_GITHUB_EDIT_URL = 'github-edit-url'
+    ATTR_GITHUB_BLOB_URL = 'github-blob-url'
+    ATTR_GITHUB_LAST_MODIFIED_DAYS = 'github-last-modified-days'
+
+
+    ATTR_HAS_LOCAL_MODIFICATIONS = 'has-local-changes'
+    ATTR_STATUS = 'status'
+
+    attrs_to_copy_to_link = [ATTR_HAS_LOCAL_MODIFICATIONS, ATTR_STATUS]
+    attrs_to_copy_from_header_to_section = [ATTR_HAS_LOCAL_MODIFICATIONS, ATTR_STATUS, 'lang', 'type']
+
 
 Label = namedtuple('Label', 'what number label_self')
 

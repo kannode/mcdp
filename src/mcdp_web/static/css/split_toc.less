@@ -1,7 +1,7 @@
 @media screen {
 
-  @tocwidth: 25em;
-  @tocpadding: 1em;
+  @tocwidth: 25 em;
+  @tocpadding: 1 em;
 
   body {
     padding-left: @tocwidth;
@@ -10,7 +10,7 @@
   #tocdiv {
     //font-size: 8pt;
     display: block;
-    width: calc(@tocwidth - @tocpadding - @tocpadding);
+    width: calc(@tocwidth ~"-" @tocpadding ~"-" @tocpadding);
     left: 0;
     top: 0;
     position: absolute;
@@ -50,6 +50,9 @@
       position: fixed;
       bottom: 2em;
       font-size: 16px;
+      margin: 0;
+      padding: @tocpadding;
+      width: calc(@tocwidth ~"-" @tocpadding ~"-" @tocpadding);
     }
   }
 
@@ -115,44 +118,35 @@
     color: purple;
   }
 
-  //&[status="unknown"] {
-  //
-  //}
-  //
-  //&[status="draft"] {
-  //  background-color: #FFdddd;
-  //}
-  //
-  //&[status="beta"] {
-  //  background-color: rgba(255, 255, 0, 0.4);
-  //}
-  //
-  //&[status="ready"] {
-  //}
-  //
-  //&[status="to-update"] {
-  //  background-color: rgba(0, 0, 255, 0.47);
-  //}
-  //
-  //&[status="deprecated"] {
-  //  background-color: rgba(247, 0, 255, 0.26);
-  //}
-  //
-  //&[status="recently-updated"] {
-  //  background-color: rgba(0, 128, 0, 0.38);
-  //}
 }
 
-.show_todos a[summary]::after {
-  content: attr(summary);
-  color: blue;
-  font-size: 60%;
-  font-family: sans-serif;
-  text-align: right;
-  margin-left: 1em;
-  //display: block;
+.show_local_changes {
+  a[has-local-changes] {
+    background-color: rgba(167, 0, 170, 0.22);
+
+    &::after {
+      color: purple;
+      content: 'local changes';
+      margin-right: 3px;
+      font-family: sans-serif;
+      font-size: 50%;
+    }
+  }
 }
 
-a[summary][nerrors]::after {
-  color: red;
+.show_todos {
+
+  a[summary]::after {
+    content: attr(summary);
+    color: blue;
+    font-size: 60%;
+    font-family: sans-serif;
+    text-align: right;
+    margin-left: 1em;
+    //display: block;
+  }
+
+  a[summary][nerrors]::after {
+    color: red;
+  }
 }

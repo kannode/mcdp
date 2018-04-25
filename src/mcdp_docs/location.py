@@ -3,11 +3,13 @@ import inspect
 import os
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
+from datetime import datetime
 
 from bs4.element import Tag
 from contracts import contract, check_isinstance
 from contracts.interface import location
 from contracts.utils import indent
+from mcdp_docs import logger
 from mcdp_docs.github_edit_links import NoRootRepo
 from mcdp_lang_utils import Where
 from mcdp_utils_misc import pretty_print_dict
@@ -110,22 +112,18 @@ class LocalFile(Location):
     def __init__(self, filename):
         self.filename = filename
         self.github_info = get_github_location(filename)
+        self.last_local_modification = datetime.fromtimestamp(os.path.getmtime(filename))
+        if self.github_info is not None:
+            if self.github_info.has_local_modifications:
+                msg = 'Local file %s has local modifications' % filename
+                logger.debug(msg)
 
     def __repr__(self):
         s = "In local file %s" % self.filename
         if self.github_info is not None:
             s += '\n\n' + str(self.github_info)
+        s += '\n last modification: %s' % self.last_local_modification
         return s
-
-        # d = OrderedDict()
-        # d['filename'] = friendly_path(self.filename)
-        # if self.github_info is not None:
-        #     d['github'] = self.github_info
-        # else:
-        #     d['github'] = '(not available)'
-        # s = "LocalFile"
-        # s += '\n' + indent(pretty_print_dict(d), '| ')
-        # return s
 
     def get_stack(self):
         if self.github_info is not None:
@@ -270,7 +268,8 @@ class GithubLocation(Location):
     """
 
     def __init__(self, org, repo, path, blob_base, blob_url, branch, commit, edit_url,
-                 repo_base, branch_url, commit_url):
+                 repo_base, branch_url, commit_url, author, last_modified,
+                 has_local_modifications):
         check_isinstance(path, str)
         check_isinstance(branch, str)
         self.org = org
@@ -284,6 +283,9 @@ class GithubLocation(Location):
         self.commit = commit
         self.branch = branch
         self.repo_base = repo_base
+        self.author = author
+        self.last_modified = last_modified
+        self.has_local_modifications = has_local_modifications
 
     def __repr__(self):
         d = OrderedDict()
@@ -294,6 +296,8 @@ class GithubLocation(Location):
         d['path'] = self.path
         #         d['blob_url'] = self.blob_url
         #         d['edit_url'] = self.edit_url
+        d['author'] = self.author
+        d['last_modified'] = self.last_modified
         d['commit'] = self.commit
 
         s = "GithubLocation"
@@ -329,6 +333,12 @@ class GithubLocation(Location):
         p.append(stag('a', str(self.branch), href=self.branch_url))
         p.append(' commit ')
         p.append(stag('a', self.commit[-8:], href=self.commit_url))
+        p.append(Tag(name='br'))
+        p.append(' last modified by %s on %s' % (self.author, self.last_modified))
+        if self.has_local_modifications:
+            t = Tag(name='p')
+            t.append('File has local modifications')
+            p.append(t)
         return p
 
     def get_stack(self):
@@ -339,9 +349,12 @@ class GithubLocation(Location):
 def get_github_location(filename):
     # TODO: detect if the copy is dirty
     try:
-        repo_root = get_repo_root(filename)
-    except NoRootRepo:
+        # need realpath because of relative names, e.g. filename = 'docs/file.md' and the root is at ..
+        filename_r = os.path.realpath(filename)
+        repo_root = get_repo_root(filename_r)
+    except NoRootRepo as e:
         # not in Git
+        print('file %s not in Git: %s' % (filename, e))
         return None
 
     repo_info = get_repo_information(repo_root)
@@ -363,13 +376,33 @@ def get_github_location(filename):
 
     blob_url = blob_base + "/" + relpath
     edit_url = edit_base + "/" + relpath
+
+    from .source_info_imp import get_source_info, NoSourceInfo
+    # try:
+    try:
+        source_info = get_source_info(filename)
+    except NoSourceInfo as e:
+        logger.error(e)
+        return None  # XX
+    author = source_info.author
+    last_modified = source_info.last_modified
+    has_local_modifications = source_info.has_local_modifications
+
+    # except NoSourceInfo as e:
+    #     logger.debug(e)
+    #     author = None
+    #     last_modified = None
+
     return GithubLocation(org=org, repo=repo, path=relpath,
                           repo_base=repo_base,
                           blob_base=blob_base, blob_url=blob_url,
                           edit_url=edit_url,
                           branch=branch, commit=commit,
                           commit_url=commit_url,
-                          branch_url=branch_url)
+                          branch_url=branch_url,
+                          author=author,
+                          has_local_modifications=has_local_modifications,
+                          last_modified=last_modified)
 
 
 def location_from_stack(level):

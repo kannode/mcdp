@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import os, re
-
-from git.repo.base import Repo
+import os
+import re
 
 from contracts.utils import raise_wrapped
-from mcdp import logger
-
+from git.repo.base import Repo
+from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_misc import memoize_simple
 
 
@@ -24,7 +23,12 @@ def get_repo_root(d):
         if not parent or parent == '/':
             msg = 'Could not find repo root'
             raise NoRootRepo(msg)
-        return get_repo_root(parent)
+        try:
+            return get_repo_root(parent)
+        except NoRootRepo:
+            msg = 'Could not find root repo for "%s"' % d
+            raise NoRootRepo(msg)
+
 
 def add_edit_links2(soup, location):
     from mcdp_docs.location import GithubLocation
@@ -35,42 +39,13 @@ def add_edit_links2(soup, location):
     else:
         return
 
-    for h in soup.findAll(['h1', 'h2', 'h3', 'h4']):
-        h.attrs['github-edit-url'] = l.edit_url
-        h.attrs['github-blob-url'] = l.blob_url
+    for h in soup.findAll(MCDPManualConstants.headers_for_edit_links):
+        h.attrs[MCDPManualConstants.ATTR_GITHUB_EDIT_URL] = l.edit_url
+        h.attrs[MCDPManualConstants.ATTR_GITHUB_BLOB_URL] = l.blob_url
 
-
-
-def add_edit_links(soup, filename):
-    # is this is in a repo?
-    filename_abs = os.path.abspath(filename)
-    try:
-        repo_root = get_repo_root(filename_abs)
-    except NoRootRepo:
-        logger.warning("Could not get repository root for filename %r" % filename_abs)
-        return
-    try:
-        repo_info = get_repo_information(repo_root)
-    except RepoInfoException as e:
-        logger.error(str(e))
-        return
-
-    branch = repo_info['branch']
-    # commit = repo_info['commit']
-    org = repo_info['org']
-    repo = repo_info['repo']
-    relpath = os.path.relpath(filename, repo_root)
-
-    repo_base = 'https://github.com/%s/%s' % (org, repo)
-    blob_base = repo_base + '/blob/%s' % branch
-    edit_base = repo_base + '/edit/%s' % branch
-
-    blob_url = blob_base + "/" + relpath
-    edit_url = edit_base + "/" + relpath
-
-    for h in soup.findAll(['h1', 'h2', 'h3', 'h4']):
-        h.attrs['github-edit-url'] = edit_url
-        h.attrs['github-blob-url'] = blob_url
+        h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = l.last_modified
+        if l.has_local_modifications:
+            h.attrs[MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS] = 1
 
 
 class RepoInfoException(Exception):
@@ -89,8 +64,8 @@ def get_repo_information(repo_root):
         try:
             branch = str(gitrepo.active_branch)
         except TypeError:
-        # TypeError: HEAD is a detached symbolic reference as it points
-        # to '4bcaf737955277b156a5bacdd80d1805e4b8bb25'
+            # TypeError: HEAD is a detached symbolic reference as it points
+            # to '4bcaf737955277b156a5bacdd80d1805e4b8bb25'
             branch = None
 
         commit = gitrepo.head.commit.hexsha
@@ -106,15 +81,27 @@ def get_repo_information(repo_root):
 
     # now github can use urls that do not end in '.git'
     if 'github' in url and not url.endswith('.git'):
-        url = url + '.git'
+        url += '.git'
     try:
         org, repo = org_repo_from_url(url)
     except NotImplementedError:
         org, repo = None, None
 
+    author_name = gitrepo.head.commit.author.name
+    author_email = gitrepo.head.commit.author.email
+    committed_date = gitrepo.head.commit.committed_date
+
     # avoid expensive garbage collection
     gitrepo.git = None
-    return dict(branch=branch, commit=commit, org=org, repo=repo)
+    return dict(branch=branch, commit=commit, org=org, repo=repo,
+                committed_date=committed_date,
+                author_name=author_name,
+                author_email=author_email)
+
+
+#
+# def get_file_information(repo_root, path):
+#     commit = repo.iter_commits(paths=blob.path, max_count=1).next()
 
 
 def org_repo_from_url(url):
