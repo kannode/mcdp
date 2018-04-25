@@ -380,13 +380,12 @@ def get_extra_content(aug):
     # language=html
     html = """
     
-<div>Show: <br/>
-
+<p style='text-align: left'>Show:
 <a id='button-show_status' class='button' onclick='show_status();'>section status</a> 
 <a id='button-show_todos'  class='button' onclick='show_todos();'>errors &amp; todos</a> 
 <a id='button-show_local_changes' class='button' onclick='show_local_changes()'>local changes</a>
 <a id='button-show_recent_changes' class='button' onclick='show_recent_changes()'>recent changes</a>
-</div>
+</p>
 
 <style>
 .show_todos #button-show_todos,

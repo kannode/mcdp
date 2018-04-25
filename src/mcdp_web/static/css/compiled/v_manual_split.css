@@ -2470,13 +2470,6 @@ pre + p {
 .show_local_changes a[has-local-changes] {
   background-color: rgba(167, 0, 170, 0.22);
 }
-.show_local_changes a[has-local-changes]::after {
-  color: purple;
-  content: 'local changes';
-  margin-right: 3px;
-  font-family: sans-serif;
-  font-size: 50%;
-}
 .show_recent_changes a[github-last-modified-days='0']::after {
   content: 'modified today';
   color: darkgreen;

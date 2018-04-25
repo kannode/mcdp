@@ -348,6 +348,8 @@ class GithubLocation(Location):
 @contract(returns='$GithubLocation|None')
 def get_github_location(filename):
     # TODO: detect if the copy is dirty
+    if not os.path.exists(filename):
+        return None # XXX
     try:
         # need realpath because of relative names, e.g. filename = 'docs/file.md' and the root is at ..
         filename_r = os.path.realpath(filename)
@@ -388,10 +390,6 @@ def get_github_location(filename):
     last_modified = source_info.last_modified
     has_local_modifications = source_info.has_local_modifications
 
-    # except NoSourceInfo as e:
-    #     logger.debug(e)
-    #     author = None
-    #     last_modified = None
 
     return GithubLocation(org=org, repo=repo, path=relpath,
                           repo_base=repo_base,
