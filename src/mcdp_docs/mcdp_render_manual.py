@@ -23,7 +23,7 @@ from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
     html_list_of_notes, mark_in_html, bs
 from mcdp_utils_misc.fileutils import read_data_from_file
-from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, NavigableString
+from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag
 from quickapp import QuickApp
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
@@ -375,19 +375,48 @@ def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
 def get_extra_content(aug):
     extra_panel_content = Tag(name='div')
     extra_panel_content.attrs['id'] = 'extra-panel-content'
+    # language=html
     html = """
     
-<p>show: <a onclick='show_status();'>section status</a>
-<a onclick='show_todos();'>section errors, todos</a></p>
+<p>show: 
+
+<a id='s1' href="#s1" style='cursor:pointer' onclick='show_status();'>section status</a>
+<a id='s2' href='#s2' style='cursor:pointer' onclick='show_todos();'>section errors, todos</a></p>
 
 <script>
-function show_status() {
-    document.body.classList.add("show_status");
+
+function adjust(klass) {
+
+    if(localStorage.getItem(klass) == 1) {
+        console.log('removing ' + klass);
+        document.body.classList.remove(klass);
+    } else {
+        console.log('adding ' + klass);
+        document.body.classList.add(klass);
+    }
+}
+
+function toggle(klass) { 
+    if(localStorage.getItem(klass) == 1) {
+        localStorage.setItem(klass, 0);
+    } else { 
+        localStorage.setItem(klass, 1);
+    }
 }
 
 function show_todos() {
-    document.body.classList.add("show_todos");
-}
+    toggle('show_todos');
+    adjust('show_todos');
+};
+
+function show_status() {
+    toggle('show_status');
+    adjust('show_status');
+}; 
+
+
+adjust('show_todos');
+adjust('show_status');
 
 </script>
 
