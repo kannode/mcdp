@@ -507,9 +507,12 @@ the syntax "#ID", such as:
         res.note_error(msg, HTMLIDLocation.for_element(a))
 
 
-def add_id_if_not_present(a):
+def add_id_if_not_present(a, unique=None):
     if not 'id' in a.attrs:
-        a.attrs['id'] = 'add-id-%s-%s' % (a.name, str(id(a)))
+        id_ ='add-id-%s-%s' % (a.name, str(id(a)))
+        if unique:
+            id_ = unique + '-' + id_
+        a.attrs['id'] = id_
 
 
 def sub_link(a, element_id, element, raise_errors, res):

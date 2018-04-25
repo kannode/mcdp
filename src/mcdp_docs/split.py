@@ -341,7 +341,8 @@ def mark_toc_links_as_errored(main_toc, soup):
 
                 min_ = min(n, min_)
                 if min_ == n:
-                    author = x.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR]
+                    if MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR in x.attrs:
+                        author = x.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR]
 
             element.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = \
             section.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = \

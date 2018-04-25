@@ -45,6 +45,7 @@ def get_changed_files(repo_root):
 def get_source_info(filename):
     """ Returns a SourceInfo object or None if the file is not
         part of the repository. """
+
     try:
         root = get_repo_root(os.path.realpath(filename))
     except NoRootRepo as e:
@@ -52,26 +53,28 @@ def get_source_info(filename):
         raise_wrapped(NoSourceInfo, e, msg, compact=True)
         raise
     repo = get_repo_object(root)
-    path = filename
     try:
-        commit = repo.iter_commits(paths=path, max_count=1).next()
-    except (StopIteration, ValueError) as _e:
-        # ValueError: Reference at 'refs/heads/master' does not exist
-        msg = 'Could not find commit for %s' % filename
-        raise_wrapped(NoSourceInfo, _e, msg, compact=True)
-        raise
-    author = commit.author
-    last_modified = time.gmtime(commit.committed_date)
-    last_modified = datetime.datetime.fromtimestamp(time.mktime(last_modified))
+        path = filename
+        try:
+            commit = repo.iter_commits(paths=path, max_count=1).next()
+        except (StopIteration, ValueError) as _e:
+            # ValueError: Reference at 'refs/heads/master' does not exist
+            msg = 'Could not find commit for %s' % filename
+            raise_wrapped(NoSourceInfo, _e, msg, compact=True)
+            raise
+        author = commit.author
+        last_modified = time.gmtime(commit.committed_date)
+        last_modified = datetime.datetime.fromtimestamp(time.mktime(last_modified))
 
-    has_local_modifications = os.path.realpath(filename) in get_changed_files(root)
+        has_local_modifications = os.path.realpath(filename) in get_changed_files(root)
 
 
-    commit = commit.hexsha
-    repo.git = None
-    # print('%s last modified by %s on %s ' % (filename, author, last_modified))
-    return SourceInfo(commit=commit, author=author, last_modified=last_modified, has_local_modifications=has_local_modifications)
+        commit = commit.hexsha
 
+        # print('%s last modified by %s on %s ' % (filename, author, last_modified))
+        return SourceInfo(commit=commit, author=author, last_modified=last_modified, has_local_modifications=has_local_modifications)
+    finally:
+        repo.git = None
 
 def make_last_modified(files_contents, nmax=100):
     res = AugmentedResult()

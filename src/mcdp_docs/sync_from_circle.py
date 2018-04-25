@@ -374,7 +374,8 @@ def get_branch_table(d0, project, builds, active_branches):
 
             links = Tag(name='td')
             links.attrs['class'] = 'links'
-            links.append(get_links(build, branch))
+            if build.artefacts:
+                links.append(get_links(build, branch))
             tr.append(links)
 
             author = Tag(name='span')
@@ -553,13 +554,8 @@ def get_build_table(builds):
 
         links = Tag(name='span')
         links.attrs['class'] = 'links'
-        links.append(get_links(build))
-        # for art in build.artefacts:
-        #     a = Tag(name='a')
-        #     a['href'] = art.rel
-        #     a.append(art.display)
-        #     links.append(' ')
-        #     links.append(a)
+        if build.artefacts:
+            links.append(get_links(build))
 
         f(links)
 

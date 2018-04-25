@@ -53,6 +53,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     from mcdp_report.gg_utils import resolve_references_to_images
     s0 = s
 
+    unique = get_md5(realpath)[:8]
     check_good_use_of_special_paragraphs(s0, res, location)
     raise_missing_image_errors = raise_errors
 
@@ -134,7 +135,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     other_abbrevs(soup, res, location)
 
     substitute_special_paragraphs(soup, res, location)
-    create_notes_from_elements(soup, res, location)
+    create_notes_from_elements(soup, res, location, unique)
 
     # need to process tabular before mathjax
     escape_for_mathjax(soup)

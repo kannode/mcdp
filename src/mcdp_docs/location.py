@@ -154,9 +154,9 @@ class LocalFile(Location):
 class HTMLIDLocation(Location):
 
     @staticmethod
-    def for_element(element, parent=None):
+    def for_element(element, parent=None, unique=None):
         from mcdp_docs.tocs import add_id_if_not_present
-        add_id_if_not_present(element)
+        add_id_if_not_present(element, unique=unique)
         return HTMLIDLocation(element.attrs['id'], parent)
 
     def __init__(self, element_id, parent=None):
