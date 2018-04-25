@@ -380,13 +380,20 @@ def get_extra_content(aug):
     
 <p>show: 
 
-<a id='s1' href="#s1" style='cursor:pointer' onclick='show_status();'>section status</a>
-<a id='s2' href='#s2' style='cursor:pointer' onclick='show_todos();'>section errors, todos</a></p>
+<a id='button-show_status' href="#button-show_status" style='cursor:pointer' onclick='show_status();'>section status</a>
+<a id='button-show_todos' href='#button-show_todos' style='cursor:pointer' onclick='show_todos();'>errors &amp; todos</a></p>
 
+<style>
+.show_todos #button-show_todos,
+.show_status #button-show_status {
+    font-weight: bold;
+    background-color: yellow;
+}
+
+</style>
 <script>
 
 function adjust(klass) {
-
     if(localStorage.getItem(klass) == 1) {
         console.log('removing ' + klass);
         document.body.classList.remove(klass);
@@ -398,8 +405,10 @@ function adjust(klass) {
 
 function toggle(klass) { 
     if(localStorage.getItem(klass) == 1) {
+        console.log('changing ' + klass + ' 1 to 0 ');
         localStorage.setItem(klass, 0);
     } else { 
+        console.log('changing ' + klass + ' 0 to 1 ');
         localStorage.setItem(klass, 1);
     }
 }
