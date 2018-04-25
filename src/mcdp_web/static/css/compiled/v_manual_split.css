@@ -2477,6 +2477,33 @@ pre + p {
   font-family: sans-serif;
   font-size: 50%;
 }
+.show_recent_changes a[github-last-modified-days='0']::after {
+  content: 'modified today';
+  color: darkgreen;
+}
+.show_recent_changes a[github-last-modified-days='1']::after {
+  content: 'modified yesterday';
+  color: darkgreen;
+}
+.show_recent_changes a[github-last-modified-days='2']::before,
+.show_recent_changes a[github-last-modified-days='3']::before,
+.show_recent_changes a[github-last-modified-days='4']::before,
+.show_recent_changes a[github-last-modified-days='5']::before,
+.show_recent_changes a[github-last-modified-days='6']::before {
+  content: ' modified ' attr(github-last-modified-days) ' days ago';
+  color: darkgreen;
+}
+.show_recent_changes a[github-last-modified-days='0']::after,
+.show_recent_changes a[github-last-modified-days='1']::after,
+.show_recent_changes a[github-last-modified-days='2']::after,
+.show_recent_changes a[github-last-modified-days='3']::after,
+.show_recent_changes a[github-last-modified-days='4']::after,
+.show_recent_changes a[github-last-modified-days='5']::after,
+.show_recent_changes a[github-last-modified-days='6']::after {
+  font-size: smaller;
+  font-family: sans-serif;
+  margin-left: 0.2em;
+}
 .show_todos a[summary]::after {
   content: attr(summary);
   color: blue;

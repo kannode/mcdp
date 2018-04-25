@@ -2,6 +2,7 @@
 
 import os
 import re
+from datetime import datetime
 
 from contracts.utils import raise_wrapped
 from git.repo.base import Repo
@@ -43,7 +44,9 @@ def add_edit_links2(soup, location):
         h.attrs[MCDPManualConstants.ATTR_GITHUB_EDIT_URL] = l.edit_url
         h.attrs[MCDPManualConstants.ATTR_GITHUB_BLOB_URL] = l.blob_url
 
-        h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = l.last_modified
+        delta = datetime.now() - l.last_modified
+        days =  delta.days
+        h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = str(days)
         if l.has_local_modifications:
             h.attrs[MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS] = 1
 

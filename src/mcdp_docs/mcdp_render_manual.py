@@ -380,19 +380,21 @@ def get_extra_content(aug):
     # language=html
     html = """
     
-<p>show: 
+<div>Show: <br/>
 
 <a id='button-show_status' class='button' onclick='show_status();'>section status</a> 
 <a id='button-show_todos'  class='button' onclick='show_todos();'>errors &amp; todos</a> 
 <a id='button-show_local_changes' class='button' onclick='show_local_changes()'>local changes</a>
-</p>
+<a id='button-show_recent_changes' class='button' onclick='show_recent_changes()'>recent changes</a>
+</div>
 
 <style>
 .show_todos #button-show_todos,
 .show_status #button-show_status,
-.show_local_changes #button-show_local_changes {
-    font-weight: bold;
-    background-color: yellow;
+.show_local_changes #button-show_local_changes,
+.show_recent_changes #button-show_recent_changes {
+    
+    background-color: #bec9ce;
 }
 .button {
     border: solid 1px black;
@@ -402,6 +404,7 @@ def get_extra_content(aug):
     font-family: sans-serif;
     cursor: pointer;
 }
+
 </style>
 <script>
 
@@ -440,10 +443,16 @@ function show_local_changes() {
     adjust('show_local_changes');
 }; 
 
+function show_recent_changes() {
+    toggle('show_recent_changes');
+    adjust('show_recent_changes');
+}; 
+
 
 adjust('show_todos');
 adjust('show_status');
 adjust('show_local_changes');
+adjust('show_recent_changes');
 </script>
 
     

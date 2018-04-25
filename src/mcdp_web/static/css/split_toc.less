@@ -134,6 +134,44 @@
   }
 }
 
+.show_recent_changes {
+  a[github-last-modified-days='0']::after {
+    content: 'modified today';
+    color: darkgreen;
+  }
+
+  a[github-last-modified-days='1']::after {
+    content: 'modified yesterday';
+    color: darkgreen;
+  }
+
+  a[github-last-modified-days='2'],
+  a[github-last-modified-days='3'],
+  a[github-last-modified-days='4'],
+  a[github-last-modified-days='5'],
+  a[github-last-modified-days='6'] {
+    &::before {
+      content: ' modified ' attr(github-last-modified-days) ' days ago';
+      color: darkgreen;
+    }
+  }
+
+  a[github-last-modified-days='0'],
+  a[github-last-modified-days='1'],
+  a[github-last-modified-days='2'],
+  a[github-last-modified-days='3'],
+  a[github-last-modified-days='4'],
+  a[github-last-modified-days='5'],
+  a[github-last-modified-days='6'] {
+    &::after {
+      font-size: smaller;
+      font-family: sans-serif;
+      margin-left: 0.2em;
+    }
+  }
+
+}
+
 .show_todos {
 
   a[summary]::after {
