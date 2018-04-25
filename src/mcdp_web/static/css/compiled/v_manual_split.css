@@ -2472,7 +2472,7 @@ pre + p {
   font-size: 60%;
   font-family: sans-serif;
   text-align: right;
-  display: block;
+  margin-left: 1em;
 }
 a[summary][nerrors]::after {
   color: red;
