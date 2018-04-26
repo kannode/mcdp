@@ -219,8 +219,6 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     if MCDPManualConstants.enable_syntax_higlighting:
         syntax_highlighting(soup)
 
-    if MCDPManualConstants.enforce_status_attribute:
-        check_status_codes(soup, realpath, res, location)
 
     if MCDPManualConstants.enforce_lang_attribute:
         check_lang_codes(soup, res, location)
@@ -230,6 +228,9 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     fix_ids_and_add_missing(soup, globally_unique_id_part, res, location)
 
     check_no_patently_wrong_links(soup, res, location)
+
+    if MCDPManualConstants.enforce_status_attribute:
+        check_status_codes(soup, realpath, res, location)
 
     s = to_html_stripping_fragment(soup)
     s = replace_macros(s)
