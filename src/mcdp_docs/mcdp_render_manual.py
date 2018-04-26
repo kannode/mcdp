@@ -44,7 +44,8 @@ class RenderManual(QuickApp):
         params.add_string('src', help="Directories with all contents; separate multiple entries with a colon.")
         params.add_string('resources', help='Extra directories for resources (but not Markdown)', default='')
 
-        params.add_string('output_file', help='Output file')
+        params.add_string('output_crossref', help='Crossref', default=None)
+        params.add_string('output_file', help='Output file', default=None)
         params.add_string('stylesheet', help='Stylesheet for html version', default=None)
         params.add_string('stylesheet_pdf', help='Stylesheet pdf version', default=None)
 
@@ -95,6 +96,7 @@ class RenderManual(QuickApp):
         do_last_modified = options.last_modified
         permalink_prefix = options.permalink_prefix
         compose_config = options.compose
+        output_crossref = options.output_crossref
         use_mathjax = True if options.mathjax else False
 
         logger.info('use mathjax: %s' % use_mathjax)
@@ -108,7 +110,6 @@ class RenderManual(QuickApp):
 
         resolve_references = not options.no_resolve_references
 
-        # outdir = os.path.dirname(output_file)
 
         manual_jobs(context,
                     src_dirs=src_dirs,
@@ -127,6 +128,7 @@ class RenderManual(QuickApp):
                     do_last_modified=do_last_modified,
                     permalink_prefix=permalink_prefix,
                     compose_config=compose_config,
+                    output_crossref=output_crossref,
                     )
 
 
@@ -214,6 +216,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 out_pdf=None,
                 permalink_prefix=None,
                 compose_config=None,
+                output_crossref=None,
                 do_last_modified=False):
     """
         src_dirs: list of sources
@@ -317,7 +320,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                               permalink_prefix=permalink_prefix,
                               job_id='join-%s' % get_md5(crossrefs)[:8])
 
-    context.comp(write_crossref_info, joined_aug, out_split_dir, permalink_prefix=permalink_prefix)
+    if output_crossref is not None:
+        context.comp(write_crossref_info, joined_aug, output_crossref, permalink_prefix=permalink_prefix)
 
     if compose_config is not None:
         try:
@@ -356,7 +360,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         context.comp(write_manifest_pdf, out_pdf)
 
 
-def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
+def write_crossref_info(joined_aug, output_crossref, permalink_prefix):
     soup = bs_entire_document(joined_aug.get_result())
 
     cross = Tag(name='body')
@@ -369,9 +373,8 @@ def write_crossref_info(joined_aug, out_split_dir, permalink_prefix):
         cross.append(e2)
     for img in list(cross.find_all('img')):
         img.extract()
-    fn = os.path.join(out_split_dir, '..', 'crossref.html')
     print('writing cross ref info')
-    write_data_to_file(str(cross), fn)
+    write_data_to_file(str(cross), output_crossref)
 
 
 def get_extra_content(aug):
