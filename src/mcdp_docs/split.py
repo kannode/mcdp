@@ -280,28 +280,18 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         main_toc0 = main_toc.__copy__()
 
         main_toc0_s = str(main_toc0)
-        # with open('toc0.html', 'w') as f:
-        #     f.write(main_toc0_s)
-    #        main_toc0_pickle = pickle.dumps(main_toc)
-
     asset_jobs = []
     for i, (filename, contents) in enumerate(filename2contents.items()):
         if i % num_workers != worker_i:
             continue
-
-        #        with timeit('main_toc copy'):
-        #            main_toc = main_toc0.__copy__()
         with timeit('main_toc copy hack'):
             main_toc = bs(main_toc0_s).ul
             assert main_toc is not None
-        #        with timeit('main_toc copy pickle'):
-        #            main_toc = cPickle.loads(main_toc0_pickle)
 
         # Trick: we add the main_toc, and then ... (look below)
         with timeit('make_page'):
             html = make_page(contents, head0, main_toc, extra_panel_content)
 
-        #        logger.debug('%d/%d: %s' % (i, n, filename))
         with timeit("direct job"):
             result = only_second_part(
                     mathjax, preamble, html, id2filename, filename)
@@ -311,13 +301,16 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
             fn = os.path.join(output_dir, filename)
 
-            #            fn0 = os.path.join(tmpd, filename)
-            #            write_data_to_file(result, fn0, quiet=True)
 
             h = get_md5(result)[:8]
             r = context.comp(extract_assets_from_file, result, fn, assets_dir,
                              job_id='%s-%s-assets' % (filename, h))
             asset_jobs.append(r)
+
+    update_refs_('toc.html', main_toc, id2filename)
+    out_toc = os.path.join(output_dir, 'toc.html')
+    write_data_to_file(str(main_toc), out_toc)
+
     return context.comp(wait_assets, res, asset_jobs)
 
 
@@ -404,7 +397,7 @@ split_main = Split.get_sys_main()
 
 
 def remove_spurious(output_dir, filenames):
-    ignore = ['link.html', 'errors.html', 'warnings.html', 'tasks.html', 'crossref.html']
+    ignore = ['link.html', 'toc.html', 'errors.html', 'warnings.html', 'tasks.html', 'crossref.html']
     found = os.listdir(output_dir)
     for f in found:
         if not f.endswith('.html'):

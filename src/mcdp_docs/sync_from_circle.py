@@ -177,7 +177,7 @@ def get_artefacts(d0, d_build):
     nfiles = 0
     for fn in locate_files(d_build, pattern):
         nfiles += 1
-        print('found manifest file %s' % fn)
+        # print('found manifest file %s' % fn)
         with open(fn) as f:
             entries = yaml.load(f.read())
 
@@ -195,7 +195,8 @@ def get_artefacts(d0, d_build):
             try_look_for(group, target, display)
 
     if nfiles == 0:
-        print('Could not find manifest files')
+        # print('Could not find manifest files')
+        pass
 
     return artefacts
 
@@ -479,31 +480,35 @@ def get_links_from_artefacts(artefacts, branch=None, build_num=None):
         tag_g.append(' (')
 
         arts = [_ for _ in artefacts if _.group == g]
-        arts = reversed(sorted(arts, key=lambda _: _.display))
-        for i, art in enumerate(arts):
-            if art.group != g:
-                continue
+        div = get_links2(arts, branch, build_num)
+        links.append('(')
+        links.append(div)
+        links.append(')')
 
-            a = Tag(name='a')
-
-            if art.rel is None:
-                path = '#'
-                a.attrs['class'] = 'not-found'
-            else:
-                path = art.rel
-                if path is not None and branch is not None:
-                    path = path.replace('builds/%s' % build_num,
-                                        'branch/%s' % path_frag_from_branch(branch))
-            if path is not None:
-                a['href'] = path
-            a.append(art.display)
-            if i > 0:
-                tag_g.append(' ')
-            tag_g.append(a)
-        tag_g.append(')')
-        links.append(tag_g)
     return links
 
+def get_links2(arts, branch=None, build_num=None):
+    div = Tag(name='span')
+    arts = reversed(sorted(arts, key=lambda _: _.display))
+    for i, art in enumerate(arts):
+
+        a = Tag(name='a')
+
+        if art.rel is None:
+            path = '#'
+            a.attrs['class'] = 'not-found'
+        else:
+            path = art.rel
+            if path is not None and branch is not None:
+                path = path.replace('builds/%s' % build_num,
+                                    'branch/%s' % path_frag_from_branch(branch))
+        if path is not None:
+            a['href'] = path
+        a.append(art.display)
+        if i > 0:
+            div.append(' ')
+        div.append(a)
+    return div
 
 def get_build_table(builds):
     table = Tag(name='table')
