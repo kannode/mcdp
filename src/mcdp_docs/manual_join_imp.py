@@ -486,8 +486,9 @@ def reorganize_contents(body0, add_debug_comments=False):
     with timeit('dissolving'):
         # now dissolve all the elements of the type <div class='without-header-inside'>
         options = ['without-header-inside', 'with-header-inside']
-        for x in reorganized.find_all('div', attrs={'class':
-                                                        lambda x: x is not None and x in options}):
+        for x in reorganized.find_all('div', attrs=
+        {'class':
+             lambda _: _ is not None and _ in options}):
             dissolve(x)
 
     return reorganized
@@ -873,7 +874,6 @@ def copy_attributes_from_header(section, header):
     for c in header.attrs.get('class', []):
         add_class(section, c)
 
-
     for a in MCDPManualConstants.attrs_to_copy_from_header_to_section:
         if a in header.attrs:
             section.attrs[a] = header.attrs[a]
@@ -948,6 +948,7 @@ def debug(s):
     sys.stderr.write(str(s) + ' \n')
 
 
+# language=javascript
 jump_script = """
 id2fragment = {};
 
@@ -1083,7 +1084,7 @@ def generate_and_add_toc(soup, raise_error=False, aug=None):
     else:
         toc_ul.extract()
         assert toc_ul.name == 'ul'
-        toc_ul['class'] = 'toc' # XXX: see XXX13
+        toc_ul['class'] = 'toc'  # XXX: see XXX13
         toc_ul['id'] = MCDPManualConstants.MAIN_TOC_ID
 
         toc_selector = MCDPManualConstants.TOC_PLACEHOLDER_SELECTOR

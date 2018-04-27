@@ -140,11 +140,30 @@ def read_build(client, username, project, token, r, d0):
 
                     tf = tarfile.open(f, 'r:gz')
                     tf.extractall(d_build)
+                    os.unlink(tf)
 
-    Artefact = namedtuple('Artefact', 'display group rel found')
+    #     try_look_for(os.path.join(d_build, 'out/split/index.html'), 'html')
+    #     try_look_for(os.path.join(d_build, 'out.pdf'), 'PDF')
+
+    # if artefacts:
+    #     print(artefacts)
+    artifacts = get_artefacts(d0, d_build)
+    return Build(r=r, artefacts=artifacts)
+
+
+Artefact = namedtuple('Artefact', 'display group rel found')
+
+
+def get_artefacts(d0, d_build):
+    """
+
+    :param d0:
+    :param d_build: where the artefacts are
+    :return: list of Artefacts
+    """
     artefacts = []
 
-    def try_look_for(group, f1, display_):
+    def try_look_for(group_, f1, display_):
         if not os.path.exists(f1):
             logger.error('target %r does not exist' % f1)
             found = False
@@ -152,7 +171,7 @@ def read_build(client, username, project, token, r, d0):
         else:
             found = True
             rel = os.path.relpath(f1, d0)
-        artefacts.append(Artefact(display=display_, group=group, rel=rel, found=found))
+        artefacts.append(Artefact(display=display_, group=group_, rel=rel, found=found))
 
     pattern = '*.manifest.yaml'
     nfiles = 0
@@ -177,12 +196,8 @@ def read_build(client, username, project, token, r, d0):
 
     if nfiles == 0:
         print('Could not find manifest files')
-    #     try_look_for(os.path.join(d_build, 'out/split/index.html'), 'html')
-    #     try_look_for(os.path.join(d_build, 'out.pdf'), 'PDF')
 
-    if artefacts:
-        print(artefacts)
-    return Build(r=r, artefacts=artefacts)
+    return artefacts
 
 
 class NoSuccess(Exception):
@@ -445,9 +460,14 @@ def get_links(build, branch=None):
 
 
 def get_links_(build, branch=None):
+    build_num = build.get_build_num()
+    return get_links_from_artefacts(build.artefacts, build_num=build_num, branch=branch)
+
+
+def get_links_from_artefacts(artefacts, branch=None, build_num=None):
     links = Tag(name='span')
     links.attrs['class'] = 'links'
-    groups = sorted(set([art.group for art in build.artefacts]))
+    groups = sorted(set([art.group for art in artefacts]))
     for j, g in enumerate(groups):
         if j > 0:
             links.append(Tag(name='br'))
@@ -458,7 +478,7 @@ def get_links_(build, branch=None):
         tag_g.append(Tag(name='br'))
         tag_g.append(' (')
 
-        arts = [_ for _ in build.artefacts if _.group == g]
+        arts = [_ for _ in artefacts if _.group == g]
         arts = reversed(sorted(arts, key=lambda _: _.display))
         for i, art in enumerate(arts):
             if art.group != g:
@@ -472,7 +492,7 @@ def get_links_(build, branch=None):
             else:
                 path = art.rel
                 if path is not None and branch is not None:
-                    path = path.replace('builds/%s' % build.get_build_num(),
+                    path = path.replace('builds/%s' % build_num,
                                         'branch/%s' % path_frag_from_branch(branch))
             if path is not None:
                 a['href'] = path
@@ -721,6 +741,7 @@ def locate_files(directory, pattern, followlinks=True,
         filenames = list(real2norm.keys())
 
     return filenames
+
 
 # language=css
 css = """
