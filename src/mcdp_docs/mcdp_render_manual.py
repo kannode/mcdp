@@ -335,7 +335,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 
     joined_aug = context.comp(mark_errors_and_rest, joined_aug)
 
-    # context.comp(write, joined_aug, output_file)
+    if output_file is not None:
+        context.comp(write, joined_aug, output_file)
 
     if out_split_dir is not None:
         joined_aug_with_html_stylesheet = context.comp(add_style, joined_aug, stylesheet)

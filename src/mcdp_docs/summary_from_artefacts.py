@@ -20,6 +20,12 @@ def go(d, out):
     meta = Tag(name='meta')
     meta.attrs['content'] = "text/html; charset=utf-8"
     meta.attrs['http-equiv'] = "Content-Type"
+    style = Tag(name='style')
+    style.append("""
+    body {
+        column-count: 3;
+    }
+    """)
     head.append(meta)
 
     html.append(head)

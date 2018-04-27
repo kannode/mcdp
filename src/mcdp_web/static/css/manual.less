@@ -1283,7 +1283,7 @@ section::before {
     content: 'This section is marked as draft';
     color: @color-draft;
     display: block;
-    text-align: right;
+    text-align: left;
     margin-top: 0.5em;
     padding-top: 0.5em;
     padding-right: 0.5em;
@@ -1291,8 +1291,8 @@ section::before {
 }
 
 section[status=draft] {
-  border-right: solid @section-ribbon fade(@color-draft, 20%);
-  padding-right: @section-padding;
+  border-left: solid @section-ribbon fade(@color-draft, 20%);
+  padding-left: @section-padding;
 }
 
 @media screen {
@@ -1308,8 +1308,8 @@ section[status=draft] {
 }
 
 section[status=beta] {
-  border-right: solid @section-ribbon fade(@color-beta, 20%);
-  padding-right: @section-padding;
+  border-left: solid @section-ribbon fade(@color-beta, 20%);
+  padding-left: @section-padding;
 }
 
 @media screen {
@@ -1325,8 +1325,8 @@ section[status=beta] {
 }
 
 section[status=to-update] {
-  border-right: solid @section-ribbon fade(@color-to-update, 20%);
-  padding-right: @section-padding;
+  border-left: solid @section-ribbon fade(@color-to-update, 20%);
+  padding-left: @section-padding;
 }
 
 @media screen {
@@ -1342,8 +1342,8 @@ section[status=to-update] {
 }
 
 section[status=unknown][level=sec] {
-  border-right: solid @section-ribbon fade(@color-unknown, 20%);
-  padding-right: @section-padding;
+  border-left: solid @section-ribbon fade(@color-unknown, 20%);
+  padding-left: @section-padding;
 }
 
 @media screen {
@@ -1359,8 +1359,8 @@ section[status=unknown][level=sec] {
 }
 
 section[status=recently-updated] {
-  border-right: solid @section-ribbon fade(@color-recently-updated, 20%);
-  padding-right: @section-padding;
+  border-left: solid @section-ribbon fade(@color-recently-updated, 20%);
+  padding-left: @section-padding;
 }
 
 @media screen {
@@ -1376,8 +1376,8 @@ section[status=recently-updated] {
 }
 
 section[status=deprecated] {
-  border-right: solid @section-ribbon fade(@color-deprecated, 20%);
-  padding-right: @section-padding;
+  border-left: solid @section-ribbon fade(@color-deprecated, 20%);
+  padding-left: @section-padding;
 }
 
 /// "details" Note navigation: put somewhere else

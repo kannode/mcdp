@@ -225,10 +225,12 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
     # XXX: this is not the place to do it
     mark_toc_links_as_errored(main_toc, soup)
 
+
     body = soup.html.body
 
     with timeit("split_in_files"):
         filename2contents = split_in_files(body)
+
 
     with timeit("add_prev_next_links"):
         filename2contents = add_prev_next_links(filename2contents)
@@ -394,8 +396,6 @@ def wait_assets(res, asset_jobs):
     return res
 
 
-# def quick_copy(main_toc):
-#    return bs(str(main_toc))
 def identity(x):
     return x
 

@@ -2160,15 +2160,15 @@ section::before {
     content: 'This section is marked as draft';
     color: red;
     display: block;
-    text-align: right;
+    text-align: left;
     margin-top: 0.5em;
     padding-top: 0.5em;
     padding-right: 0.5em;
   }
 }
 section[status=draft] {
-  border-right: solid 0.5em rgba(255, 0, 0, 0.2);
-  padding-right: 0.5em;
+  border-left: solid 0.5em rgba(255, 0, 0, 0.2);
+  padding-left: 0.5em;
 }
 @media screen {
   section[status=beta]::before {
@@ -2182,8 +2182,8 @@ section[status=draft] {
   }
 }
 section[status=beta] {
-  border-right: solid 0.5em rgba(255, 165, 0, 0.2);
-  padding-right: 0.5em;
+  border-left: solid 0.5em rgba(255, 165, 0, 0.2);
+  padding-left: 0.5em;
 }
 @media screen {
   section[status=to-update]::before {
@@ -2197,8 +2197,8 @@ section[status=beta] {
   }
 }
 section[status=to-update] {
-  border-right: solid 0.5em rgba(0, 0, 255, 0.2);
-  padding-right: 0.5em;
+  border-left: solid 0.5em rgba(0, 0, 255, 0.2);
+  padding-left: 0.5em;
 }
 @media screen {
   section[status=unknown][level=sec]::before {
@@ -2212,8 +2212,8 @@ section[status=to-update] {
   }
 }
 section[status=unknown][level=sec] {
-  border-right: solid 0.5em rgba(128, 128, 128, 0.2);
-  padding-right: 0.5em;
+  border-left: solid 0.5em rgba(128, 128, 128, 0.2);
+  padding-left: 0.5em;
 }
 @media screen {
   section[status=recently-updated]::before {
@@ -2227,8 +2227,8 @@ section[status=unknown][level=sec] {
   }
 }
 section[status=recently-updated] {
-  border-right: solid 0.5em rgba(128, 0, 128, 0.2);
-  padding-right: 0.5em;
+  border-left: solid 0.5em rgba(128, 0, 128, 0.2);
+  padding-left: 0.5em;
 }
 @media screen {
   section[status=deprecated]::before {
@@ -2242,8 +2242,8 @@ section[status=recently-updated] {
   }
 }
 section[status=deprecated] {
-  border-right: solid 0.5em rgba(128, 0, 128, 0.2);
-  padding-right: 0.5em;
+  border-left: solid 0.5em rgba(128, 0, 128, 0.2);
+  padding-left: 0.5em;
 }
 .note-navigation span {
   padding-right: 5px;
