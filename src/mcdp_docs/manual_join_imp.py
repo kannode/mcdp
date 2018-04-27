@@ -249,7 +249,7 @@ def manual_join(template, files_contents,
         return result
 
 
-def document_final_pass_before_toc(soup, remove, remove_selectors):
+def document_final_pass_before_toc(soup, remove, remove_selectors, res=None):
     logger.info('reorganizing contents in <sections>')
 
     with timeit('find body'):
@@ -268,7 +268,7 @@ def document_final_pass_before_toc(soup, remove, remove_selectors):
         do_remove_stuff(body2, remove_selectors, remove)
 
     with timeit('move_things_around'):
-        move_things_around(soup=soup)
+        move_things_around(soup=soup, res=res)
 
 
 def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True, res=None, location=LocationUnknown()):

@@ -17,7 +17,7 @@ def read_references(dirname, base_url, prefix):
         rel = os.path.relpath(os.path.realpath(f), os.path.realpath(dirname))
         for element in a.select('[id]'):
             id_ = element.attrs['id']
-            url = base_url + '/' + rel + '#' + id_
+            url = base_url + '/' + rel +  id_
             ident = element.select('span.ident')
             if ident:
                 title = str(ident[0]) 
