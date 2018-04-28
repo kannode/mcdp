@@ -11,6 +11,7 @@ from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
 from mcdp.logs import logger
 from mcdp_docs.add_edit_links import add_github_links_if_edit_url
+from mcdp_docs.check_missing_links import detect_duplicate_IDs
 from mcdp_docs.github_file_ref.substitute_github_refs_i import substitute_github_refs
 from mcdp_docs.location import LocationUnknown
 from mcdp_docs.manual_constants import MCDPManualConstants
@@ -143,8 +144,9 @@ def manual_join(template, files_contents,
                 frag = bs(contents)
                 basename2soup[doc_to_join.docname] = frag
 
-        with timeit('fix_duplicate_ids'):
-            fix_duplicated_ids(basename2soup)
+        # with timeit('fix_duplicate_ids'):
+            # XXX
+            # fix_duplicated_ids(basename2soup)
 
         with timeit('copy contents'):
             body = d.find('body')
@@ -208,6 +210,7 @@ def manual_join(template, files_contents,
                         result.note_error(msg)
                     else:
                         raise Exception(msg)
+
 
         with timeit('document_final_pass_after_toc'):
             document_final_pass_after_toc(soup=d, crossrefs=crossrefs,
@@ -294,8 +297,10 @@ def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
         a.attrs['href'] = a.attrs['href_external']
         add_class(a, 'interdoc')
 
-    warn_for_duplicated_ids(soup)
 
+    detect_duplicate_IDs(soup, res)
+
+    # warn_for_duplicated_ids(soup)
 
 def document_only_once(html_soup):
     add_footnote_polyfill(html_soup)

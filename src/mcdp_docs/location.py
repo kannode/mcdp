@@ -159,6 +159,18 @@ class HTMLIDLocation(Location):
         add_id_if_not_present(element, unique=unique)
         return HTMLIDLocation(element.attrs['id'], parent)
 
+    @staticmethod
+    def before_element(element, parent=None,  unique=None):
+        from mcdp_docs.tocs import add_id_if_not_present
+        if element.previous_sibling:
+            element = element.previous_sibling
+        if element.parent is not None:
+            element = element.parent
+        else:
+            pass
+        add_id_if_not_present(element, unique=unique)
+        return HTMLIDLocation(element.attrs['id'], parent)
+
     def __init__(self, element_id, parent=None):
         self.element_id = element_id
         self.parent = parent

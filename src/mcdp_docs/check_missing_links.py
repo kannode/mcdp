@@ -5,15 +5,32 @@ from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
+from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml import note_error2, Tag
 from mcdp_utils_xml.add_class_and_style import has_class
 
 show_debug_message_for_corrected_links = False
 
+def detect_duplicate_IDs(soup, res):
+    id2element = OrderedDict()
+    for element in soup.select('[id]'):
+        ID = element.attrs['id']
 
-def get_id2element(soup, att):
+        if ID in id2element:
+            msg = 'Repeated use of ID "%s"' % ID
+            element.attrs['ID'] = ID + '-duplicate-%s' % id(element)
+            locations = OrderedDict()
+            locations['repeated-use'] = HTMLIDLocation.for_element(element)
+            locations['original-use'] = HTMLIDLocation.for_element(id2element[ID])
+            res.note_error(msg, locations)
+        else:
+            id2element[ID] = element
+
+def get_id2element(soup, att, res=None):
     id2element = OrderedDict()
     duplicates = set()
+    if res is None:
+        res = AugmentedResult()
 
     # ignore the maths
     ignore = set()
@@ -32,12 +49,14 @@ def get_id2element(soup, att):
             duplicates.add(ID)
             other = id2element[ID]
             for e0 in [element, other]:
-                note_error2(e0, 'Naming', 'More than one element with id %r.' % ID)
+                # note_error2(e0, 'Naming', 'More than one element with id %r.' % ID)
+                msg = 'More than one element with id %r.'
+                res.note_error(msg, HTMLIDLocation.before_element(e0))
         id2element[element[att]] = element
 
     if duplicates:
         s = ", ".join(sorted(duplicates))
-        msg = '%d duplicated %s found (not errored): %s' % (len(duplicates), att, s)
+        msg = '%d duplicated %s found: %s' % (len(duplicates), att, s)
         logger.error(msg)
     return id2element, duplicates
 
