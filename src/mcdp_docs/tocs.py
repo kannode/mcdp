@@ -12,7 +12,7 @@ from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml import add_class, bs
 
 from .manual_constants import MCDPManualConstants, get_style_duckietown
-from .toc_number import render_number, number_styles
+from .toc_number import render_number, number_styles, ZERO
 
 
 def element_has_one_of_prefixes(element, prefixes):
@@ -98,8 +98,10 @@ def get_things_to_index(soup):
                     depth = 2
                 elif h_id.startswith('sec:'):
                     depth = 3
+                elif h_id.startswith('book:'):
+                    depth = 0
                 else:
-                    msg = 'I expected that this header would start with either part:,app:,sec:.'
+                    msg = 'I expected that this header would start with either part:, app:, sec:, or "book:".'
                     msg += '\n' + str(h)
                     msg += '\nThe function fix_ids_and_add_missing() adds missing IDs and fixes them.'
                     raise InvalidHeaders(msg)
@@ -145,8 +147,9 @@ def get_things_to_index(soup):
             pass
 
 
-def generate_toc(soup, max_depth=None, max_levels=2):
-    stack = [Item(None, 0, 'root', 'root', [])]
+def generate_toc(soup, max_depth=None, max_levels=2, aug=AugmentedResult()):
+    max_levels += 1 # since we added "book"
+    stack = [Item(None, -1, 'root', 'root', [])]
 
     headers_depths = list(get_things_to_index(soup))
 
@@ -159,34 +162,19 @@ def generate_toc(soup, max_depth=None, max_levels=2):
 
         while stack[-1].depth >= depth:
             stack.pop()
+
         stack[-1].items.append(item)
         stack.append(item)
 
     root = stack[0]
 
-    # logger.debug('numbering items')
     number_items2(root)
-    # if False:
-    #     logger.debug(toc_summary(root))
-    #
-    #     logger.debug('toc iterating')
-    #     # iterate over chapters (below each h1)
-    #     # XXX: this is parts
-    #     if False:
-    #         for item in root.items:
-    #             s = item.to_html(root=True, max_levels=100)
-    #             stoc = bs(s)
-    #             if stoc.ul is not None:  # empty document case
-    #                 ul = stoc.ul
-    #                 ul.extract()
-    #                 ul['class'] = 'toc chapter_toc'
-    #                 # todo: add specific h1
-    #                 item.tag.insert_after(ul)  # XXX: uses <fragment>
-    #
-    #     logger.debug('toc done iterating')
 
     without_levels = root.copy_excluding_levels(MCDPManualConstants.exclude_from_toc)
     res = without_levels.to_html(root=True, max_levels=max_levels)
+
+    if ZERO in res:
+        aug.note_error("Some counters had zero values")
     return res
 
 
@@ -444,7 +432,7 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
                 raise ValueError(msg)
             continue
 
-        sub_link(a, element_id, element, raise_errors, res)
+        sub_link(a, element_id, element, res)
 
     for a in get_empty_links(soup):
         href = a.attrs.get('href', '(not present)')
@@ -509,13 +497,13 @@ the syntax "#ID", such as:
 
 def add_id_if_not_present(a, unique=None):
     if not 'id' in a.attrs:
-        id_ ='add-id-%s-%s' % (a.name, str(id(a)))
+        id_ = 'add-id-%s-%s' % (a.name, str(id(a)))
         if unique:
             id_ = unique + '-' + id_
         a.attrs['id'] = id_
 
 
-def sub_link(a, element_id, element, raise_errors, res):
+def sub_link(a, element_id, element, res):
     """
         a: the link with href= #element_id
         element: the link to which we refer
@@ -528,8 +516,12 @@ def sub_link(a, element_id, element, raise_errors, res):
     if MCDPManualConstants.ATTR_NONUMBER in element.attrs:
         label_what_number = None
         label_number = None
-        label_what = element.attrs[LABEL_WHAT]
-        label_name = element.attrs[LABEL_NAME]
+        try:
+            label_what = element.attrs[LABEL_WHAT]
+            label_name = element.attrs[LABEL_NAME]
+        except KeyError as e:
+            msg = 'Cannot find %r in %s' % (e, element.attrs)
+            raise Exception(msg) # XXX
 
         classes = [CLASS_ONLY_NAME]
     else:

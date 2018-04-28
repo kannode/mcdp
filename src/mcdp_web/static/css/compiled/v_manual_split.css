@@ -2417,6 +2417,12 @@ pre + p {
     padding: 1px;
     color: darkblue;
   }
+  #tocdiv .toc_a_for_book {
+    font-weight: bold;
+    margin-bottom: 0.5;
+    display: inline-block;
+    font-size: 150%;
+  }
   #tocdiv .toc_a_for_part {
     text-align: left !important;
     font-weight: bold;
@@ -2471,8 +2477,11 @@ pre + p {
   background-color: rgba(167, 0, 170, 0.22);
 }
 .show_last_change a[github-last-modified-days]::after {
-  content: ' modified ' attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
+  content: attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
   color: darkblue;
+  font-size: smaller;
+  font-family: sans-serif;
+  margin-left: 0.2em;
 }
 .show_last_change a[github-last-modified-days='0']::after,
 .show_last_change a[github-last-modified-days='1']::after,

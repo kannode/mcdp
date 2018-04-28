@@ -1071,7 +1071,7 @@ def generate_and_add_toc(soup, raise_error=False, aug=None):
         aug = AugmentedResult()
     logger.info('adding toc')
     body = soup.find('body')
-    toc = generate_toc(body)
+    toc = generate_toc(body, aug)
 
     # logger.info('TOC:\n' + str(toc))
     toc_ul = bs(toc).ul

@@ -192,7 +192,7 @@ def find_links_from_master(master_soup, version_soup, raise_errors, res):
                     if not get_classes(a):
                         add_class(a, MCDPManualConstants.CLASS_ONLY_NAME)
                     #                     logger.debug('is before: %s' % a)
-                    sub_link(a, eid, linked_element, raise_errors, res)
+                    sub_link(a, eid, linked_element, res)
                 #                     logger.debug('is now: %s' % a)
 
                 href = 'http://purl.org/dth/%s' % remove_prefix(eid)

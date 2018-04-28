@@ -51,7 +51,8 @@ class MCDPManualConstants(object):
     OTHER_THINGS_TO_INDEX = ['figure', 'div', 'cite']
 
     allowed_prefixes_h = {
-        'h1': ['sec', 'app', 'part'],
+        'h1': ['sec', # sec = default
+               'app', 'part', 'book'],
         'h2': ['sub', 'appsub'],
         'h3': ['subsub', 'appsubsub'],
         'h4': ['par'],
@@ -73,7 +74,9 @@ class MCDPManualConstants(object):
         'code', 'tab',
         'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm']
 
+
     counters = [
+        "book",
         'part', 'app', 'sec', 'sub', 'subsub', 'appsub', 'appsubsub', 'par', 'subpar',
         'fig', 'tab', 'subfig', 'code',
         'exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm',
@@ -192,6 +195,7 @@ Style = namedtuple('Style', 'resets labels')
 
 def get_style_book():
     resets = {
+        'book': [],
         'part': [],
         'sec': ['sub', 'subsub', 'par'],
         'sub': ['subsub', 'par'],
@@ -215,6 +219,7 @@ def get_style_book():
     }
 
     labels = {
+        'book': Label('', '', ''),
         'part': Label('Part', '${part}', ''),
         'sec': Label('Chapter', '${sec}', ''),
         'sub': Label('Section', '${sec}.${sub}', ''),
@@ -243,6 +248,7 @@ def get_style_book():
 
 def get_style_duckietown():
     resets = {
+        'book': [],
         'part': ['sec'],
         'sec': ['sub', 'subsub', 'par', 'fig', 'tab'],
         'sub': ['subsub', 'par'],
@@ -267,6 +273,7 @@ def get_style_duckietown():
     }
 
     labels = {
+        'book': Label('', '', ''),
         'part': Label('Part', '${part|upper-alpha}', ''),
         'sec': Label('Unit', '${part|upper-alpha}-${sec}', ''),
         'sub': Label('Section', '${sec}.${sub}', ''),
