@@ -5,6 +5,7 @@ from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 from datetime import datetime
 
+from bs4 import Comment
 from bs4.element import Tag
 from contracts import contract, check_isinstance
 from contracts.interface import location
@@ -87,6 +88,7 @@ class LocationUnknown(Location):
     def as_html(self, inline=False):
         div = Tag(name='div')
         if inline:
+            div.append(Comment(str(self)))
             pass
         else:
             p = Tag(name='p')

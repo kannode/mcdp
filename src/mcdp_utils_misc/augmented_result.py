@@ -109,7 +109,8 @@ class Note(object):
                     dl.append(dt)
 
                     dd = Tag(name='dd')
-                    dd.append(v.as_html(inline=inline))
+                    # setting inline - False
+                    dd.append(v.as_html(inline=False))
                     dl.append(dd)
 
                 div.append(dl)

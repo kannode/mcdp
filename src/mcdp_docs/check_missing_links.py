@@ -5,11 +5,13 @@ from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
+from mcdp_docs.manual_join_imp import can_ignore_duplicated_id
 from mcdp_utils_misc import AugmentedResult
-from mcdp_utils_xml import note_error2, Tag
+from mcdp_utils_xml import Tag
 from mcdp_utils_xml.add_class_and_style import has_class
 
 show_debug_message_for_corrected_links = False
+
 
 def detect_duplicate_IDs(soup, res):
     id2element = OrderedDict()
@@ -17,14 +19,18 @@ def detect_duplicate_IDs(soup, res):
         ID = element.attrs['id']
 
         if ID in id2element:
-            msg = 'Repeated use of ID "%s"' % ID
-            element.attrs['id'] = ID + '-duplicate-%s' % id(element)
-            locations = OrderedDict()
-            locations['repeated-use'] = HTMLIDLocation.for_element(element)
-            locations['original-use'] = HTMLIDLocation.for_element(id2element[ID])
-            res.note_error(msg, locations)
+            if can_ignore_duplicated_id(element):
+                continue
+            else:
+                msg = 'Repeated use of ID "%s"' % ID
+                element.attrs['id'] = ID + '-duplicate-%s' % id(element)
+                locations = OrderedDict()
+                locations['repeated-use'] = HTMLIDLocation.for_element(element)
+                locations['original-use'] = HTMLIDLocation.for_element(id2element[ID])
+                res.note_error(msg, locations)
         else:
             id2element[ID] = element
+
 
 def get_id2element(soup, att, res=None):
     id2element = OrderedDict()
@@ -75,7 +81,7 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None):
 
     # let's first find all the IDs
     id2element_current, duplicates = get_id2element(soup, 'id')
-    id2element_extra, _  = get_id2element(extra_refs, 'id')
+    id2element_extra, _ = get_id2element(extra_refs, 'id')
     id2element = {}
     id2element.update(id2element_extra)
     id2element.update(id2element_current)
@@ -118,7 +124,6 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None):
 
             elif len(matches) == 1:
 
-
                 # if 'base_url' in element.attrs:
                 #     a['href'] = element.attrs['base_url'] + '#' + matches[0]
                 # else:
@@ -129,7 +134,6 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None):
                     msg = 'Using foreign resolve for %s -> %s' % (matches[0], a['href'])
                     logger.info(msg)
                     a.attrs['href_external'] = element.attrs['base_url'] + '#' + matches[0]
-
 
                 if show_debug_message_for_corrected_links:
                     msg = '%s not found, but corrected in %s' % (href, matches[0])
@@ -163,7 +167,6 @@ def fix_subfig_references(soup):
     for a in soup.select('a[href]'):
         if a.attrs['href'] is None:
             print('weird: %s' % a)
-
 
     for a in soup.select('a[href^="#fig:"]'):
         name = a['href'][1:]

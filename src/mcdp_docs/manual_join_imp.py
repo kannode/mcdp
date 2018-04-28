@@ -379,6 +379,16 @@ def do_bib(soup, bibhere):
          % (len(id2cite), len(used), len(found), len(notfound), len(unused)))
     logger.info(s)
 
+def can_ignore_duplicated_id(element):
+    id_ = element.attrs['id']
+    for x in ['node', 'clust', 'edge', 'graph', 'MathJax', 'mjx-eqn']:
+        if id_.startswith(x):
+            return True
+
+    for _ in element.parents:
+        if _.name == 'svg':
+            return True
+    return False
 
 def warn_for_duplicated_ids(soup):
     from collections import defaultdict
@@ -393,20 +403,9 @@ def warn_for_duplicated_ids(soup):
         n = len(elements)
         if n == 1:
             continue
-
-        ignore_if_contains = ['MathJax',  # 'MJ',
-                              'edge', 'mjx-eqn', ]
-        if any(_ in ID for _ in ignore_if_contains):
-            continue
-
-        inside_svg = False
         for e in elements:
-            for _ in e.parents:
-                if _.name == 'svg':
-                    inside_svg = True
-                    break
-        if inside_svg:
-            continue
+            if can_ignore_duplicated_id(e):
+                continue
 
         # msg = ('ID %15s: found %s - numbering will be screwed up' % (ID, n))
         # logger.error(msg)
@@ -659,7 +658,7 @@ def get_id2filename(filename2contents):
     ignore_these = [
         'tocdiv', 'not-toc', 'disqus_thread',
         'disqus_section', 'dsq-count-scr', 'banner',
-        'MathJax_SVG_glyphs', 'MathJax_SVG_styles',
+        # 'MathJax_SVG_glyphs', 'MathJax_SVG_styles',
     ]
 
     id2filename = {}
@@ -673,9 +672,8 @@ def get_id2filename(filename2contents):
                 continue
 
             if id_ in id2filename:
-                for x in ['node', 'clust', 'edge', 'graph', 'MathJax']:
-                    if id_.startswith(x):
-                        break
+                if can_ignore_duplicated_id(element):
+                    pass
                 else:
                     logger.error('double element with ID %s' % id_)
             #                    logger.error(str(element.parent()))
