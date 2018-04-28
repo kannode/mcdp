@@ -42,7 +42,7 @@ else:
         yield
 
 
-def make_page(contents, head0, add_toc, extra_panel_content):
+def make_page(contents, head0, add_toc, extra_panel_content, add_home_link):
     """ Returns html (Beautiful Soup document) """
     html = Tag(name='html')
 
@@ -54,16 +54,24 @@ def make_page(contents, head0, add_toc, extra_panel_content):
         if add_toc is not None:
             tocdiv = Tag(name='div')
             tocdiv.attrs['id'] = 'tocdiv'
-            a = Tag(name='a')
-            a.append('Home')
-            a.attrs['href'] = 'index.html'
-            p = Tag(name='p')
-            p.append(a)
-            tocdiv.append(p)
-            tocdiv.append(add_toc)
+            if add_home_link:
+                a = Tag(name='a')
+                a.append('Home')
+                a.attrs['href'] = 'index.html'
+                p = Tag(name='p')
+                p.append(a)
+                tocdiv.append(p)
 
             if extra_panel_content is not None:
-                tocdiv.append(extra_panel_content)
+                details = Tag(name='details')
+                summary = Tag(name='summary')
+                summary.append('build details')
+                details.append(summary)
+                details.append(extra_panel_content)
+                tocdiv.append(details)
+
+            tocdiv.append(add_toc)
+
             body.append(tocdiv)
 
     section_name = get_first_header_title(contents)
@@ -285,7 +293,8 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
         # Trick: we add the main_toc, and then ... (look below)
         with timeit('make_page'):
-            html = make_page(contents, head0, main_toc, extra_panel_content)
+            add_home_link = 'index.html' not in filename2contents
+            html = make_page(contents, head0, main_toc, extra_panel_content, add_home_link=add_home_link)
 
         with timeit("direct job"):
             result = only_second_part(

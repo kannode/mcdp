@@ -142,9 +142,6 @@ def read_build(client, username, project, token, r, d0):
                     tf.extractall(d_build)
                     os.unlink(f)
 
-    #     try_look_for(os.path.join(d_build, 'out/split/index.html'), 'html')
-    #     try_look_for(os.path.join(d_build, 'out.pdf'), 'PDF')
-
     # if artefacts:
     #     print(artefacts)
     artifacts = get_artefacts(d0, d_build)

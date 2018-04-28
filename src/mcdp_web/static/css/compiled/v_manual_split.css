@@ -2429,8 +2429,6 @@ pre + p {
     font-size: 120%;
   }
   #tocdiv #extra-panel-content {
-    position: fixed;
-    bottom: 2em;
     background-color: white;
     margin: 0;
     padding: 1em;
