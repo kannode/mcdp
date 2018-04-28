@@ -2470,6 +2470,19 @@ pre + p {
 .show_local_changes a[has-local-changes] {
   background-color: rgba(167, 0, 170, 0.22);
 }
+.show_last_change a[github-last-modified-days]::after {
+  content: ' modified ' attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
+  color: darkblue;
+}
+.show_last_change a[github-last-modified-days='0']::after,
+.show_last_change a[github-last-modified-days='1']::after,
+.show_last_change a[github-last-modified-days='2']::after,
+.show_last_change a[github-last-modified-days='3']::after,
+.show_last_change a[github-last-modified-days='4']::after,
+.show_last_change a[github-last-modified-days='5']::after,
+.show_last_change a[github-last-modified-days='6']::after {
+  color: darkgreen;
+}
 .show_recent_changes a[github-last-modified-days='0']::after {
   content: 'modified today by ' attr(github-last-modified-author);
   color: darkgreen;

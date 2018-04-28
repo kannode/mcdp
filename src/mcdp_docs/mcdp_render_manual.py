@@ -110,7 +110,6 @@ class RenderManual(QuickApp):
 
         resolve_references = not options.no_resolve_references
 
-
         manual_jobs(context,
                     src_dirs=src_dirs,
                     resources_dirs=resources_dirs,
@@ -389,14 +388,16 @@ def get_extra_content(aug):
 <a id='button-show_todos'  class='button' onclick='show_todos();'>errors &amp; todos</a> 
 <a id='button-show_local_changes' class='button' onclick='show_local_changes()'>local changes</a>
 <a id='button-show_recent_changes' class='button' onclick='show_recent_changes()'>recent changes</a>
+<a id='button-show_last_change' class='button' onclick='show_last_change()'>last change</a>
 </p>
 
 <style>
 .show_todos #button-show_todos,
 .show_status #button-show_status,
 .show_local_changes #button-show_local_changes,
-.show_recent_changes #button-show_recent_changes {
-    
+.show_recent_changes #button-show_recent_changes,
+.show_last_change #button-show_last_change
+ {
     background-color: #bec9ce;
 }
 .button {
@@ -450,12 +451,17 @@ function show_recent_changes() {
     toggle('show_recent_changes');
     adjust('show_recent_changes');
 }; 
+function show_last_change() {
+    toggle('show_last_change');
+    adjust('show_last_change');
+}; 
 
 
 adjust('show_todos');
 adjust('show_status');
 adjust('show_local_changes');
 adjust('show_recent_changes');
+adjust('show_last_change');
 </script>
 
     
