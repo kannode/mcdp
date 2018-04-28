@@ -31,7 +31,7 @@ from system_cmd import system_cmd_result
 from .check_bad_input_files import check_bad_input_file_presence
 from .github_edit_links import add_edit_links2
 from .manual_constants import MCDPManualConstants
-from .manual_join_imp import DocToJoin, manual_join
+from .manual_join_imp import DocToJoin, manual_join, update_refs_
 from .minimal_doc import get_minimal_document
 from .read_bibtex import run_bibtex2html
 from .source_info_imp import get_source_info, make_last_modified, NoSourceInfo
@@ -341,15 +341,14 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         joined_aug_with_html_stylesheet = context.comp(add_style, joined_aug, stylesheet)
 
         extra_panel_content = context.comp(get_extra_content, joined_aug_with_html_stylesheet)
-        written_aug = context.comp_dynamic(create_split_jobs,
+        id2filename_aug = context.comp_dynamic(create_split_jobs,
                                            data_aug=joined_aug_with_html_stylesheet,
                                            mathjax=True,
                                            preamble=symbols,
                                            extra_panel_content=extra_panel_content,
                                            output_dir=out_split_dir, nworkers=0)
 
-        context.comp(write_errors_and_warnings_files, written_aug, out_split_dir,
-                     extra_dep=[written_aug])
+        context.comp(write_errors_and_warnings_files, id2filename_aug, out_split_dir)
         context.comp(write_manifest_html, out_split_dir)
 
     if out_pdf is not None:
@@ -574,13 +573,18 @@ def get_notes_panel(aug):
 
 
 def write_errors_and_warnings_files(aug, d):
+    id2filename = aug.get_result()
+
+
     header = get_notes_panel(aug)
     assert isinstance(aug, AugmentedResult)
     manifest = []
     nwarnings = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING))
     fn = os.path.join(d, 'warnings.html')
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_WARNING, 'warnings', 'warning', header=header)
-    write_data_to_file(html, fn, quiet=True)
+    update_refs_('warnings', html, id2filename)
+
+    write_data_to_file(str(html), fn, quiet=True)
     if nwarnings:
         manifest.append(dict(display='%d warnings' % nwarnings,
                              filename='warnings.html'))
@@ -589,8 +593,10 @@ def write_errors_and_warnings_files(aug, d):
 
     ntasks = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_TASK))
     fn = os.path.join(d, 'tasks.html')
+
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_TASK, 'tasks', 'task', header=header)
-    write_data_to_file(html, fn, quiet=True)
+    update_refs_('tasks', html, id2filename)
+    write_data_to_file(str(html), fn, quiet=True)
     if nwarnings:
         manifest.append(dict(display='%d tasks' % ntasks,
                              filename='tasks.html'))
@@ -600,7 +606,8 @@ def write_errors_and_warnings_files(aug, d):
     nerrors = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR))
     fn = os.path.join(d, 'errors.html')
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_ERROR, 'errors', 'error', header=header)
-    write_data_to_file(html, fn, quiet=True)
+    update_refs_('tasks', html, id2filename)
+    write_data_to_file(str(html), fn, quiet=True)
     if nerrors:
         manifest.append(dict(display='%d errors' % nerrors,
                              filename='errors.html'))

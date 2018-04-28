@@ -18,7 +18,7 @@ def detect_duplicate_IDs(soup, res):
 
         if ID in id2element:
             msg = 'Repeated use of ID "%s"' % ID
-            element.attrs['ID'] = ID + '-duplicate-%s' % id(element)
+            element.attrs['id'] = ID + '-duplicate-%s' % id(element)
             locations = OrderedDict()
             locations['repeated-use'] = HTMLIDLocation.for_element(element)
             locations['original-use'] = HTMLIDLocation.for_element(id2element[ID])
@@ -50,7 +50,7 @@ def get_id2element(soup, att, res=None):
             other = id2element[ID]
             for e0 in [element, other]:
                 # note_error2(e0, 'Naming', 'More than one element with id %r.' % ID)
-                msg = 'More than one element with id %r.'
+                msg = 'More than one element with id %r.' % ID
                 res.note_error(msg, HTMLIDLocation.before_element(e0))
         id2element[element[att]] = element
 

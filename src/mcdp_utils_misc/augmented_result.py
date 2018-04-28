@@ -319,7 +319,7 @@ def html_list_of_notes(aug, tag, how_to_call_them, klass, header=None):
             div.attrs['class'] = klass
             body.append(div)
     body.append(get_html_style())
-    return str(html)
+    return (html)
 
 
 @contract(aug=AugmentedResult)

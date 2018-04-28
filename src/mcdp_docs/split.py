@@ -178,6 +178,7 @@ def notification(aug, jobs_aug, output_dir):
     res.merge(aug)
     for job_aug in jobs_aug:
         res.merge(job_aug)
+        res.set_result(job_aug.get_result())
     main = os.path.join(output_dir, 'index.html')
     msg = '\n \n      The HTML version is ready at %s ' % main
     msg += '\n \n \nPlease wait a few more seconds for the PDF version.'
@@ -190,16 +191,12 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
        add_toc_if_not_existing, extra_panel_content):
     res = AugmentedResult()
     soup = bs_entire_document(data)
-    # embed_css_files(soup)
 
     # extract the main toc if it is there
-
-    with timeit("Extracting m"):
+    with timeit("Extracting main toc"):
         main_toc = soup.find(id=MCDPManualConstants.MAIN_TOC_ID)
 
         if main_toc is None:
-            # msg = 'Could not find the element #%s.' % MCDPManualConstants.MAIN_TOC_ID
-            # raise ValueError(msg)
 
             if add_toc_if_not_existing:
                 logger.info('Generating TOC because it is not there')
@@ -212,7 +209,6 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
             else:
                 msg = 'Could not find main toc (id #%s)' % MCDPManualConstants.MAIN_TOC_ID
-                # logger.error(msg)
                 res.note_error(msg)
                 main_toc = Tag(name='div')
                 main_toc.append('TOC NOT FOUND')
@@ -230,7 +226,6 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
     with timeit("split_in_files"):
         filename2contents = split_in_files(body)
-
 
     with timeit("add_prev_next_links"):
         filename2contents = add_prev_next_links(filename2contents)
@@ -311,6 +306,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
     out_toc = os.path.join(output_dir, 'toc.html')
     write_data_to_file(str(main_toc), out_toc)
 
+    res.set_result(id2filename)
     return context.comp(wait_assets, res, asset_jobs)
 
 

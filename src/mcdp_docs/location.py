@@ -191,7 +191,7 @@ class HTMLIDLocation(Location):
             # if inline:
             #     href = '#%s' % self.element_id
             # else:
-            href = 'link.html#%s' % self.element_id
+            href = '#%s' % self.element_id
             a.attrs['href'] = href
             a.append('element in output file')
             p.append(a)
@@ -237,7 +237,7 @@ class SnippetLocation(Location):
             # if inline:
             #     href = '#%s' % self.element_id
             # else:
-            href = 'link.html#%s' % self.element_id
+            href = '#%s' % self.element_id
             a.attrs['href'] = href
             a.append('element in output file')
             p.append(a)
