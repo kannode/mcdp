@@ -425,12 +425,12 @@ def get_extra_content(aug):
 <script>
 
 function adjust(klass) {
-    if(localStorage.getItem(klass) == 0) {
-        console.log('removing ' + klass);
-        document.body.classList.remove(klass);
-    } else {
+    if(localStorage.getItem(klass) == 1) {
         console.log('adding ' + klass);
         document.body.classList.add(klass);
+    } else {
+        console.log('removing ' + klass);
+        document.body.classList.remove(klass);
     }
 }
 

@@ -140,7 +140,7 @@ def read_build(client, username, project, token, r, d0):
 
                     tf = tarfile.open(f, 'r:gz')
                     tf.extractall(d_build)
-                    os.unlink(tf)
+                    os.unlink(f)
 
     #     try_look_for(os.path.join(d_build, 'out/split/index.html'), 'html')
     #     try_look_for(os.path.join(d_build, 'out.pdf'), 'PDF')
@@ -477,7 +477,6 @@ def get_links_from_artefacts(artefacts, branch=None, build_num=None):
         tag_g.append(' ')
         tag_g.append(g)
         tag_g.append(Tag(name='br'))
-        tag_g.append(' (')
         links.append(tag_g)
 
         arts = [_ for _ in artefacts if _.group == g]
