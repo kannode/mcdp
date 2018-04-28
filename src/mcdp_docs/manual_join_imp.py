@@ -389,7 +389,7 @@ def can_ignore_duplicated_id(element):
         if _.name == 'svg':
             return True
 
-    print('need %s' % id_)
+    # print('need %s' % id_)
     return False
 
 
@@ -687,7 +687,7 @@ def get_id2filename(filename2contents):
         if 'id' in contents.attrs:
             id_ = contents.attrs['id']
             id2filename[id_] = filename
-    print id2filename  # XXX
+    
     return id2filename
 
 
@@ -697,8 +697,9 @@ def update_refs(filename2contents, id2filename):
 
 
 def update_refs_(filename, contents, id2filename):
-    test_href = lambda x: x is not None and x.startswith('#')
+    test_href = lambda _: _ is not None and _.startswith('#')
     elements = list(contents.find_all('a', attrs={'href': test_href}))
+    # logger.debug('updates: %s' % sorted(id2filename))
     for a in elements:
         href = a.attrs['href']
         assert href[0] == '#'

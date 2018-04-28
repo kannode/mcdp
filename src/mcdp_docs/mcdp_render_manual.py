@@ -574,8 +574,7 @@ def get_notes_panel(aug):
 
 def write_errors_and_warnings_files(aug, d):
     id2filename = aug.get_result()
-
-
+    # print('id2filename: %s' % sorted(id2filename))
     header = get_notes_panel(aug)
     assert isinstance(aug, AugmentedResult)
     manifest = []
