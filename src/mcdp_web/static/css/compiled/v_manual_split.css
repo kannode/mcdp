@@ -2431,6 +2431,7 @@ pre + p {
   #tocdiv #extra-panel-content {
     position: fixed;
     bottom: 2em;
+    background-color: white;
     margin: 0;
     padding: 1em;
     width: calc(25em - 1em - 1em);

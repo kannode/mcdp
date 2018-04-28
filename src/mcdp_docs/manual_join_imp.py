@@ -669,16 +669,16 @@ def get_id2filename(filename2contents):
     for filename, contents in filename2contents.items():
 
         for element in contents.select('[id]'):
+            if can_ignore_duplicated_id(element):
+                continue
+
             id_ = element.attrs['id']
 
             if id_ in ignore_these:
                 continue
 
             if id_ in id2filename:
-                if can_ignore_duplicated_id(element):
-                    pass
-                else:
-                    logger.error('double element with ID %s' % id_)
+                logger.error('double element with ID %s' % id_)
             #                    logger.error(str(element.parent()))
 
             id2filename[id_] = filename
@@ -687,7 +687,7 @@ def get_id2filename(filename2contents):
         if 'id' in contents.attrs:
             id_ = contents.attrs['id']
             id2filename[id_] = filename
-    print id2filename # XXX
+    print id2filename  # XXX
     return id2filename
 
 
