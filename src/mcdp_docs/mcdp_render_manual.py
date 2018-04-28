@@ -138,8 +138,9 @@ def get_bib_files(src_dirs):
 
 
 def get_cross_refs(src_dirs, permalink_prefix):
+    res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
-
+    id2file = {}
     soup = Tag(name='div')
     for f in files:
         logger.debug('cross ref file %s' % f)
@@ -158,9 +159,20 @@ def get_cross_refs(src_dirs, permalink_prefix):
         for e in list(s.select('[base_url]')):
             if e.attrs['base_url'] == permalink_prefix:
                 e.extract()
-        soup.append(s)
+
+        for e in s.select('[id]'):
+            id_ = e.attrs['id']
+            if id_ in id2file:
+                msg = 'Found two elements with same ID "%s":' % id_
+                msg += '\n %s' % id2file[id_]
+                msg += '\n %s' % f
+                res.note_error(msg)
+            else:
+                id2file[id_] = f
+                soup.append(e.__copy__())
     # print soup
-    return soup
+    res.set_result(str(soup))
+    return res
 
 
 @contract(src_dirs='seq(str)', returns='list(str)')
@@ -274,7 +286,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                         source_info=source_info)
         files_contents.append(tuple(doc))  # compmake doesn't do namedtuples
 
-    crossrefs = get_cross_refs(resources_dirs, permalink_prefix)
+    crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix)
 
     # out_collected_crossrefs = os.path.join(out_split_dir, '..', 'collected_crossref.html')
     # write_data_to_file(str(crossrefs), out_collected_crossrefs)
@@ -310,14 +322,15 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     #         c = (('unused', docname), contents)
     #         files_contents.append(c)
 
-    crossrefs = str(crossrefs)
+    # crossrefs = str(crossrefs)
+    cs = get_md5((crossrefs_aug.get_result()))[:8]
 
     joined_aug = context.comp(manual_join, template=template, files_contents=files_contents,
                               stylesheet=None, remove=remove, references=references,
                               resolve_references=resolve_references,
-                              crossrefs=crossrefs,
+                              crossrefs_aug=crossrefs_aug,
                               permalink_prefix=permalink_prefix,
-                              job_id='join-%s' % get_md5(crossrefs)[:8])
+                              job_id='join-%s' % cs)
 
     if output_crossref is not None:
         context.comp(write_crossref_info, joined_aug, output_crossref, permalink_prefix=permalink_prefix)

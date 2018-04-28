@@ -62,7 +62,7 @@ def manual_join(template, files_contents,
                 hook_before_final_pass=None,
                 require_toc_placeholder=False,
                 permalink_prefix=None,
-                crossrefs=None,
+                crossrefs_aug=None,
                 aug0=None):
     """
         files_contents: a list of tuples that can be cast to DocToJoin:
@@ -74,15 +74,17 @@ def manual_join(template, files_contents,
         hook_before_toc if not None is called with hook_before_toc(soup=soup)
         just before generating the toc
     """
+    result = AugmentedResult()
+
     if references is None:
         references = {}
     check_isinstance(files_contents, list)
 
-    if crossrefs is None:
+    if crossrefs_aug is None:
         crossrefs = Tag(name='no-cross-refs')
     else:
-        crossrefs = bs(crossrefs)
-    result = AugmentedResult()
+        crossrefs = bs(crossrefs_aug.get_result())
+        result.merge(crossrefs_aug)
     if aug0 is not None:
         result.merge(aug0)
 
