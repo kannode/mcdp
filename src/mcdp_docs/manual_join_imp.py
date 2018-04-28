@@ -145,8 +145,8 @@ def manual_join(template, files_contents,
                 basename2soup[doc_to_join.docname] = frag
 
         # with timeit('fix_duplicate_ids'):
-            # XXX
-            # fix_duplicated_ids(basename2soup)
+        # XXX
+        # fix_duplicated_ids(basename2soup)
 
         with timeit('copy contents'):
             body = d.find('body')
@@ -210,7 +210,6 @@ def manual_join(template, files_contents,
                         result.note_error(msg)
                     else:
                         raise Exception(msg)
-
 
         with timeit('document_final_pass_after_toc'):
             document_final_pass_after_toc(soup=d, crossrefs=crossrefs,
@@ -297,10 +296,10 @@ def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
         a.attrs['href'] = a.attrs['href_external']
         add_class(a, 'interdoc')
 
-
     detect_duplicate_IDs(soup, res)
 
     # warn_for_duplicated_ids(soup)
+
 
 def document_only_once(html_soup):
     add_footnote_polyfill(html_soup)
@@ -379,6 +378,7 @@ def do_bib(soup, bibhere):
          % (len(id2cite), len(used), len(found), len(notfound), len(unused)))
     logger.info(s)
 
+
 def can_ignore_duplicated_id(element):
     id_ = element.attrs['id']
     for x in ['node', 'clust', 'edge', 'graph', 'MathJax', 'mjx-eqn']:
@@ -388,7 +388,10 @@ def can_ignore_duplicated_id(element):
     for _ in element.parents:
         if _.name == 'svg':
             return True
+
+    print('need %s' % id_)
     return False
+
 
 def warn_for_duplicated_ids(soup):
     from collections import defaultdict
@@ -658,14 +661,14 @@ def get_id2filename(filename2contents):
     ignore_these = [
         'tocdiv', 'not-toc', 'disqus_thread',
         'disqus_section', 'dsq-count-scr', 'banner',
-        # 'MathJax_SVG_glyphs', 'MathJax_SVG_styles',
+        'MathJax_SVG_glyphs', 'MathJax_SVG_styles',
     ]
 
     id2filename = {}
 
     for filename, contents in filename2contents.items():
 
-        for element in contents.findAll(id=True):
+        for element in contents.select('[id]'):
             id_ = element.attrs['id']
 
             if id_ in ignore_these:
@@ -684,7 +687,7 @@ def get_id2filename(filename2contents):
         if 'id' in contents.attrs:
             id_ = contents.attrs['id']
             id2filename[id_] = filename
-
+    print id2filename # XXX
     return id2filename
 
 

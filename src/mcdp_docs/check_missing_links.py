@@ -5,7 +5,7 @@ from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
-from mcdp_docs.manual_join_imp import can_ignore_duplicated_id
+
 from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml import Tag
 from mcdp_utils_xml.add_class_and_style import has_class
@@ -14,12 +14,15 @@ show_debug_message_for_corrected_links = False
 
 
 def detect_duplicate_IDs(soup, res):
+    from mcdp_docs.manual_join_imp import can_ignore_duplicated_id
+
     id2element = OrderedDict()
     for element in soup.select('[id]'):
         ID = element.attrs['id']
 
         if ID in id2element:
             if can_ignore_duplicated_id(element):
+
                 continue
             else:
                 msg = 'Repeated use of ID "%s"' % ID
@@ -27,6 +30,9 @@ def detect_duplicate_IDs(soup, res):
                 locations = OrderedDict()
                 locations['repeated-use'] = HTMLIDLocation.for_element(element)
                 locations['original-use'] = HTMLIDLocation.for_element(id2element[ID])
+
+                print msg
+
                 res.note_error(msg, locations)
         else:
             id2element[ID] = element
