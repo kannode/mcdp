@@ -22,27 +22,27 @@ def detect_duplicate_IDs(soup, res):
 
         if ID in id2element:
             if can_ignore_duplicated_id(element):
-
                 continue
             else:
+
+                # ignore this because it will be triggered for the sister element
+                # e.g. fig:howto-mount-motors-video, fig:howto-mount-motors-video-wrap
+                if ID.endswith('-wrap'):
+                    continue
+
                 msg = 'Repeated use of ID "%s"' % ID
                 element.attrs['id'] = ID + '-duplicate-%s' % id(element)
                 locations = OrderedDict()
                 locations['repeated-use'] = HTMLIDLocation.for_element(element)
                 locations['original-use'] = HTMLIDLocation.for_element(id2element[ID])
-
-                print msg
-
                 res.note_error(msg, locations)
         else:
             id2element[ID] = element
 
 
-def get_id2element(soup, att, res=None):
+def get_id2element(soup, att):
     id2element = OrderedDict()
     duplicates = set()
-    if res is None:
-        res = AugmentedResult()
 
     # ignore the maths
     ignore = set()
@@ -59,16 +59,21 @@ def get_id2element(soup, att, res=None):
             continue
         if ID in id2element:
             duplicates.add(ID)
-            other = id2element[ID]
-            for e0 in [element, other]:
-                # note_error2(e0, 'Naming', 'More than one element with id %r.' % ID)
-                msg = 'More than one element with id %r.' % ID
-                res.note_error(msg, HTMLIDLocation.before_element(e0))
+
+            if False:
+                other = id2element[ID]
+                for e0 in [element, other]:
+                    # note_error2(e0, 'Naming', 'More than one element with id %r.' % ID)
+                    msg = 'More than one element with id %r.' % ID
+                    res.note_error(msg, HTMLIDLocation.before_element(e0))
         id2element[element[att]] = element
 
     if duplicates:
+        n = len(duplicates)
+        if n > 100:
+            duplicates = list(duplicates)[:100]
         s = ", ".join(sorted(duplicates))
-        msg = '%d duplicated %s found: %s' % (len(duplicates), att, s)
+        msg = '%d duplicated %s found: %s' % (n, att, s)
         logger.error(msg)
     return id2element, duplicates
 

@@ -479,7 +479,7 @@ def get_links_from_artefacts(artefacts, branch=None, build_num=None):
         tag_g.append(Tag(name='br'))
         tag_g.append(' (')
         links.append(tag_g)
-        
+
         arts = [_ for _ in artefacts if _.group == g]
         div = get_links2(arts, branch, build_num)
         links.append('(')

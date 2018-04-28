@@ -4,7 +4,7 @@ import re
 from mcdp import MCDPConstants, logger
 from mcdp.exceptions import DPSyntaxError
 from mcdp_docs.location import LocationInString
-from mcdp_lang_utils import Where, location
+from mcdp_lang_utils import Where, location as find_location
 from mcdp_utils_misc import format_list
 
 from .latex.latex_preprocess import extract_maths
@@ -26,12 +26,30 @@ def do_preliminary_checks_and_fixes(s, res, location0):
             s = s.replace('\t', ' ' * MCDPConstants.tabsize)
     else:
         check_no_tabs(s)
-    check_no_forbidden(s)
+    check_no_forbidden(s, res, location0)
 
     s = remove_comments(s)
     s = check_misspellings(s)
+
+    check_lists(s, res, location0)
+
     s = check_most_of_it_xml(s)
     return s
+
+def check_lists(s, res, location):
+    lines = s.split('\n')
+    for i, line in enumerate(lines):
+        if i == 0:
+            continue
+        if line.startswith('- ') or line.startswith('* '):
+            previous_empty = lines[i-1].strip() == ''
+            if not previous_empty:
+                msg = 'It looks like here you wanted to start a list but you did not leave an empty line.'
+                col = 0
+                line = i
+                character = find_location(line, col, s)
+                where = Where(s, character)
+                res.note_warning(msg, LocationInString(where, location))
 
 
 def assert_not_contains(s, what):
@@ -52,7 +70,7 @@ def check_no_tabs(s):
         raise DPSyntaxError(msg, where=where)
 
 
-def check_no_forbidden(s):
+def check_no_forbidden(s, res, location0):
     forbidden = {
         '>=': ['≥'],
         '<=': ['≤'],
@@ -65,7 +83,8 @@ def check_no_forbidden(s):
             msg += ' Try one of these substitutions: %s' % format_list(subs)
             c = s.index(f)
             where = Where(s, c, c + len(f))
-            raise DPSyntaxError(msg, where=where)
+            res.note_error(msg, LocationInString(where, location0))
+            # raise DPSyntaxError(msg, where=where)
 
 
 def remove_comments(s):
@@ -147,7 +166,7 @@ def check_parsable(s):
         line1, col1 = e.position
         line = line1 - 1
         col = col1 - 1
-        character = location(line, col, s)
+        character = find_location(line, col, s)
         msg = 'Invalid XML: %s' % e
         where = Where(s, character)
         logger.error('line %s col %s' % (where.line, where.col))

@@ -9,7 +9,7 @@ from bs4.element import Tag
 from contracts.utils import check_isinstance, raise_wrapped
 from mcdp_docs.github_edit_links import NoRootRepo
 from mcdp_docs.tocs import LABEL_NAME
-from mcdp_utils_misc import memoize_simple, AugmentedResult
+from mcdp_utils_misc import memoize_simple, AugmentedResult, logger
 from mcdp_utils_xml import bs, to_html_stripping_fragment
 
 from .github_edit_links import get_repo_root
@@ -36,8 +36,9 @@ def get_changed_files(repo_root):
     diff =repo.head.commit.diff(None)
     changed = list([os.path.realpath(x.a_path) for x in diff.iter_change_type('M')])
     repo.git = None
-    print('Changed in %s' % repo_root)
-    print "\n".join(changed)
+    msg = 'Files changed in %s' % repo_root
+    msg +=  "\n".join(changed)
+    logger.debug(msg)
     return changed
 
 

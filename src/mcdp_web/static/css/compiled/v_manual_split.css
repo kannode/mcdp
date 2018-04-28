@@ -2483,6 +2483,7 @@ pre + p {
   font-size: smaller;
   font-family: sans-serif;
   margin-left: 0.2em;
+  display: block;
 }
 .show_last_change a[github-last-modified-days='0']::after,
 .show_last_change a[github-last-modified-days='1']::after,
