@@ -137,8 +137,12 @@
 .show_last_change {
   a[github-last-modified-days] {
     &::after {
-      content: ' modified ' attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
+      content:  attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
       color: darkblue;
+      font-size: smaller;
+      font-family: sans-serif;
+      margin-left: 0.2em;
+
     }
   }
   a[github-last-modified-days='0'],

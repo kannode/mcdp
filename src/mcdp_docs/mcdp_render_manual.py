@@ -384,11 +384,11 @@ def get_extra_content(aug):
     html = """
     
 <p style='text-align: left'>Show:
-<a id='button-show_status' class='button' onclick='show_status();'>section status</a> 
-<a id='button-show_todos'  class='button' onclick='show_todos();'>errors &amp; todos</a> 
-<a id='button-show_local_changes' class='button' onclick='show_local_changes()'>local changes</a>
-<a id='button-show_recent_changes' class='button' onclick='show_recent_changes()'>recent changes</a>
-<a id='button-show_last_change' class='button' onclick='show_last_change()'>last change</a>
+    <a id='button-show_status' class='button' onclick='show_status();'>section status</a> 
+    <a id='button-show_todos'  class='button' onclick='show_todos();'>errors &amp; todos</a> 
+    <a id='button-show_local_changes' class='button' onclick='show_local_changes()'>local changes</a>
+    <a id='button-show_recent_changes' class='button' onclick='show_recent_changes()'>recent changes</a>
+    <a id='button-show_last_change' class='button' onclick='show_last_change()'>last change</a>
 </p>
 
 <style>
@@ -413,13 +413,18 @@ def get_extra_content(aug):
 <script>
 
 function adjust(klass) {
-    if(localStorage.getItem(klass) == 1) {
+    if(localStorage.getItem(klass) == 0) {
         console.log('removing ' + klass);
         document.body.classList.remove(klass);
     } else {
         console.log('adding ' + klass);
         document.body.classList.add(klass);
     }
+}
+
+function unset(klass) {
+     localStorage.setItem(klass, 0);
+     adjust(klass);
 }
 
 function toggle(klass) { 
@@ -448,10 +453,12 @@ function show_local_changes() {
 }; 
 
 function show_recent_changes() {
+    unset('show_last_change');
     toggle('show_recent_changes');
     adjust('show_recent_changes');
 }; 
 function show_last_change() {
+    unset('show_recent_changes');
     toggle('show_last_change');
     adjust('show_last_change');
 }; 
