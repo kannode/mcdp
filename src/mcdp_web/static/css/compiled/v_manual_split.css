@@ -2530,6 +2530,9 @@ pre + p {
 .show_todos a[summary][nerrors]::after {
   color: red;
 }
+.toc_a_for_book > span.toc_sep {
+  display: none;
+}
 .main-section-for-page {
   min-height: 65vh;
 }
