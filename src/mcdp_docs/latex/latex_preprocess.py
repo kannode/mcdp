@@ -1138,6 +1138,7 @@ def extract_maths(s):
 
     def acceptance(s0, i):
         inside = is_inside_markdown_quoted_block(s0, i)
+        # print('accepted %r')
         return not inside
 
     subs = {}

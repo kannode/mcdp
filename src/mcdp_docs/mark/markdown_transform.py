@@ -5,8 +5,12 @@ from mcdp_lang_utils.where_utils import location
 
 
 def is_inside_markdown_quoted_block(s, i):
+    return is_inside_markdown_quoted_block_(s, i, '~~~') or \
+           is_inside_markdown_quoted_block_(s, i, '```')
+
+def is_inside_markdown_quoted_block_(s, i, delim):
     before = s[:i]
-    nbefore = before.count('\n~~~')
+    nbefore = before.count('\n' + delim)
 
     if nbefore % 2 == 1:
         return True
