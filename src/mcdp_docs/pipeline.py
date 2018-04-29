@@ -2,7 +2,7 @@
 import itertools
 from getpass import getuser
 
-from contracts import contract
+from contracts import contract, indent
 from contracts.utils import raise_desc
 from mcdp import logger
 from mcdp.constants import MCDPConstants
