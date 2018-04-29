@@ -116,7 +116,7 @@ def get_blames(repo, commit, path):
 
     if None in headers2commits:
         del headers2commits[None]
-        
+
     header2sourceinfo = {}
     for id_, commits in headers2commits.items():
         youngest = sorted(commits, key=lambda _: time.gmtime(_.committed_date))[-1]

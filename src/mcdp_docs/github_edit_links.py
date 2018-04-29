@@ -49,22 +49,27 @@ def add_edit_links2(soup, location):
         h.attrs[MCDPManualConstants.ATTR_GITHUB_BLOB_URL] = l.blob_url
 
         delta = datetime.now() - l.last_modified
-        days =  delta.days
+        days = delta.days
 
         h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR] = l.author
         h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = str(days)
         if l.has_local_modifications:
             h.attrs[MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS] = 1
 
+
 def compact_when(last):
-    delta = datetime.now() -  last
+    assert isinstance(last, datetime)
+    delta = datetime.now() - last
     days = delta.days
     if days == 0:
         return 'today'
-    elif days== 1:
+    elif days == 1:
         return 'yesterday'
-    else:
+    elif days < 7:
         return '%d days ago' % days
+    else:
+        s = last.strftime("%Y-%m-%d")
+        return s
 
 
 def add_last_modified_info(soup, location):
@@ -81,22 +86,22 @@ def add_last_modified_info(soup, location):
 
     id2element, duplicates = get_id2element(soup, 'id')
 
-    class NoIdent(Exception) :
+    class NoIdent(Exception):
         pass
 
     def get_element(header_ident):
         if header_ident.id_ is not None:
             try:
-                nid =  match_ref(header_ident.id_, id2element)
+                nid = match_ref(header_ident.id_, id2element)
                 return id2element[nid]
             except (MultipleMatches, NoMatches) as e_:
                 msg = 'Could not find header %r to add last modified info:\n %s' % (header_ident.id_, e_)
                 raise_wrapped(NoIdent, e_, msg, compact=True)
         else:
-            for hi in soup.findAll(['h1','h2','h3','h4','h5','h6']):
+            for hi in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
                 if gettext(hi) == header_ident.text:
                     return hi
-            msg  = ('Could not match text %s ' % header_ident.text)
+            msg = ('Could not match text %s ' % header_ident.text)
             raise NoIdent(msg)
 
     if l.header2sourceinfo is not None:
@@ -107,21 +112,20 @@ def add_last_modified_info(soup, location):
                 logger.debug(e)
                 continue
 
-            if element.name not in ['h1','h2','h3']:
+            if element.name not in ['h1', 'h2', 'h3']:
                 continue
 
             assert isinstance(source_info, SourceInfo)
             p = Tag(name='p')
             p.attrs['class'] = 'last-modified'
             when = compact_when(source_info.last_modified)
-            p.append('Modified %s by %s (' % (when, source_info.author.name))
+            p.append('Modified ')
             a = Tag(name='a')
+            a.append(when)
             commit_url = l.repo_base + '/commit/' + source_info.commit
-
             a.attrs['href'] = commit_url
-            a.append('commit %s' % source_info.commit[-8:])
             p.append(a)
-            p.append(')')
+            p.append(' by %s' % source_info.author.name)
             element.insert_after(p)
     else:
 
@@ -141,6 +145,7 @@ def add_last_modified_info(soup, location):
             # self.commit = commit
 
             h.insert_after(p)
+
 
 class RepoInfoException(Exception):
     pass

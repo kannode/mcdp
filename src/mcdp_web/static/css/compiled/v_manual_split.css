@@ -2491,6 +2491,9 @@ p.last-modified {
   color: green;
   display: none;
 }
+p.last-modified a {
+  text-decoration: none;
+}
 .show_header_change p.last-modified {
   display: block;
 }
