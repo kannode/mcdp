@@ -11,12 +11,9 @@ from contracts import contract, check_isinstance
 from contracts.interface import location
 from contracts.utils import indent
 from mcdp_docs import logger
-from mcdp_docs.github_edit_links import NoRootRepo
 from mcdp_lang_utils import Where
 from mcdp_utils_misc import pretty_print_dict
 from mcdp_utils_xml import stag
-
-from .github_edit_links import get_repo_root, get_repo_information
 
 
 class Location(object):
@@ -162,7 +159,7 @@ class HTMLIDLocation(Location):
         return HTMLIDLocation(element.attrs['id'], parent)
 
     @staticmethod
-    def before_element(element, parent=None,  unique=None):
+    def before_element(element, parent=None, unique=None):
         from mcdp_docs.tocs import add_id_if_not_present
         if element.previous_sibling:
             element = element.previous_sibling
@@ -283,7 +280,7 @@ class GithubLocation(Location):
 
     def __init__(self, org, repo, path, blob_base, blob_url, branch, commit, edit_url,
                  repo_base, branch_url, commit_url, author, last_modified,
-                 has_local_modifications):
+                 has_local_modifications, header2sourceinfo=None):
         check_isinstance(path, str)
         check_isinstance(branch, str)
         self.org = org
@@ -300,6 +297,7 @@ class GithubLocation(Location):
         self.author = author
         self.last_modified = last_modified
         self.has_local_modifications = has_local_modifications
+        self.header2sourceinfo = header2sourceinfo
 
     def __repr__(self):
         d = OrderedDict()
@@ -361,9 +359,12 @@ class GithubLocation(Location):
 
 @contract(returns='$GithubLocation|None')
 def get_github_location(filename):
+    from .github_edit_links import NoRootRepo
+    from .github_edit_links import get_repo_root, get_repo_information
+
     # TODO: detect if the copy is dirty
     if not os.path.exists(filename):
-        return None # XXX
+        return None  # XXX
     try:
         # need realpath because of relative names, e.g. filename = 'docs/file.md' and the root is at ..
         filename_r = os.path.realpath(filename)
@@ -394,16 +395,18 @@ def get_github_location(filename):
     edit_url = edit_base + "/" + relpath
 
     from .source_info_imp import get_source_info, NoSourceInfo
+
     # try:
     try:
         source_info = get_source_info(filename)
     except NoSourceInfo as e:
         logger.error(e)
         return None  # XX
+
     author = source_info.author
     last_modified = source_info.last_modified
     has_local_modifications = source_info.has_local_modifications
-
+    header2sourceinfo = source_info.header2sourceinfo
 
     return GithubLocation(org=org, repo=repo, path=relpath,
                           repo_base=repo_base,
@@ -414,7 +417,8 @@ def get_github_location(filename):
                           branch_url=branch_url,
                           author=author,
                           has_local_modifications=has_local_modifications,
-                          last_modified=last_modified)
+                          last_modified=last_modified,
+                          header2sourceinfo=header2sourceinfo)
 
 
 def location_from_stack(level):

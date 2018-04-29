@@ -6,6 +6,7 @@
 
 
 A DB is constituted by:
+
 - a current state
 - a set of changes
 

@@ -4,10 +4,14 @@ import os
 import re
 from datetime import datetime
 
+from bs4 import Tag
 from contracts.utils import raise_wrapped
 from git.repo.base import Repo
+from mcdp_docs.check_missing_links import get_id2element, MultipleMatches, match_ref, NoMatches
 from mcdp_docs.manual_constants import MCDPManualConstants
-from mcdp_utils_misc import memoize_simple
+from mcdp_docs.source_info_imp import SourceInfo
+from mcdp_utils_misc import memoize_simple, logger
+from mcdp_utils_xml import gettext
 
 
 class NoRootRepo(Exception):
@@ -52,6 +56,91 @@ def add_edit_links2(soup, location):
         if l.has_local_modifications:
             h.attrs[MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS] = 1
 
+def compact_when(last):
+    delta = datetime.now() -  last
+    days = delta.days
+    if days == 0:
+        return 'today'
+    elif days== 1:
+        return 'yesterday'
+    else:
+        return '%d days ago' % days
+
+
+def add_last_modified_info(soup, location):
+    from mcdp_docs.location import GithubLocation
+    stack = location.get_stack()
+    for l in stack:
+        if isinstance(l, GithubLocation):
+            break
+    else:
+        return
+
+    assert isinstance(l, GithubLocation)
+    # print l.header2sourceinfo
+
+    id2element, duplicates = get_id2element(soup, 'id')
+
+    class NoIdent(Exception) :
+        pass
+
+    def get_element(header_ident):
+        if header_ident.id_ is not None:
+            try:
+                nid =  match_ref(header_ident.id_, id2element)
+                return id2element[nid]
+            except (MultipleMatches, NoMatches) as e_:
+                msg = 'Could not find header %r to add last modified info:\n %s' % (header_ident.id_, e_)
+                raise_wrapped(NoIdent, e_, msg, compact=True)
+        else:
+            for hi in soup.findAll(['h1','h2','h3','h4','h5','h6']):
+                if gettext(hi) == header_ident.text:
+                    return hi
+            msg  = ('Could not match text %s ' % header_ident.text)
+            raise NoIdent(msg)
+
+    if l.header2sourceinfo is not None:
+        for ident, source_info in l.header2sourceinfo.items():
+            try:
+                element = get_element(ident)
+            except NoIdent as e:
+                logger.debug(e)
+                continue
+
+            if element.name not in ['h1','h2','h3']:
+                continue
+
+            assert isinstance(source_info, SourceInfo)
+            p = Tag(name='p')
+            p.attrs['class'] = 'last-modified'
+            when = compact_when(source_info.last_modified)
+            p.append('Modified %s by %s (' % (when, source_info.author.name))
+            a = Tag(name='a')
+            commit_url = l.repo_base + '/commit/' + source_info.commit
+
+            a.attrs['href'] = commit_url
+            a.append('commit %s' % source_info.commit[-8:])
+            p.append(a)
+            p.append(')')
+            element.insert_after(p)
+    else:
+
+        headers = soup.findAll(MCDPManualConstants.headers_for_last_modified)
+        for h in list(headers):
+            p = Tag(name='p')
+            p.attrs['class'] = 'last-modified'
+            author = l.author
+            when = compact_when(l.last_modified)
+            p.append('Modified %s by %s (' % (when, author))
+            a = Tag(name='a')
+            a.attrs['href'] = l.commit_url
+            a.append('commit %s' % l.commit[-8:])
+            p.append(a)
+            p.append(')')
+            # self.commit_url = commit_url
+            # self.commit = commit
+
+            h.insert_after(p)
 
 class RepoInfoException(Exception):
     pass

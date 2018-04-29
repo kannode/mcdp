@@ -29,7 +29,7 @@ from reprep.utils import natsorted
 from system_cmd import system_cmd_result
 
 from .check_bad_input_files import check_bad_input_file_presence
-from .github_edit_links import add_edit_links2
+from .github_edit_links import add_edit_links2, add_last_modified_info
 from .manual_constants import MCDPManualConstants
 from .manual_join_imp import DocToJoin, manual_join, update_refs_
 from .minimal_doc import get_minimal_document
@@ -401,6 +401,9 @@ def get_extra_content(aug):
     <a id='button-show_local_changes' class='button' onclick='show_local_changes()'>local changes</a>
     <a id='button-show_recent_changes' class='button' onclick='show_recent_changes()'>recent changes</a>
     <a id='button-show_last_change' class='button' onclick='show_last_change()'>last change</a>
+    <a id='button-show_header_change' class='button' onclick='show_header_change()'>in-page changes</a>
+
+    
 </p>
 
 <style>
@@ -408,7 +411,8 @@ def get_extra_content(aug):
 .show_status #button-show_status,
 .show_local_changes #button-show_local_changes,
 .show_recent_changes #button-show_recent_changes,
-.show_last_change #button-show_last_change
+.show_last_change #button-show_last_change,
+.show_header_change #button-show_header_change
  {
     background-color: #bec9ce;
 }
@@ -464,6 +468,11 @@ function show_local_changes() {
     adjust('show_local_changes');
 }; 
 
+function show_header_change(){
+    toggle('show_header_change');
+    adjust('show_header_change');    
+}
+
 function show_recent_changes() {
     unset('show_last_change');
     toggle('show_recent_changes');
@@ -475,7 +484,7 @@ function show_last_change() {
     adjust('show_last_change');
 }; 
 
-
+adjust('show_header_change');
 adjust('show_todos');
 adjust('show_status');
 adjust('show_local_changes');
@@ -738,6 +747,7 @@ def render_book(src_dirs, generate_pdf,
         if filter_soup is not None:
             filter_soup(soup=soup, library=library)
         add_edit_links2(soup, location)
+        add_last_modified_info(soup, location)
 
     try:
         html_contents = render_complete(library=library_,

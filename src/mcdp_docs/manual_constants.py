@@ -174,6 +174,7 @@ class MCDPManualConstants(object):
     embed_img_data_extensions = ['png', 'jpg', 'jpeg', 'JPEG', 'PNG', 'JPG', 'svg', 'SVG']
     max_width_for_image = 1024
 
+    headers_for_last_modified = ['h1']
     headers_for_edit_links = ['h1', 'h2', 'h3', 'h4']
     ATTR_GITHUB_EDIT_URL = 'github-edit-url'
     ATTR_GITHUB_BLOB_URL = 'github-blob-url'

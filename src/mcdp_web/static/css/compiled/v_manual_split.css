@@ -2431,8 +2431,15 @@ pre + p {
   #tocdiv #extra-panel-content {
     background-color: white;
     margin: 0;
-    padding: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
     width: calc(25em - 1em - 1em);
+  }
+  #tocdiv details {
+    margin-bottom: 2em;
+  }
+  #tocdiv details[open] summary {
+    margin: 0;
   }
 }
 .navigation {
@@ -2474,6 +2481,18 @@ pre + p {
 }
 .show_local_changes a[has-local-changes] {
   background-color: rgba(167, 0, 170, 0.22);
+}
+/* The last modified next to headers */
+p.last-modified {
+  text-align: right;
+  font-size: smaller;
+  padding-top: 0;
+  margin-top: 0;
+  color: green;
+  display: none;
+}
+.show_header_change p.last-modified {
+  display: block;
 }
 .show_last_change a[github-last-modified-days]::after {
   content: attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);

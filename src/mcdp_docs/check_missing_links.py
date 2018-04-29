@@ -167,6 +167,43 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None):
             location = HTMLIDLocation.for_element(a, location0)
             res.note_error(msg, location)
 
+class MultipleMatches(Exception):
+    pass
+class NoMatches(Exception):
+    pass
+
+def match_ref(ref, id2element):
+    if ref in id2element:
+        return ref
+
+    # if there is already a prefix, remove it
+    if ':' in ref:
+        i = ref.index(':')
+        core = ref[i + 1:]
+    else:
+        core = ref
+
+    possible = MCDPManualConstants.all_possible_prefixes_that_can_be_implied
+
+    matches = []
+    others = []
+    for possible_prefix in possible:
+        why_not = possible_prefix + ':' + core
+        others.append(why_not)
+        if why_not in id2element:
+            matches.append(why_not)
+
+    if len(matches) > 1:
+        msg = '%s not found, and multiple matches for heuristics (%s)' % (ref, matches)
+        raise MultipleMatches(msg)
+
+    elif len(matches) == 1:
+        return matches[0]
+    else:
+        msg = 'Cannot match %r (core=%r).' % (ref, core)
+        msg += 'Know: %s' % sorted(id2element)
+        raise NoMatches(msg)
+
 
 def fix_subfig_references(soup):
     """

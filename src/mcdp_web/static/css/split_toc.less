@@ -56,10 +56,21 @@
 
       background-color: white;
       margin: 0;
-      padding: @tocpadding;
+      padding-left: @tocpadding;
+      padding-right: @tocpadding;
       width: calc(@tocwidth ~"-" @tocpadding ~"-" @tocpadding);
     }
+
+    details {
+      margin-bottom: 2em;
+    }
+    details[open] summary {
+      margin: 0;
+
+    }
   }
+
+  // #tocdiv
 
 }
 
@@ -139,10 +150,25 @@
   }
 }
 
+/* The last modified next to headers */
+p.last-modified {
+  text-align: right;
+  font-size: smaller;
+  padding-top: 0;
+  margin-top: 0;
+  color: green;
+  display: none;
+}
+
+.show_header_change p.last-modified {
+  display: block;
+}
+
 .show_last_change {
+
   a[github-last-modified-days] {
     &::after {
-      content:  attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
+      content: attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
       color: darkblue;
       font-size: smaller;
       font-family: sans-serif;
@@ -172,7 +198,7 @@
   }
 
   a[github-last-modified-days='1']::after {
-    content: 'modified yesterday by 'attr(github-last-modified-author);
+    content: 'modified yesterday by ' attr(github-last-modified-author);
     color: darkgreen;
   }
 
@@ -186,8 +212,6 @@
       color: darkgreen;
     }
   }
-
-
 
   a[github-last-modified-days='0'],
   a[github-last-modified-days='1'],
@@ -223,7 +247,6 @@
   }
 }
 
-
 .toc_a_for_book > span.toc_sep {
-    display: none;
+  display: none;
 }
