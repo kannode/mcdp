@@ -75,7 +75,10 @@ def get_source_info(filename):
 
         hexsha = commit.hexsha
 
-        header2sourceinfo = get_blames(repo, commit, path)
+        if MCDPManualConstants.blame_analysis:
+            header2sourceinfo = get_blames(repo, commit, path)
+        else:
+            header2sourceinfo = None
 
         # print('%s last modified by %s on %s ' % (filename, author, last_modified))
         return SourceInfo(commit=hexsha, author=author, last_modified=last_modified,

@@ -7,6 +7,7 @@ from mcdp import MCDPConstants
 
 class MCDPManualConstants(object):
     activate_tilde_as_nbsp = False
+    blame_analysis = True
 
     pdf_metadata = 'pdf_metadata.txt'
     pdf_metadata_template = pdf_metadata + '.in'

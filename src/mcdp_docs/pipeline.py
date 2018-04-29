@@ -86,13 +86,13 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # returns a dict(string, substitution)
     s, maths = extract_maths(s)
     #     print('maths = %s' % maths)
-    for k, v in maths.items():
+    for k, v in list(maths.items()):
         if v[0] == '$' and v[1] != '$$':
             if '\n\n' in v:
-                msg = 'Suspicious math fragment %r = %r' % (k, v)
-                logger.error(maths)
-                logger.error(msg)
-                raise ValueError(msg)
+                msg = 'The Markdown pre-processor got confused by this math fragment:'
+                msg += '\n\n' + indent(v, '  > ')
+                res.note_error(msg, location)
+                maths[k] = 'ERROR'
 
     s = latex_preprocessing(s)
     s = '<div style="display:none">Because of mathjax bug</div>\n\n\n' + s
