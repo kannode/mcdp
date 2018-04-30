@@ -54,7 +54,7 @@ class RenderManual(QuickApp):
         params.add_string('symbols', help='.tex file for MathJax', default=None)
         params.add_string('permalink_prefix', default=None)
         params.add_string('compose', default=None)
-        params.add_string('likebtn',  help='site id for likebtn', default=None,)
+        params.add_string('likebtn', help='site id for likebtn', default=None, )
         params.add_flag('raise_errors', help='If given, fail the compilation on errors')
         params.add_flag('cache')
         params.add_flag('last_modified', help='Add last modified page')
@@ -362,11 +362,11 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 
         extra_panel_content = context.comp(get_extra_content, joined_aug_with_html_stylesheet)
         id2filename_aug = context.comp_dynamic(create_split_jobs,
-                                           data_aug=joined_aug_with_html_stylesheet,
-                                           mathjax=True,
-                                           preamble=symbols,
-                                           extra_panel_content=extra_panel_content,
-                                           output_dir=out_split_dir, nworkers=0)
+                                               data_aug=joined_aug_with_html_stylesheet,
+                                               mathjax=True,
+                                               preamble=symbols,
+                                               extra_panel_content=extra_panel_content,
+                                               output_dir=out_split_dir, nworkers=0)
 
         context.comp(write_errors_and_warnings_files, id2filename_aug, out_split_dir)
         context.comp(write_manifest_html, out_split_dir)
@@ -415,6 +415,7 @@ def get_extra_content(aug):
     <a id='button-show_recent_changes' class='button' onclick='show_recent_changes()'>recent changes</a>
     <a id='button-show_last_change' class='button' onclick='show_last_change()'>last change</a>
     <a id='button-show_header_change' class='button' onclick='show_header_change()'>in-page changes</a>
+    <a id='button-show_feedback' class='button' onclick='show_feedback()'>feedback controls</a>
 
     
 </p>
@@ -425,7 +426,8 @@ def get_extra_content(aug):
 .show_local_changes #button-show_local_changes,
 .show_recent_changes #button-show_recent_changes,
 .show_last_change #button-show_last_change,
-.show_header_change #button-show_header_change
+.show_header_change #button-show_header_change,
+.show_feedback #button-show_feedback
  {
     background-color: #bec9ce;
 }
@@ -497,12 +499,18 @@ function show_last_change() {
     adjust('show_last_change');
 }; 
 
+function show_feedback() { 
+    toggle('show_feedback');
+    adjust('show_feedback');
+}; 
+
 adjust('show_header_change');
 adjust('show_todos');
 adjust('show_status');
 adjust('show_local_changes');
 adjust('show_recent_changes');
 adjust('show_last_change');
+adjust('show_feedback');
 </script>
 
     
@@ -520,6 +528,7 @@ def mark_errors_and_rest(joined_aug):
     res.set_result(to_html_entire_document(soup))
     return res
 
+
 def add_likebtn(joined_aug, likebtn):
     res = AugmentedResult()
     res.merge(joined_aug)
@@ -527,6 +536,7 @@ def add_likebtn(joined_aug, likebtn):
     add_likebtn_(soup, likebtn)
     res.set_result(to_html_entire_document(soup))
     return res
+
 
 def add_likebtn_(soup, likebtn_site_id):
     sections = 'h1[id],h2[id]'
@@ -541,22 +551,55 @@ def add_likebtn_(soup, likebtn_site_id):
         tag.attrs['class'] = 'likebtn-wrapper'
         tag.attrs['data-identifier'] = 'btn-%s' % id_
         tag.attrs['data-site_id'] = likebtn_site_id
-        
+
+        t = tag.attrs
+        t['data-white_label'] = "true"
+        t['data-identifier'] = "btn-id_"
+        t['data-show_dislike_label'] = "true"
+        t['data-icon_like_show'] = "false"
+        t['data-icon_dislike_show'] = "false"
+        t['data-counter_type'] = "percent"
+        # t['data-popup_disabled'] = "true"
+        t['data-popup_dislike'] = "true"
+        t['data-popup_position'] = "bottom"
+        t['data-popup_html'] = "Thanks for the feedback!"
+        t['data-share_size'] = "small"
+        t['data-item_url'] = "item-url"
+        t['data-item_title'] = 'title'
+        t['data-item_description'] = "item - description"
+        t['data-item_image'] = "item-image"
+        t['data-lazy_load'] = "true"
+        t['data-event_handler'] = "callback"
+        t['data-i18n_like'] = "Quack!"
+        t['data-i18n_dislike'] = "Uh?"
+        t['data-i18n_after_like'] = "Glad you liked it!"
+        t['data-i18n_after_dislike'] = "Please help us improve"
+        t['data-i18n_like_tooltip'] = "This is great content"
+        t['data-i18n_dislike_tooltip'] = "Something does not feel right"
+        # t['data-i18n_unlike_tooltip'] = "dislike - tooltip - after"
+        # t['data-i18n_undislike_tooltip'] = "dislike - tooltip - after"
+        t['data-i18n_share_text'] = "Share this content"
+
         script = bs(likebtn_code).script
         div.append(tag)
         div.append(script)
 
         h.insert_after(div)
+
+
 # language=html
 likebtn_code = """
     <script> (function(d, e, s){
-    if (d.getElementById("likebtn_wjs"))return;
-    a = d.createElement(e);
-    m = d.getElementsByTagName(e)[0];
-    a.async = 1;
-    a.id = "likebtn_wjs";
-    a.src = s;
-    m.parentNode.insertBefore(a, m)})(document, "script", "//w.likebtn.com/js/w/widget.js"); </script>
+        if (d.getElementById("likebtn_wjs"))
+            return;
+            a = d.createElement(e);
+            m = d.getElementsByTagName(e)[0];
+            a.async = 1;
+            a.id = "likebtn_wjs";
+            a.src = s;
+            m.parentNode.insertBefore(a, m)}
+    )(document, "script", "http://w.likebtn.com/js/w/widget.js"); 
+    </script>
 """
 
 

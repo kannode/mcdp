@@ -2482,6 +2482,12 @@ pre + p {
 .show_local_changes a[has-local-changes] {
   background-color: rgba(167, 0, 170, 0.22);
 }
+.like_buttons {
+  display: none;
+}
+.show_feedback .like_buttons {
+  display: block;
+}
 /* The last modified next to headers */
 p.last-modified {
   text-align: right;
