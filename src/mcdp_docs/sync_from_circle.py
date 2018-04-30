@@ -160,15 +160,20 @@ def get_artefacts(d0, d_build):
     """
     artefacts = []
 
-    def try_look_for(group_, f1, display_):
+    def try_look_for(group_, f1, display_, error_if_not_existing=True):
         if not os.path.exists(f1):
-            logger.error('target %r does not exist' % f1)
+            if error_if_not_existing:
+                logger.error('target %r does not exist' % f1)
+            else:
+                return
             found = False
             rel = None
         else:
             found = True
             rel = os.path.relpath(f1, d0)
         artefacts.append(Artefact(display=display_, group=group_, rel=rel, found=found))
+
+    try_look_for("index", os.path.join(d_build, "index.html"), "Index", error_if_not_existing=False)
 
     pattern = '*.manifest.yaml'
     nfiles = 0

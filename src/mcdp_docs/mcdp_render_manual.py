@@ -54,6 +54,7 @@ class RenderManual(QuickApp):
         params.add_string('symbols', help='.tex file for MathJax', default=None)
         params.add_string('permalink_prefix', default=None)
         params.add_string('compose', default=None)
+        params.add_string('likebtn',  help='site id for likebtn', default=None,)
         params.add_flag('raise_errors', help='If given, fail the compilation on errors')
         params.add_flag('cache')
         params.add_flag('last_modified', help='Add last modified page')
@@ -97,6 +98,7 @@ class RenderManual(QuickApp):
         permalink_prefix = options.permalink_prefix
         compose_config = options.compose
         output_crossref = options.output_crossref
+        likebtn = options.likebtn
         use_mathjax = True if options.mathjax else False
 
         logger.info('use mathjax: %s' % use_mathjax)
@@ -128,6 +130,7 @@ class RenderManual(QuickApp):
                     permalink_prefix=permalink_prefix,
                     compose_config=compose_config,
                     output_crossref=output_crossref,
+                    likebtn=likebtn
                     )
 
 
@@ -228,7 +231,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 permalink_prefix=None,
                 compose_config=None,
                 output_crossref=None,
-                do_last_modified=False):
+                do_last_modified=False,
+                likebtn=None):
     """
         src_dirs: list of sources
         symbols: a TeX preamble (or None)
@@ -347,6 +351,9 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 
     joined_aug = context.comp(mark_errors_and_rest, joined_aug)
 
+    if likebtn:
+        joined_aug = context.comp(add_likebtn, joined_aug, likebtn)
+
     if output_file is not None:
         context.comp(write, joined_aug, output_file)
 
@@ -377,6 +384,12 @@ def write_crossref_info(joined_aug, output_crossref, permalink_prefix):
 
     cross = Tag(name='body')
     for e in soup.select('[label-name]'):
+        if not 'id' in e.attrs:
+            return
+        id_ = e.attrs['id']
+        if id_.startswith('bib:'):
+            logger.warn('Excluding %r from cross refs' % id_)
+            continue
         e2 = e.__copy__()
         for a in list(e2.descendants):
             if isinstance(a, Tag) and 'id' in a.attrs:
@@ -506,6 +519,41 @@ def mark_errors_and_rest(joined_aug):
     res.merge(joined_aug)
     res.set_result(to_html_entire_document(soup))
     return res
+
+def add_likebtn(joined_aug, likebtn):
+    res = AugmentedResult()
+    res.merge(joined_aug)
+    soup = bs_entire_document(joined_aug.get_result())
+    add_likebtn_(soup, likebtn)
+    res.set_result(to_html_entire_document(soup))
+    return res
+
+def add_likebtn_(soup, likebtn_site_id):
+    sections = 'h1[id],h2[id]'
+
+    for h in list(soup.select(sections)):
+        id_ = h.attrs['id']
+
+        tag = Tag(name='span')
+        tag.attrs['class'] = 'likebtn-wrapper'
+        tag.attrs['data-identifier'] = 'btn-%s' % id_
+        tag.attrs['data-site_id'] = likebtn_site_id
+        h.insert_after(tag)
+
+        script = bs(likebtn_code).script
+        tag.insert_after(script)
+
+# language=html
+likebtn_code = """
+    <script> (function(d, e, s){
+    if (d.getElementById("likebtn_wjs"))return;
+    a = d.createElement(e);
+    m = d.getElementsByTagName(e)[0];
+    a.async = 1;
+    a.id = "likebtn_wjs";
+    a.src = s;
+    m.parentNode.insertBefore(a, m)})(document, "script", "//w.likebtn.com/js/w/widget.js"); </script>
+"""
 
 
 def add_style(data_aug, stylesheet):
