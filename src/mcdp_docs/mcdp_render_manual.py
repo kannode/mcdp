@@ -534,15 +534,19 @@ def add_likebtn_(soup, likebtn_site_id):
     for h in list(soup.select(sections)):
         id_ = h.attrs['id']
 
+        div = Tag(name='div')
+        div.attrs['class'] = 'like_buttons'
+
         tag = Tag(name='span')
         tag.attrs['class'] = 'likebtn-wrapper'
         tag.attrs['data-identifier'] = 'btn-%s' % id_
         tag.attrs['data-site_id'] = likebtn_site_id
-        h.insert_after(tag)
-
+        
         script = bs(likebtn_code).script
-        tag.insert_after(script)
+        div.append(tag)
+        div.append(script)
 
+        h.insert_after(div)
 # language=html
 likebtn_code = """
     <script> (function(d, e, s){
