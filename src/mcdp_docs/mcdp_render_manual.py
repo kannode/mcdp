@@ -546,6 +546,7 @@ def add_likebtn_(soup, likebtn_site_id):
 
         div = Tag(name='div')
         div.attrs['class'] = 'like_buttons'
+        div.append('Please provide your feedback: ')
 
         tag = Tag(name='span')
         tag.attrs['class'] = 'likebtn-wrapper'
@@ -553,8 +554,10 @@ def add_likebtn_(soup, likebtn_site_id):
         tag.attrs['data-site_id'] = likebtn_site_id
 
         t = tag.attrs
+        t['data-theme'] = "tick"
         t['data-white_label'] = "true"
-        t['data-identifier'] = "btn-id_"
+        t['data-white_label'] = "true"
+        t['data-identifier'] = "f1-%s" % id_
         t['data-show_dislike_label'] = "true"
         t['data-icon_like_show'] = "false"
         t['data-icon_dislike_show'] = "false"
@@ -563,6 +566,7 @@ def add_likebtn_(soup, likebtn_site_id):
         t['data-popup_dislike'] = "true"
         t['data-popup_position'] = "bottom"
         t['data-popup_html'] = "Thanks for the feedback!"
+        t['data-share_enabled'] = "false"
         t['data-share_size'] = "small"
         t['data-item_url'] = "item-url"
         t['data-item_title'] = 'title'
@@ -572,8 +576,8 @@ def add_likebtn_(soup, likebtn_site_id):
         t['data-event_handler'] = "callback"
         t['data-i18n_like'] = "Quack!"
         t['data-i18n_dislike'] = "Uh?"
-        t['data-i18n_after_like'] = "Glad you liked it!"
-        t['data-i18n_after_dislike'] = "Please help us improve"
+        # t['data-i18n_after_like'] = "Glad you liked it!"
+        # t['data-i18n_after_dislike'] = "Please help us improve!"
         t['data-i18n_like_tooltip'] = "This is great content"
         t['data-i18n_dislike_tooltip'] = "Something does not feel right"
         # t['data-i18n_unlike_tooltip'] = "dislike - tooltip - after"
