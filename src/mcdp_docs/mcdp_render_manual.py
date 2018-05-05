@@ -57,6 +57,7 @@ class RenderManual(QuickApp):
         params.add_string('likebtn', help='site id for likebtn', default=None, )
         params.add_flag('raise_errors', help='If given, fail the compilation on errors')
         params.add_flag('cache')
+        params.add_flag('wordpress_integration')
         params.add_flag('last_modified', help='Add last modified page')
         params.add_flag('generate_pdf', help='Generate PDF version of code and figures.')
         params.add_string('pdf', help='If given, generate PDF at this path.', default=None)
@@ -98,6 +99,7 @@ class RenderManual(QuickApp):
         permalink_prefix = options.permalink_prefix
         compose_config = options.compose
         output_crossref = options.output_crossref
+        wordpress_integration = options.wordpress_integration
         likebtn = options.likebtn
         use_mathjax = True if options.mathjax else False
 
@@ -130,6 +132,7 @@ class RenderManual(QuickApp):
                     permalink_prefix=permalink_prefix,
                     compose_config=compose_config,
                     output_crossref=output_crossref,
+                    wordpress_integration=wordpress_integration,
                     likebtn=likebtn
                     )
 
@@ -232,6 +235,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 compose_config=None,
                 output_crossref=None,
                 do_last_modified=False,
+                wordpress_integration=False,
                 likebtn=None):
     """
         src_dirs: list of sources
@@ -354,7 +358,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     if likebtn:
         joined_aug = context.comp(add_likebtn, joined_aug, likebtn)
 
-    if True:
+    if wordpress_integration:
         joined_aug = context.comp(add_related, joined_aug)
 
     if output_file is not None:
