@@ -542,7 +542,7 @@ def add_related(joined_aug):
 
 
 def add_related_(soup, res):
-    posts, users = get_related()
+    posts, users = get_related(res)
 
     tag2posts = defaultdict(list)
     for post in posts.values():
@@ -611,13 +611,21 @@ def add_related_(soup, res):
         section.append(p)
 
 
-def get_related():
+def get_related(res):
     filenames = locate_files('.', '*.related.yaml')
 
     users = {}
     posts = {}
     for f in filenames:
-        data = yaml.load(open(f).read())
+        location = LocalFile(f)
+        contents = open(f).read()
+        data = yaml.load(contents)
+        if not isinstance(data, dict):
+            msg = 'YAML is None'
+            res.note_error(msg, location)
+        if not 'users' in data or not 'posts' in data:
+            msg = 'Could not find keys in dict: %s' % list(data)
+            res.note_error(msg, location)
         users.update(data['users'])
         posts.update(data['posts'])
 
