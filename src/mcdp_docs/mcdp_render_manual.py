@@ -620,9 +620,11 @@ def get_related(res):
         location = LocalFile(f)
         contents = open(f).read()
         data = yaml.load(contents)
+        print(indent(data, os.path.basename(f) + ' > '))
         if not isinstance(data, dict):
             msg = 'YAML is None'
             res.note_error(msg, location)
+            continue
         if not 'users' in data or not 'posts' in data:
             msg = 'Could not find keys in dict: %s' % list(data)
             res.note_error(msg, location)
