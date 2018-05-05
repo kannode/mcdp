@@ -2,7 +2,7 @@
 import logging
 import os
 import tempfile
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import yaml
 from bs4 import Tag
@@ -354,6 +354,9 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     if likebtn:
         joined_aug = context.comp(add_likebtn, joined_aug, likebtn)
 
+    if True:
+        joined_aug = context.comp(add_related, joined_aug)
+
     if output_file is not None:
         context.comp(write, joined_aug, output_file)
 
@@ -527,6 +530,98 @@ def mark_errors_and_rest(joined_aug):
     res.merge(joined_aug)
     res.set_result(to_html_entire_document(soup))
     return res
+
+
+def add_related(joined_aug):
+    res = AugmentedResult()
+    res.merge(joined_aug)
+    soup = bs_entire_document(joined_aug.get_result())
+    add_related_(soup, res)
+    res.set_result(to_html_entire_document(soup))
+    return res
+
+
+def add_related_(soup, res):
+    posts, users = get_related()
+
+    tag2posts = defaultdict(list)
+    for post in posts.values():
+        for tag in post['tags']:
+            tag2posts[tag].append(post)
+
+    for section in soup.select('section[id]'):
+
+        level = section.attrs['level']
+
+        id_ = section.attrs['id']
+        short = id_.replace(':section', '')
+        if 'autoid' in short:
+            continue
+
+        if short in tag2posts:
+            print('found question for %s' % short)
+            div = Tag(name='div')
+            div.attrs['class'] = 'questions-asked'
+            table = Tag(name='table')
+            for post in tag2posts[short]:
+                url = post['url']
+                date = post['date']
+                author =  post['author']
+                title = post['title']
+
+                tr = Tag(name='tr')
+                td = Tag(name='td')
+                if author is not None:
+                    info = users[author]
+                    a = Tag(name='a')
+                    a.append(info['name'])
+                    td.append(a)
+                tr.append(td)
+
+                td = Tag(name='td')
+                td.append(date.strftime("%B %d, %Y"))
+                tr.append(td)
+
+                td = Tag(name='td')
+                if author is not None:
+                    a = Tag(name='a')
+                    a.attrs['href'] = url
+                    a.append(title)
+                    td.append(a)
+                tr.append(td)
+
+                table.append(tr)
+
+            div.append(table)
+            section.append(div)
+        else:
+            pass
+            # print('no questions for %s' % short)
+
+        if level not in ['sec']:
+            continue
+
+
+        p = Tag(name='p')
+        p.attrs['class'] = 'questions-prompt'
+        a = Tag(name='a')
+        a.attrs['href'] = 'http://www2.duckietown.org/questions/ask/?pred=%s' % short
+        a.append("Ask a question about this section")
+        p.append(a)
+        section.append(p)
+
+
+def get_related():
+    filenames = locate_files('.', '*.related.yaml')
+
+    users = {}
+    posts = {}
+    for f in filenames:
+        data = yaml.load(open(f).read())
+        users.update(data['users'])
+        posts.update(data['posts'])
+
+    return posts, users
 
 
 def add_likebtn(joined_aug, likebtn):

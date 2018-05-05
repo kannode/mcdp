@@ -2488,6 +2488,7 @@ pre + p {
   padding: 0.3em;
   margin-left: 2em;
   margin-right: 2em;
+  border-radius: 10px;
 }
 .show_feedback .like_buttons {
   display: block;
@@ -2565,6 +2566,30 @@ p.last-modified a {
 }
 .toc_a_for_book > span.toc_sep {
   display: none;
+}
+.questions-asked::before {
+  content: 'Questions asked about this section:';
+}
+.questions-asked {
+  padding: 0.3em;
+  margin-left: 3em;
+  font-size: smaller;
+  margin: 0.5em;
+  background-color: #f2dede;
+  border-radius: 5px;
+}
+.questions-asked td {
+  padding: 10px;
+}
+.questions-prompt {
+  padding: 0.3em;
+  margin-left: 3em;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  font-size: smaller;
+  margin: 0.5em;
+  background-color: #f2dede;
+  border-radius: 5px;
 }
 .main-section-for-page {
   min-height: 65vh;
