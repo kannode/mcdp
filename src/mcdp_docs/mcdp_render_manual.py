@@ -179,6 +179,8 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
 
         for e in s.select('[id]'):
             id_ = e.attrs['id']
+            if id_ == 'container': continue # XXX:
+
             if id_ in id2file:
                 if not ignore_alread_present:
                     msg = 'Found two elements with same ID "%s":' % id_
@@ -207,10 +209,10 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
         logger.info('Reading external refs\n%s' % extra_crossrefs)
         try:
             r = requests.get(extra_crossrefs)
-        except Exception as e:
+        except Exception as ex:
             msg = 'Could not read external cross reference links'
             msg += '\n  %s' % extra_crossrefs
-            msg += '\n\n' + indent(str(e), ' > ')
+            msg += '\n\n' + indent(str(ex), ' > ')
             res.note_error(msg)
         else:
             s = bs(r.text)
