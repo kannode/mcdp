@@ -59,7 +59,9 @@ def fix_header_id(header, globally_unique_id_part, res, location):
                     # logger.error(msg)  # TODO: add warning
                     # header.insert_after(Comment('Error: ' + msg))
                     res.note_error(msg, HTMLIDLocation.for_element(header, location))
-
+                else:
+                    ID_short = ID.replace(prefix+':', '')
+                    header.attrs['id-short'] = ID_short
 
 class InvalidHeaders(ValueError):
     pass
