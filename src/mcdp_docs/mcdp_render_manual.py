@@ -179,7 +179,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
 
         for e in s.select('[id]'):
             id_ = e.attrs['id']
-            if id_ == 'container': continue # XXX:
+            if id_ == 'container': continue  # XXX:
 
             if id_ in id2file:
                 if not ignore_alread_present:
@@ -536,7 +536,7 @@ for (var i = 0; i < divs.length; i++) {
     id2url[ID] = url;
     console.log(ID + ' -> ' + url);
     
-    if(ID.include(":")) {
+    if(ID.includes(":")) {
         ID2 = ID.split(":")[1];
         id2url[ID2] = url;
         console.log(ID2 + ' -> ' + url);
