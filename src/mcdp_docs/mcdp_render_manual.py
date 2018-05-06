@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import sys
 import tempfile
 from collections import OrderedDict, defaultdict
 
-import sys
 import yaml
 from bs4 import Tag
 from compmake import UserError
@@ -142,7 +142,7 @@ class RenderManual(QuickApp):
                     wordpress_integration=wordpress_integration,
                     likebtn=likebtn,
                     ignore_ref_errors=ignore_ref_errors,
-                    extra_crossrefs=extra_crossrefs
+                    extra_crossrefs=extra_crossrefs,
                     )
 
 
@@ -450,11 +450,10 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
         if id_ in id2filename:
             basename = id2filename[id_]
 
-            e2.attrs['url'] = '%s/%s#%s' %(permalink_prefix, basename, id_)
+            e2.attrs['url'] = '%s/%s#%s' % (permalink_prefix, basename, id_)
             # print e2.attrs['url']
         else:
             logger.error('Cannot find url for %s' % id_)
-
 
         cross.append(e2)
 
@@ -475,6 +474,7 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     cross.append(script)
     write_data_to_file(str(html), output_crossref)
 
+
 # language=css
 CROSSREF_CSS = """
     *[id-short] {
@@ -483,7 +483,7 @@ CROSSREF_CSS = """
 """
 
 # language=javascript
-CROSSREF_SCRIPT =  """
+CROSSREF_SCRIPT = """
 
 id2url = {};
 
@@ -520,6 +520,7 @@ if (window.location.hash) {
     log("No hash found");
 }
 """
+
 
 def get_extra_content(aug):
     extra_panel_content = Tag(name='div')
@@ -675,7 +676,7 @@ def add_related_(soup, res):
             continue
 
         if short in tag2posts:
-            nfound = len( tag2posts[short])
+            nfound = len(tag2posts[short])
             # print('found question for %s' % short)
             div = Tag(name='div')
             div.attrs['class'] = 'questions-asked'
