@@ -322,9 +322,9 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
     if output_crossref is not None:
         from mcdp_docs.mcdp_render_manual import write_crossref_info
-        soup2 = bs_entire_document(data)
 
-        context.comp(write_crossref_info, soup=soup2, id2filename=id2filename,
+
+        context.comp(write_crossref_info, data=data, id2filename=id2filename,
                      output_crossref=output_crossref,
                      permalink_prefix=permalink_prefix)
 

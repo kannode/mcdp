@@ -424,7 +424,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         context.comp(write_manifest_pdf, out_pdf)
 
 
-def write_crossref_info(soup, id2filename, output_crossref, permalink_prefix):
+def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
+    soup = bs_entire_document(data)
 
     cross = Tag(name='body')
     # for e in soup.select('[id]'):
