@@ -7,8 +7,6 @@ from contracts.utils import raise_desc
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPInternalError
-from mcdp_docs.location import LocationUnknown
-from mcdp_docs.task_markers import create_notes_from_elements
 from mcdp_library import MCDPLibrary
 from mcdp_report.gg_utils import embed_images_from_library2
 from mcdp_utils_misc import get_md5, AugmentedResult
@@ -18,6 +16,7 @@ from .check_missing_links import check_if_any_href_is_invalid, fix_subfig_refere
 from .elements_abbrevs import check_good_use_of_special_paragraphs, other_abbrevs, substitute_special_paragraphs
 from .github_file_ref.display_file_imp import display_files
 from .lessc import run_lessc
+from .location import LocationUnknown
 from .macros import replace_macros
 from .make_console_pre import mark_console_pres
 from .make_figures import make_figure_from_figureid_attr
@@ -25,6 +24,7 @@ from .manual_constants import MCDPManualConstants
 from .prerender_math import escape_for_mathjax_back, escape_for_mathjax
 from .status import check_status_codes, check_lang_codes
 from .syntax_highlight import syntax_highlighting, strip_pre
+from .task_markers import create_notes_from_elements
 from .tocs import check_no_patently_wrong_links, fix_ids_and_add_missing
 from .videos import make_videos
 
@@ -219,7 +219,6 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
 
     if MCDPManualConstants.enable_syntax_higlighting:
         syntax_highlighting(soup)
-
 
     if MCDPManualConstants.enforce_lang_attribute:
         check_lang_codes(soup, res, location)

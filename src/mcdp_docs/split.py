@@ -11,6 +11,7 @@ from mcdp import logger
 from mcdp_docs.check_missing_links import get_id2element
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_docs.manual_constants import MCDPManualConstants
+
 from mcdp_docs.tocs import generate_toc, substituting_empty_links
 from mcdp_utils_misc import get_md5, write_data_to_file
 from mcdp_utils_misc.augmented_result import AugmentedResult
@@ -150,7 +151,9 @@ class Split(QuickApp):
 
 def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers=0,
                       extra_panel_content=None,
-                      add_toc_if_not_existing=True):
+                      add_toc_if_not_existing=True,
+                      output_crossref=None,
+                      permalink_prefix=None):
     data = data_aug.get_result()
     if nworkers == 0:
         nworkers = max(1, cpu_count() - 2)
@@ -175,6 +178,8 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
                                        add_toc_if_not_existing=add_toc_if_not_existing,
                                        assets_dir=assets_dir,
                                        extra_panel_content=extra_panel_content,
+                                       output_crossref=output_crossref,
+                                       permalink_prefix=permalink_prefix,
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
         jobs.append(promise)
 
@@ -196,7 +201,7 @@ def notification(aug, jobs_aug, output_dir):
 
 @contract(returns=AugmentedResult)
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir,
-       add_toc_if_not_existing, extra_panel_content):
+       add_toc_if_not_existing, extra_panel_content, permalink_prefix=None, output_crossref=None):
     res = AugmentedResult()
     soup = bs_entire_document(data)
 
@@ -314,6 +319,14 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
     update_refs_('toc.html', main_toc, id2filename)
     out_toc = os.path.join(output_dir, 'toc.html')
     write_data_to_file(str(main_toc), out_toc)
+
+    if output_crossref is not None:
+        from mcdp_docs.mcdp_render_manual import write_crossref_info
+        soup2 = bs_entire_document(data)
+
+        context.comp(write_crossref_info, soup=soup2, id2filename=id2filename,
+                     output_crossref=output_crossref,
+                     permalink_prefix=permalink_prefix)
 
     res.set_result(id2filename)
     return context.comp(wait_assets, res, asset_jobs)

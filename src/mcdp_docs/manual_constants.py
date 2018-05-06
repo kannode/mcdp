@@ -189,6 +189,7 @@ class MCDPManualConstants(object):
     attrs_to_copy_to_link = [ATTR_HAS_LOCAL_MODIFICATIONS, ATTR_STATUS]
     attrs_to_copy_from_header_to_section = [ATTR_HAS_LOCAL_MODIFICATIONS, ATTR_STATUS, 'lang', 'type']
 
+    ATTR_BASE_URL = 'base_url'
 
 Label = namedtuple('Label', 'what number label_self')
 

@@ -161,7 +161,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
     id2file = {}
     soup = Tag(name='div')
 
-    def add_from_soup(s, f, ignore_alread_present):
+    def add_from_soup(s, f, ignore_alread_present, ignore_if_conflict):
         for img in list(s.find_all('img')):
             img.extract()
 
@@ -183,7 +183,10 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
                     res.note_error(msg)
             else:
                 id2file[id_] = f
-                soup.append(e.__copy__())
+                e2 = e.__copy__()
+                if ignore_if_conflict:
+                    e2.attrs['ignore_if_conflict'] = '1'
+                soup.append(e2)
                 soup.append('\n')
 
     for _f in files:
@@ -194,7 +197,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
             logger.debug(msg)
             continue
         s = bs(data)
-        add_from_soup(s, _f, ignore_alread_present=False)
+        add_from_soup(s, _f, ignore_alread_present=False, ignore_if_conflict=False)
 
     if extra_crossrefs is not None:
         logger.info('Reading external refs\n%s' % extra_crossrefs)
@@ -207,7 +210,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
             res.note_error(msg)
         else:
             s = bs(r.text)
-            add_from_soup(s, extra_crossrefs, ignore_alread_present=True)
+            add_from_soup(s, extra_crossrefs, ignore_alread_present=True, ignore_if_conflict=True)
 
     # print soup
     res.set_result(str(soup))
@@ -376,9 +379,6 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                               permalink_prefix=permalink_prefix,
                               job_id='join-%s' % cs)
 
-    if output_crossref is not None:
-        context.comp(write_crossref_info, joined_aug, output_crossref, permalink_prefix=permalink_prefix)
-
     if compose_config is not None:
         try:
             data = yaml.load(open(compose_config).read())  # XXX
@@ -409,7 +409,9 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                                                mathjax=True,
                                                preamble=symbols,
                                                extra_panel_content=extra_panel_content,
-                                               output_dir=out_split_dir, nworkers=0)
+                                               output_dir=out_split_dir, nworkers=0,
+                                               output_crossref=output_crossref,
+                                               permalink_prefix=permalink_prefix)
 
         context.comp(write_errors_and_warnings_files, id2filename_aug, out_split_dir)
         context.comp(write_manifest_html, out_split_dir)
@@ -422,13 +424,17 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         context.comp(write_manifest_pdf, out_pdf)
 
 
-def write_crossref_info(joined_aug, output_crossref, permalink_prefix):
-    soup = bs_entire_document(joined_aug.get_result())
+def write_crossref_info(soup, id2filename, output_crossref, permalink_prefix):
 
     cross = Tag(name='body')
+    for e in soup.select('[id]'):
+        logger.debug('know %s' % e.attrs['id'])
+
     for e in soup.select('[label-name]'):
+        logger.debug('considering %s' % e)
         if not 'id' in e.attrs:
-            return
+            continue
+
         id_ = e.attrs['id']
         if id_.startswith('bib:'):
             logger.warn('Excluding %r from cross refs' % id_)
@@ -437,12 +443,26 @@ def write_crossref_info(joined_aug, output_crossref, permalink_prefix):
         for a in list(e2.descendants):
             if isinstance(a, Tag) and 'id' in a.attrs:
                 del a.attrs['id']
-        e2.attrs['base_url'] = permalink_prefix
+
+        e2.attrs[MCDPManualConstants.ATTR_BASE_URL] = permalink_prefix
+
+        if id_ in id2filename:
+            basename = id2filename[id_]
+
+            e2.attrs['url'] = '%s/%s#%s' %(permalink_prefix, basename, id_)
+            print e2.attrs['url']
+        else:
+            logger.error('Cannot find url for %s' % id_)
+
+
         cross.append(e2)
+
     for img in list(cross.find_all('img')):
         img.extract()
     print('writing cross ref info')
-    write_data_to_file(str(cross), output_crossref)
+    html = Tag(name='html')
+    html.append(cross)
+    write_data_to_file(str(html), output_crossref)
 
 
 def get_extra_content(aug):
@@ -599,7 +619,8 @@ def add_related_(soup, res):
             continue
 
         if short in tag2posts:
-            print('found question for %s' % short)
+            nfound = len( tag2posts[short])
+            # print('found question for %s' % short)
             div = Tag(name='div')
             div.attrs['class'] = 'questions-asked'
             table = Tag(name='table')
@@ -635,6 +656,7 @@ def add_related_(soup, res):
             div.append(table)
             section.append(div)
         else:
+            nfound = 0
             pass
             # print('no questions for %s' % short)
 
@@ -645,8 +667,15 @@ def add_related_(soup, res):
         p.attrs['class'] = 'questions-prompt'
         a = Tag(name='a')
         a.attrs['href'] = 'http://www2.duckietown.org/questions/ask/?pred=%s' % short
-        a.append("Ask a question about this section")
-        p.append(a)
+        if nfound == 0:
+            p.append("No questions found. You can ask a question ")
+            a.append("on the website")
+            p.append(a)
+            p.append('.')
+        else:
+            a.append("Ask another question about this section.")
+            p.append(a)
+
         section.append(p)
 
 
