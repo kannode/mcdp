@@ -433,8 +433,10 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     soup = bs_entire_document(data)
 
     cross = Tag(name='body')
-    # for e in soup.select('[id]'):
-    #     logger.debug('know %s' % e.attrs['id'])
+
+    container = Tag(name='div')
+    container.attrs['id'] = 'container'
+    cross.append(container)
 
     for e in soup.select('[label-name]'):
         # logger.debug('considering %s' % e)
@@ -445,11 +447,8 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
         if id_.startswith('bib:'):
             logger.warn('Excluding %r from cross refs' % id_)
             continue
-        e2 = e.__copy__()
-        for a in list(e2.descendants):
-            if isinstance(a, Tag) and 'id' in a.attrs:
-                del a.attrs['id']
 
+        e2 = get_crossref_copy(e)
         e2.attrs[MCDPManualConstants.ATTR_BASE_URL] = permalink_prefix
 
         if id_ in id2filename:
@@ -457,9 +456,23 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
 
             e2.attrs['url'] = '%s/%s#%s' % (permalink_prefix, basename, id_)
             # print e2.attrs['url']
+            a = Tag(name='a')
+
+            a.attrs['href'] = e2.attrs['url']
+            if not 'autoid' in id_:
+                code = Tag(name='code')
+                code.append(id_)
+                a.append(code)
+                a.append(' ')
+                a.append(Tag(name='br'))
+            a.append(e2.attrs['label-name'])
+            # e2.insert(0, Tag(name='br'))
+            # e2.insert(0, ' ')
+            e2.insert(0, a)
         else:
             logger.error('Cannot find url for %s' % id_)
 
+        cross.append('\n\n\n')
         cross.append(e2)
 
     for img in list(cross.find_all('img')):
@@ -479,11 +492,29 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     cross.append(script)
     write_data_to_file(str(html), output_crossref)
 
+def get_crossref_copy(e):
+    e2 = e.__copy__()
+    # for a in list(e2.descendants):
+    #     if isinstance(a, Tag) and 'id' in a.attrs:
+    #         del a.attrs['id']
+    for m in list(e2.contents):
+        # if isinstance(m, Tag):
+        m.extract()
+    e2.name = 'p'
+    return e2
 
 # language=css
 CROSSREF_CSS = """
+    #container {
+        margin-bottom: 10em;
+        border: solid 1px red;
+        padding: 1em;
+    }
     *[id-short] {
-        display: none;
+        
+    }
+    *[id-short] * {
+        
     }
 """
 
@@ -504,7 +535,8 @@ function log(s) {
     console.info(s);
     var p = document.createElement('p');
     p.innerHTML = s;
-    document.body.appendChild(p);
+    parent = document.getElementById('container');
+    parent.appendChild(p);
 }
 
 if (window.location.hash) {
@@ -750,7 +782,7 @@ def get_related(res):
         location = LocalFile(f)
         contents = open(f).read()
         data = yaml.load(contents)
-        print(indent(data, os.path.basename(f) + ' > '))
+        # print(indent(data, os.path.basename(f) + ' > '))
         if not isinstance(data, dict):
             msg = 'YAML is None'
             res.note_error(msg, location)

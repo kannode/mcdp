@@ -21,6 +21,8 @@ def get_sanitized_copy(element):
         if isinstance(e, Tag):
             if 'id' in e.attrs:
                 del e.attrs['id']
+    for a in d.select('a[href]'):
+        del a.attrs['href']
     return d
 
 def create_notes_from_elements(soup, res, location, unique):
@@ -35,7 +37,8 @@ def create_notes_from_elements(soup, res, location, unique):
             div2 = Tag(name='div')
             div2.attrs['style'] = 'margin: 1em; font-size: 90%; background-color: #eee; border-radius: 5px; padding: 0.5em;'
             # Copy:
-            div2.append(get_sanitized_copy(p))
+            p2 = get_sanitized_copy(p)
+            div2.append(p2)
             div.append(div2)
 
             tags = (tag,)
