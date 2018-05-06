@@ -40,6 +40,8 @@ def get_changed_files(repo_root):
     logger.debug(msg)
     return changed
 
+# git.util.actor is not serializable
+Author = namedtuple('Author', 'name email')
 
 @memoize_simple
 def get_source_info(filename):
@@ -67,7 +69,7 @@ def get_source_info(filename):
             raise_wrapped(NoSourceInfo, _e, msg, compact=True)
             raise
 
-        author = commit.author
+        author2 = Author(name=commit.author.name, email=commit.author.email)
         last_modified = time.gmtime(commit.committed_date)
         last_modified = datetime.datetime.fromtimestamp(time.mktime(last_modified))
 
@@ -86,9 +88,11 @@ def get_source_info(filename):
             header2sourceinfo = None
 
         # print('%s last modified by %s on %s ' % (filename, author, last_modified))
-        return SourceInfo(commit=hexsha, author=author, last_modified=last_modified,
+        res =  SourceInfo(commit=hexsha, author=author2, last_modified=last_modified,
                           has_local_modifications=has_local_modifications,
                           header2sourceinfo=header2sourceinfo)
+        logger.debug(res)
+        return res
     finally:
         repo.git = None
 
@@ -134,7 +138,7 @@ def get_blames(repo, commit, path):
     header2sourceinfo = {}
     for id_, commits in headers2commits.items():
         youngest = sorted(commits, key=lambda _: time.gmtime(_.committed_date))[-1]
-        author = youngest.author
+        author = Author(name=youngest.author.name, email=youngest.author.email)
         last_modified = datetime_from_commit_date(youngest.committed_date)
         has_local_modifications = False
         header2sourceinfo[id_] = SourceInfo(commit=youngest.hexsha,
