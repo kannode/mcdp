@@ -346,7 +346,7 @@ class GithubLocation(Location):
         p.append(' commit ')
         p.append(stag('a', self.commit[-8:], href=self.commit_url))
         p.append(Tag(name='br'))
-        p.append(' last modified by %s on %s' % (self.author, self.last_modified))
+        p.append(' last modified by %s on %s' % (self.author.name, self.last_modified))
         if self.has_local_modifications:
             t = Tag(name='p')
             t.append('File has local modifications')
