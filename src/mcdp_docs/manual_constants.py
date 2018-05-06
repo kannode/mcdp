@@ -65,6 +65,8 @@ class MCDPManualConstants(object):
         'book', 'part', 'sec', 'sub', 'subsub', 'par', 'subpar', 'app', 'appsub', 'appsubsub',
         'fig', 'tab', 'code',
         'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
+
+        'bib',
     ]
 
     ATTR_NOTOC = 'notoc'

@@ -153,7 +153,8 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
                       extra_panel_content=None,
                       add_toc_if_not_existing=True,
                       output_crossref=None,
-                      permalink_prefix=None):
+                      permalink_prefix=None,
+                      only_refs=False):
     data = data_aug.get_result()
     if nworkers == 0:
         nworkers = max(1, cpu_count() - 2)
@@ -180,8 +181,11 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
                                        extra_panel_content=extra_panel_content,
                                        output_crossref=output_crossref,
                                        permalink_prefix=permalink_prefix,
+                                       only_refs=only_refs,
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
         jobs.append(promise)
+        if only_refs:
+                break
 
     return context.comp(notification, res, jobs, output_dir)
 
@@ -201,7 +205,8 @@ def notification(aug, jobs_aug, output_dir):
 
 @contract(returns=AugmentedResult)
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir,
-       add_toc_if_not_existing, extra_panel_content, permalink_prefix=None, output_crossref=None):
+       add_toc_if_not_existing, extra_panel_content, permalink_prefix=None, output_crossref=None,
+       only_refs=False):
     res = AugmentedResult()
     soup = bs_entire_document(data)
 
@@ -239,6 +244,19 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
     with timeit("split_in_files"):
         filename2contents = split_in_files(body)
+        id2filename = get_id2filename(filename2contents)
+
+    res.set_result(id2filename)
+
+    if output_crossref is not None:
+        from mcdp_docs.mcdp_render_manual import write_crossref_info
+        context.comp(write_crossref_info, data=data, id2filename=id2filename,
+                     output_crossref=output_crossref,
+                     permalink_prefix=permalink_prefix)
+
+    if only_refs:
+        logger.debug('Skipping rest because only_refs')
+        return res
 
     with timeit("add_prev_next_links"):
         filename2contents = add_prev_next_links(filename2contents)
@@ -251,7 +269,6 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
                 pass
 
     with timeit("creating link.html and link.js"):
-        id2filename = get_id2filename(filename2contents)
 
         linkbase = 'link.html'  # do not change (it's used by http://purl.org/dth)
         linkbasejs = 'link.js'
@@ -322,15 +339,6 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
     out_toc = os.path.join(output_dir, 'toc.html')
     write_data_to_file(str(main_toc), out_toc)
 
-    if output_crossref is not None:
-        from mcdp_docs.mcdp_render_manual import write_crossref_info
-
-
-        context.comp(write_crossref_info, data=data, id2filename=id2filename,
-                     output_crossref=output_crossref,
-                     permalink_prefix=permalink_prefix)
-
-    res.set_result(id2filename)
     return context.comp(wait_assets, res, asset_jobs)
 
 

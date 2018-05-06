@@ -76,7 +76,12 @@ def get_source_info(filename):
         hexsha = commit.hexsha
 
         if MCDPManualConstants.blame_analysis:
-            header2sourceinfo = get_blames(repo, commit, path)
+            try:
+                header2sourceinfo = get_blames(repo, commit, path)
+            except FileNotInGit:
+                # XXX: should not happen, we should catch before
+                header2sourceinfo = None
+
         else:
             header2sourceinfo = None
 
@@ -90,6 +95,8 @@ def get_source_info(filename):
 
 HeaderIdent = namedtuple('HeaderIdent', 'id_ text')
 
+class FileNotInGit(Exception):
+    pass
 
 def get_blames(repo, commit, path):
     from mcdp_docs.mark.markd import render_markdown
@@ -106,16 +113,20 @@ def get_blames(repo, commit, path):
     headers2commits = defaultdict(set)
     current_header = None
 
-    for _commit, lines in repo.blame(commit.hexsha, path):
+    try:
+        for _commit, lines in repo.blame(commit.hexsha, path):
 
-        for line in lines:
-            # who = _commit.author.name
-            # print("%s changed these lines: %s" % (who, line))
+            for line in lines:
+                # who = _commit.author.name
+                # print("%s changed these lines: %s" % (who, line))
 
-            header = contains_header(line)
-            if header is not None:
-                current_header = header
-            headers2commits[current_header].add(_commit)
+                header = contains_header(line)
+                if header is not None:
+                    current_header = header
+                headers2commits[current_header].add(_commit)
+    except git.GitCommandError as e:
+        if 'no such path' in str(e):
+            raise FileNotInGit(str(e))
 
     if None in headers2commits:
         del headers2commits[None]

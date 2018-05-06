@@ -51,6 +51,7 @@ class RenderManual(QuickApp):
         params.add_string('stylesheet_pdf', help='Stylesheet pdf version', default=None)
 
         params.add_string('split', help='If given, create split html version at this dir.', default=None)
+        params.add_flag('only_refs', help='If given, only create the output refs')
         params.add_int('mathjax', help='Prerender MathJax at the level of each file (requires node)', default=0)
         params.add_string('symbols', help='.tex file for MathJax', default=None)
         params.add_string('permalink_prefix', default=None)
@@ -106,6 +107,7 @@ class RenderManual(QuickApp):
         output_crossref = options.output_crossref
         wordpress_integration = options.wordpress_integration
         ignore_ref_errors = options.ignore_ref_errors
+        only_refs = options.only_refs
         likebtn = options.likebtn
         extra_crossrefs = options.extra_crossrefs
         use_mathjax = True if options.mathjax else False
@@ -143,6 +145,7 @@ class RenderManual(QuickApp):
                     likebtn=likebtn,
                     ignore_ref_errors=ignore_ref_errors,
                     extra_crossrefs=extra_crossrefs,
+                    only_refs=only_refs,
                     )
 
 
@@ -267,6 +270,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 use_mathjax, raise_errors, resolve_references=True,
                 remove=None, filter_soup=None, symbols=None,
                 out_pdf=None,
+                only_refs=False,
                 permalink_prefix=None,
                 compose_config=None,
                 output_crossref=None,
@@ -411,7 +415,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                                                extra_panel_content=extra_panel_content,
                                                output_dir=out_split_dir, nworkers=0,
                                                output_crossref=output_crossref,
-                                               permalink_prefix=permalink_prefix)
+                                               permalink_prefix=permalink_prefix,
+                                               only_refs=only_refs)
 
         context.comp(write_errors_and_warnings_files, id2filename_aug, out_split_dir)
         context.comp(write_manifest_html, out_split_dir)
