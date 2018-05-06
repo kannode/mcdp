@@ -436,7 +436,7 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     cross = Tag(name='body')
 
     container = Tag(name='div')
-    container.attrs['class'] = 'container'
+    container.attrs['id'] = 'container'
     cross.append(container)
 
     for e in soup.select('[label-name]'):
@@ -526,13 +526,22 @@ CROSSREF_SCRIPT = """
 
 id2url = {};
 
-var divs = document.querySelectorAll("[id-short]");
+var divs = document.querySelectorAll("[id]");
 for (var i = 0; i < divs.length; i++) {
     e = divs[i];
-    ID = e.getAttribute('id-short')
+    ID = e.getAttribute('id');
     url = e.getAttribute('url');
     id2url[ID] = url;
+    console.log(ID + ' -> ' + url);
+    
+    if(ID.include(":")) {
+        ID2 = ID.split(":")[1];
+        id2url[ID2] = url;
+        console.log(ID2 + ' -> ' + url);
+    }
 }
+
+
 
 function log(s) {
     console.info(s);
