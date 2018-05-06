@@ -91,7 +91,7 @@ def get_source_info(filename):
         res =  SourceInfo(commit=hexsha, author=author2, last_modified=last_modified,
                           has_local_modifications=has_local_modifications,
                           header2sourceinfo=header2sourceinfo)
-        logger.debug(res)
+        # logger.debug(res)
         return res
     finally:
         repo.git = None

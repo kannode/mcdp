@@ -120,12 +120,6 @@ def replace_template(element, res, location):
         if isinstance(t, NavigableString):
             if MCDPConstants.placeholder_marker_start is not None:
                 if MCDPConstants.placeholder_marker_start in t:
-
-                    if False:
-                        msg = "Do not copy and paste. "
-                        msg += 'I guarantee, only trouble will come from it.'
-                        element.attrs['oncopy'] = 'alert("%s");return false;' % msg
-
                     process_ns(t, res, location)
         else:
             replace_template(t, res, location)
@@ -148,11 +142,13 @@ def join_successive_strings(e):
 
 def process_ns(t, res, location):
     s = t + ''
-    #     logger.debug('Handling %r' % t)
+
     marker = MCDPConstants.placeholder_marker_start
     marker2 = MCDPConstants.placeholder_marker_end
     if marker not in s:
         return
+
+
 
     i = s.index(marker)
     try:
