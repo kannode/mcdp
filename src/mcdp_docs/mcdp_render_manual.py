@@ -4,6 +4,7 @@ import os
 import tempfile
 from collections import OrderedDict, defaultdict
 
+import sys
 import yaml
 from bs4 import Tag
 from compmake import UserError
@@ -58,6 +59,7 @@ class RenderManual(QuickApp):
         params.add_flag('raise_errors', help='If given, fail the compilation on errors')
         params.add_flag('cache')
         params.add_flag('ignore_ref_errors')
+        params.add_string('extra_crossrefs', help='Link to extra crossrefs', default=None)
         params.add_flag('wordpress_integration')
         params.add_flag('last_modified', help='Add last modified page')
         params.add_flag('generate_pdf', help='Generate PDF version of code and figures.')
@@ -70,6 +72,8 @@ class RenderManual(QuickApp):
 
     def define_jobs_context(self, context):
         options = self.get_options()
+
+        logger.info(" ".join(sys.argv))
 
         if options.mcdp_settings:
             MCDPManualConstants.activate_tilde_as_nbsp = False
@@ -103,6 +107,7 @@ class RenderManual(QuickApp):
         wordpress_integration = options.wordpress_integration
         ignore_ref_errors = options.ignore_ref_errors
         likebtn = options.likebtn
+        extra_crossrefs = options.extra_crossrefs
         use_mathjax = True if options.mathjax else False
 
         logger.info('use mathjax: %s' % use_mathjax)
@@ -136,7 +141,8 @@ class RenderManual(QuickApp):
                     output_crossref=output_crossref,
                     wordpress_integration=wordpress_integration,
                     likebtn=likebtn,
-                    ignore_ref_errors=ignore_ref_errors
+                    ignore_ref_errors=ignore_ref_errors,
+                    extra_crossrefs=extra_crossrefs
                     )
 
 
@@ -146,25 +152,23 @@ def get_bib_files(src_dirs):
     return look_for_files(src_dirs, "*.bib")
 
 
-def get_cross_refs(src_dirs, permalink_prefix):
+import requests
+
+
+def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
     res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
     id2file = {}
     soup = Tag(name='div')
-    for f in files:
-        logger.debug('cross ref file %s' % f)
-        data = open(f).read()
-        if permalink_prefix in data:
-            msg = 'skipping own file'
-            logger.debug(msg)
-            continue
-        s = bs(data)
+
+    def add_from_soup(s, f, ignore_alread_present):
         for img in list(s.find_all('img')):
             img.extract()
 
         for e in s.select('[base_url]'):
             e['external_crossref_file'] = f
 
+        # Remove the ones with the same base_url
         for e in list(s.select('[base_url]')):
             if e.attrs['base_url'] == permalink_prefix:
                 e.extract()
@@ -172,13 +176,39 @@ def get_cross_refs(src_dirs, permalink_prefix):
         for e in s.select('[id]'):
             id_ = e.attrs['id']
             if id_ in id2file:
-                msg = 'Found two elements with same ID "%s":' % id_
-                msg += '\n %s' % id2file[id_]
-                msg += '\n %s' % f
-                res.note_error(msg)
+                if not ignore_alread_present:
+                    msg = 'Found two elements with same ID "%s":' % id_
+                    msg += '\n %s' % id2file[id_]
+                    msg += '\n %s' % f
+                    res.note_error(msg)
             else:
                 id2file[id_] = f
                 soup.append(e.__copy__())
+                soup.append('\n')
+
+    for _f in files:
+        logger.info('cross ref file %s' % _f)
+        data = open(_f).read()
+        if permalink_prefix in data:
+            msg = 'skipping own file'
+            logger.debug(msg)
+            continue
+        s = bs(data)
+        add_from_soup(s, _f, ignore_alread_present=False)
+
+    if extra_crossrefs is not None:
+        logger.info('Reading external refs\n%s' % extra_crossrefs)
+        try:
+            r = requests.get(extra_crossrefs)
+        except Exception as e:
+            msg = 'Could not read external cross reference links'
+            msg += '\n  %s' % extra_crossrefs
+            msg += '\n\n' + indent(str(e), ' > ')
+            res.note_error(msg)
+        else:
+            s = bs(r.text)
+            add_from_soup(s, extra_crossrefs, ignore_alread_present=True)
+
     # print soup
     res.set_result(str(soup))
     return res
@@ -240,7 +270,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 do_last_modified=False,
                 wordpress_integration=False,
                 ignore_ref_errors=False,
-                likebtn=None):
+                likebtn=None,
+                extra_crossrefs=None):
     """
         src_dirs: list of sources
         symbols: a TeX preamble (or None)
@@ -299,7 +330,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                         source_info=source_info)
         files_contents.append(tuple(doc))  # compmake doesn't do namedtuples
 
-    crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix)
+    crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs)
 
     # out_collected_crossrefs = os.path.join(out_split_dir, '..', 'collected_crossref.html')
     # write_data_to_file(str(crossrefs), out_collected_crossrefs)
@@ -575,7 +606,7 @@ def add_related_(soup, res):
             for post in tag2posts[short]:
                 url = post['url']
                 date = post['date']
-                author =  post['author']
+                author = post['author']
                 title = post['title']
 
                 tr = Tag(name='tr')
@@ -609,7 +640,6 @@ def add_related_(soup, res):
 
         if level not in ['sec']:
             continue
-
 
         p = Tag(name='p')
         p.attrs['class'] = 'questions-prompt'
