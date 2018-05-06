@@ -57,6 +57,7 @@ class RenderManual(QuickApp):
         params.add_string('likebtn', help='site id for likebtn', default=None, )
         params.add_flag('raise_errors', help='If given, fail the compilation on errors')
         params.add_flag('cache')
+        params.add_flag('ignore_ref_errors')
         params.add_flag('wordpress_integration')
         params.add_flag('last_modified', help='Add last modified page')
         params.add_flag('generate_pdf', help='Generate PDF version of code and figures.')
@@ -100,6 +101,7 @@ class RenderManual(QuickApp):
         compose_config = options.compose
         output_crossref = options.output_crossref
         wordpress_integration = options.wordpress_integration
+        ignore_ref_errors = options.ignore_ref_errors
         likebtn = options.likebtn
         use_mathjax = True if options.mathjax else False
 
@@ -133,7 +135,8 @@ class RenderManual(QuickApp):
                     compose_config=compose_config,
                     output_crossref=output_crossref,
                     wordpress_integration=wordpress_integration,
-                    likebtn=likebtn
+                    likebtn=likebtn,
+                    ignore_ref_errors=ignore_ref_errors
                     )
 
 
@@ -236,6 +239,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 output_crossref=None,
                 do_last_modified=False,
                 wordpress_integration=False,
+                ignore_ref_errors=False,
                 likebtn=None):
     """
         src_dirs: list of sources
@@ -288,6 +292,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                                      symbols=symbols,
                                      raise_errors=raise_errors,
                                      filter_soup=filter_soup,
+                                     ignore_ref_errors=ignore_ref_errors,
                                      job_id=job_id)
 
         doc = DocToJoin(docname=out_part_basename, contents=html_contents,
@@ -928,6 +933,7 @@ def render_book(src_dirs, generate_pdf,
                 raise_errors,
                 filter_soup=None,
                 symbols=None,
+                ignore_ref_errors=False,
                 ):
     """ Returns an AugmentedResult(str) """
     res = AugmentedResult()
@@ -967,7 +973,8 @@ def render_book(src_dirs, generate_pdf,
                                         generate_pdf=generate_pdf,
                                         filter_soup=filter_soup0,
                                         location=location,
-                                        res=res)
+                                        res=res,
+                                        ignore_ref_errors=ignore_ref_errors)
     except DPSyntaxError as e:
         msg = 'Could not compile %s' % realpath
         raise_wrapped(DPSyntaxError, e, msg, compact=True)

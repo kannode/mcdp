@@ -36,7 +36,8 @@ __all__ = [
 @contract(returns='str', s=str, library=MCDPLibrary, raise_errors=bool)
 def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
                     check_refs=False, use_mathjax=True, filter_soup=None,
-                    symbols=None, res=None, location=None):
+                    symbols=None, res=None, location=None,
+                    ignore_ref_errors=False):
     """
         Transforms markdown into html and then renders the mcdp snippets inside.
 
@@ -202,7 +203,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     make_videos(soup, res, location, raise_on_errors=False)
 
     if check_refs:
-        check_if_any_href_is_invalid(soup, res, location)
+        check_if_any_href_is_invalid(soup, res, location, ignore_ref_errors=ignore_ref_errors)
 
     if False:
         if getuser() == 'andrea':

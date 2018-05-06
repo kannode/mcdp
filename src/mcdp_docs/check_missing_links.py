@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
 
+from contracts import indent
 from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
@@ -76,7 +77,8 @@ def get_id2element(soup, att):
     return id2element, duplicates
 
 
-def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None):
+def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
+                                 ignore_ref_errors=False):
     """
         Checks if references are invalid and tries to correct them.
 
@@ -160,7 +162,12 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None):
                     marker.append(' (unknown ref %s)' % core)
                     a.append(marker)
                     location = HTMLIDLocation.for_element(a, location0)
-                    res.note_error(msg, location)
+                    if ignore_ref_errors:
+                        msg2 = 'I will ignore this error because this is the first pass:'
+                        msg2 += '\n\n' + indent(msg, ' > ')
+                        res.note_warning(msg2, location)
+                    else:
+                        res.note_error(msg, location)
 
         if ID in duplicates:
             msg = 'More than one element matching %r.' % href
