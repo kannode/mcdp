@@ -427,11 +427,11 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 def write_crossref_info(soup, id2filename, output_crossref, permalink_prefix):
 
     cross = Tag(name='body')
-    for e in soup.select('[id]'):
-        logger.debug('know %s' % e.attrs['id'])
+    # for e in soup.select('[id]'):
+    #     logger.debug('know %s' % e.attrs['id'])
 
     for e in soup.select('[label-name]'):
-        logger.debug('considering %s' % e)
+        # logger.debug('considering %s' % e)
         if not 'id' in e.attrs:
             continue
 
@@ -450,7 +450,7 @@ def write_crossref_info(soup, id2filename, output_crossref, permalink_prefix):
             basename = id2filename[id_]
 
             e2.attrs['url'] = '%s/%s#%s' %(permalink_prefix, basename, id_)
-            print e2.attrs['url']
+            # print e2.attrs['url']
         else:
             logger.error('Cannot find url for %s' % id_)
 

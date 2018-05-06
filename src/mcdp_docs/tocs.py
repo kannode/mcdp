@@ -656,8 +656,8 @@ def get_empty_links_to_fragment(element_to_modify, extra_refs, res):
                 continue
 
             msg = 'ID %s in cross references also contained locally.' % k
-            # msg += '\n\n' + indent(id2element_local[k], '', 'local: ')
-            # msg += '\n\n' + indent(id2element_extra[k], '', 'crossrefs: ')
+            msg += '\n\n' + indent(id2element_local[k], '', 'local: ')
+            msg += '\n\n' + indent(id2element_extra[k], '', 'crossrefs: ')
             res.note_error(msg, HTMLIDLocation.for_element(id2element_local[k]))
             logger.error(msg)
 
