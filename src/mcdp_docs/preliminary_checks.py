@@ -31,7 +31,8 @@ def do_preliminary_checks_and_fixes(s, res, location0):
     s = remove_comments(s)
     s = check_misspellings(s)
 
-    check_lists(s, res, location0)
+    if False:
+        check_lists(s, res, location0)
 
     s = check_most_of_it_xml(s)
     return s
