@@ -460,29 +460,30 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
 
     for img in list(cross.find_all('img')):
         img.extract()
+
     print('writing cross ref info')
     html = Tag(name='html')
     html.append(cross)
-    head = Tag(name='html')
+    head = Tag(name='head')
     style = Tag(name='style')
-    style.append(CSS)
+    style.append(CROSSREF_CSS)
     head.append(style)
     html.append(head)
 
     script = Tag(name='script')
-    script.append(SCRIPT)
+    script.append(CROSSREF_SCRIPT)
     cross.append(script)
     write_data_to_file(str(html), output_crossref)
 
 # language=css
-CSS = """
+CROSSREF_CSS = """
     *[id-short] {
         display: none;
     }
 """
 
 # language=javascript
-SCRIPT =  """
+CROSSREF_SCRIPT =  """
 
 id2url = {};
 
