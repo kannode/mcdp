@@ -463,8 +463,62 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     print('writing cross ref info')
     html = Tag(name='html')
     html.append(cross)
+    head = Tag(name='html')
+    style = Tag(name='style')
+    style.append(CSS)
+    head.append(style)
+    html.append(head)
+
+    script = Tag(name='script')
+    script.append(SCRIPT)
+    cross.append(script)
     write_data_to_file(str(html), output_crossref)
 
+# language=css
+CSS = """
+    *[id-short] {
+        display: none;
+    }
+"""
+
+# language=javascript
+SCRIPT =  """
+
+id2url = {};
+
+var divs = document.querySelectorAll("[id-short]");
+for (var i = 0; i < divs.length; i++) {
+    e = divs[i];
+    ID = e.getAttribute('id-short')
+    url = e.getAttribute('url');
+    id2url[ID] = url;
+}
+
+function log(s) {
+    console.info(s);
+    var p = document.createElement('p');
+    p.innerHTML = s;
+    document.body.appendChild(p);
+}
+
+if (window.location.hash) {
+    hash = window.location.hash;
+    hashid = hash.substring(1);
+    console.info(hashid);
+    if (hashid in id2url) {
+        outlink = id2url[hashid];
+        log("Redirecting to <a href='" + outlink + "'><code>" + outlink + "</code></a>");
+        window.location = outlink;
+    } else {
+        log("Could not find reference <code>" + hashid + "</code>.");
+        log("This means that the text to which it refers has not made it to the master branch yet.");
+        log("Or, it might mean that the bot has not compiled and published the new book version yet.");
+        log("Note that this is completely normal if you are creating a new section.");
+    }
+} else {
+    log("No hash found");
+}
+"""
 
 def get_extra_content(aug):
     extra_panel_content = Tag(name='div')
