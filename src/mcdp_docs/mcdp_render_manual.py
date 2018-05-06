@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import pickle
 import sys
 import tempfile
 from collections import OrderedDict, defaultdict
@@ -435,7 +436,7 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     cross = Tag(name='body')
 
     container = Tag(name='div')
-    container.attrs['id'] = 'container'
+    container.attrs['class'] = 'container'
     cross.append(container)
 
     for e in soup.select('[label-name]'):
@@ -492,6 +493,7 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     cross.append(script)
     write_data_to_file(str(html), output_crossref)
 
+
 def get_crossref_copy(e):
     e2 = e.__copy__()
     # for a in list(e2.descendants):
@@ -503,9 +505,10 @@ def get_crossref_copy(e):
     e2.name = 'p'
     return e2
 
+
 # language=css
 CROSSREF_CSS = """
-    #container {
+    .container {
         margin-bottom: 10em;
         border: solid 1px red;
         padding: 1em;
@@ -1004,6 +1007,11 @@ def write_errors_and_warnings_files(aug, d):
 
     fn = os.path.join(d, 'errors_and_warnings.manifest.yaml')
     write_data_to_file(yaml.dump(manifest), fn, quiet=False)
+
+    fn = os.path.join(d, 'errors_and_warnings.pickle')
+    res = AugmentedResult()
+    res.merge(aug)
+    write_data_to_file(pickle.dumps(res), fn, quiet=False)
 
 
 def write_manifest_html(d):
