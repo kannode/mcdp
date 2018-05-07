@@ -448,7 +448,7 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
 
         id_ = e.attrs['id']
         if id_.startswith('bib:'):
-            logger.warn('Excluding %r from cross refs' % id_)
+            # logger.warn('Excluding %r from cross refs' % id_)
             continue
 
         e2 = get_crossref_copy(e)
@@ -855,8 +855,8 @@ def add_likebtn_(soup, likebtn_site_id):
         t['data-item_image'] = "item-image"
         t['data-lazy_load'] = "true"
         t['data-event_handler'] = "callback"
-        t['data-i18n_like'] = "Quack!"
-        t['data-i18n_dislike'] = "Uh?"
+        t['data-i18n_like'] = "Great work!"
+        t['data-i18n_dislike'] = "This needs more improvement"
         # t['data-i18n_after_like'] = "Glad you liked it!"
         # t['data-i18n_after_dislike'] = "Please help us improve!"
         t['data-i18n_like_tooltip'] = "This is great content"
@@ -874,17 +874,18 @@ def add_likebtn_(soup, likebtn_site_id):
 
 # language=html
 likebtn_code = """
-    <script> (function(d, e, s){
-        if (d.getElementById("likebtn_wjs"))
-            return;
-            a = d.createElement(e);
-            m = d.getElementsByTagName(e)[0];
-            a.async = 1;
-            a.id = "likebtn_wjs";
-            a.src = s;
-            m.parentNode.insertBefore(a, m)}
-    )(document, "script", "http://w.likebtn.com/js/w/widget.js"); 
-    </script>
+<script> 
+(function(d, e, s){
+    if (d.getElementById("likebtn_wjs"))
+        return;
+        a = d.createElement(e);
+        m = d.getElementsByTagName(e)[0];
+        a.async = 1;
+        a.id = "likebtn_wjs";
+        a.src = s;
+        m.parentNode.insertBefore(a, m)}
+)(document, "script", "http://w.likebtn.com/js/w/widget.js"); 
+</script>
 """
 
 

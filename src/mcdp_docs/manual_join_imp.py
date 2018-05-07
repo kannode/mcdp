@@ -490,7 +490,8 @@ def reorganize_contents(body0, add_debug_comments=False):
     # write_data_to_file(str(body0), 'before-reorg.html')
 
     with timeit('reorganize_by_parts'):
-        reorganized = reorganize_by_parts(body0)
+        reorganized = reorganize_by_books(body0)
+        # reorganized = reorganize_by_parts(body0)
 
     with timeit('dissolving'):
         # now dissolve all the elements of the type <div class='without-header-inside'>
@@ -515,7 +516,8 @@ def dissolve(x):
 
 ATTR_PREV = 'prev'
 ATTR_NEXT = 'next'
-
+CLASS_LINK_NEXT = 'link_next'
+CLASS_LINK_PREV = 'link_prev'
 
 def add_prev_next_links(filename2contents, only_for=None):
     new_one = OrderedDict()
@@ -525,13 +527,13 @@ def add_prev_next_links(filename2contents, only_for=None):
         id_prev = contents.attrs[ATTR_PREV]
         a_prev = Tag(name='a')
         a_prev.attrs['href'] = '#' + str(id_prev)
-        a_prev.attrs['class'] = 'link_prev'
+        a_prev.attrs['class'] = CLASS_LINK_PREV
         a_prev.append('prev')
 
         id_next = contents.attrs[ATTR_NEXT]
         a_next = Tag(name='a')
         a_next.attrs['href'] = '#' + str(id_next)
-        a_next.attrs['class'] = 'link_next'
+        a_next.attrs['class'] = CLASS_LINK_NEXT
         a_next.append('next')
 
         S = Tag(name='div')
@@ -571,7 +573,7 @@ def add_prev_next_links(filename2contents, only_for=None):
     return new_one
 
 
-def split_in_files(body, levels=['sec', 'part']):
+def split_in_files(body, levels=['sec', 'part', 'book']):
     """
         Returns an ordered dictionary filename -> contents
     """
@@ -581,7 +583,7 @@ def split_in_files(body, levels=['sec', 'part']):
     sections = []
 
     for section in body.select('section.with-header-inside'):
-        level = section.attrs['level']
+        level = section.attrs[ATTR_LEVEL]
         if level in levels:
             # section.extract()
             sections.append(section)
@@ -608,7 +610,7 @@ def split_in_files(body, levels=['sec', 'part']):
         filename = '%s.html' % id_sanitized
 
         if filename in filenames:
-            for ii in xrange(1000):
+            for ii in range(1000):
                 filename = '%s-%d.html' % (id_sanitized, ii)
                 if filename not in filenames:
                     break
@@ -744,6 +746,12 @@ def tag_like(t):
     return t2
 
 
+def is_chapter_marker(x):
+    return isinstance(x, Tag) and \
+           x.name == 'h1' and \
+           (not 'part:' in x.attrs.get('id', '')) and \
+           (not 'book:' in x.attrs.get('id', ''))
+
 def is_part_marker(x):
     if not isinstance(x, Tag):
         return False
@@ -754,6 +762,47 @@ def is_part_marker(x):
     id_starts_with_part = id_.startswith('part:')
     return id_starts_with_part
 
+def is_book_marker(x):
+    if not isinstance(x, Tag):
+        return False
+    if not x.name == 'h1':
+        return False
+
+    id_ = x.attrs.get('id', '')
+    id_starts_with_part = id_.startswith('book:')
+    return id_starts_with_part
+
+ATTR_LEVEL = 'level'
+
+CLASS_WITH_HEADER = 'with-header-inside'
+CLASS_WITHOUT_HEADER = 'without-header-inside'
+
+def reorganize_by_books(body):
+    elements = list(body.contents)
+    with timeit('reorganize_by_book:make_sections'):
+        sections = make_sections2(elements, is_book_marker, attrs={'level': 'book-down'})
+
+    with timeit('reorganize_by_book:copying'):
+        res = tag_like(body)
+
+        for header, section in sections:
+            if not header:
+                S = Tag(name='section')
+                S.attrs[ATTR_LEVEL] = 'book'
+                S.attrs['class'] = CLASS_WITHOUT_HEADER
+                section2 = reorganize_by_parts(section)
+                S.append(section2)
+                res.append(S)
+            else:
+                S = Tag(name='section')
+                S.attrs[ATTR_LEVEL] = 'book'
+                S.attrs['class'] = CLASS_WITH_HEADER
+                S.append(header)
+                section2 = reorganize_by_parts(section)
+                S.append(section2)
+                copy_attributes_from_header(S, header)
+                res.append(S)
+        return res
 
 def reorganize_by_parts(body):
     elements = list(body.contents)
@@ -766,15 +815,15 @@ def reorganize_by_parts(body):
         for header, section in sections:
             if not header:
                 S = Tag(name='section')
-                S.attrs['level'] = 'part'
-                S.attrs['class'] = 'without-header-inside'
+                S.attrs[ATTR_LEVEL] = 'part'
+                S.attrs['class'] = CLASS_WITHOUT_HEADER
                 section2 = reorganize_by_chapters(section)
                 S.append(section2)
                 res.append(S)
             else:
                 S = Tag(name='section')
-                S.attrs['level'] = 'part'
-                S.attrs['class'] = 'with-header-inside'
+                S.attrs[ATTR_LEVEL] = 'part'
+                S.attrs['class'] = CLASS_WITH_HEADER
                 S.append(header)
                 section2 = reorganize_by_chapters(section)
                 S.append(section2)
@@ -784,8 +833,6 @@ def reorganize_by_parts(body):
 
 
 def reorganize_by_chapters(section):
-    def is_chapter_marker(x):
-        return isinstance(x, Tag) and x.name == 'h1' and (not 'part' in x.attrs.get('id', ''))
 
     elements = list(section.contents)
     sections = make_sections2(elements, is_chapter_marker, attrs={'level': 'sec-down'})
@@ -794,16 +841,16 @@ def reorganize_by_chapters(section):
         if not header:
 
             S = Tag(name='section')
-            S.attrs['level'] = 'sec'
-            S.attrs['class'] = 'without-header-inside'
+            S.attrs[ATTR_LEVEL] = 'sec'
+            S.attrs['class'] = CLASS_WITHOUT_HEADER
             section2 = reorganize_by_section(section)
             S.append(section2)
             res.append(S)
 
         else:
             S = Tag(name='section')
-            S.attrs['level'] = 'sec'
-            S.attrs['class'] = 'with-header-inside'
+            S.attrs[ATTR_LEVEL] = 'sec'
+            S.attrs['class'] = CLASS_WITH_HEADER
             S.append(header)
             section2 = reorganize_by_section(section)
             S.append(section2)
@@ -822,14 +869,14 @@ def reorganize_by_section(section):
     for header, section in sections:
         if not header:
             S = Tag(name='section')
-            S.attrs['level'] = 'sub'
-            S.attrs['class'] = 'without-header-inside'
+            S.attrs[ATTR_LEVEL] = 'sub'
+            S.attrs['class'] = CLASS_WITHOUT_HEADER
             S.append(section)
             res.append(S)
         else:
             S = Tag(name='section')
-            S.attrs['level'] = 'sub'
-            S.attrs['class'] = 'with-header-inside'
+            S.attrs[ATTR_LEVEL] = 'sub'
+            S.attrs['class'] = CLASS_WITH_HEADER
             S.append(header)
             section2 = reorganize_by_subsection(section)
             S.append(section2)
@@ -849,14 +896,14 @@ def reorganize_by_subsection(section):
     for header, section in sections:
         if not header:
             S = Tag(name='section')
-            S.attrs['level'] = 'subsub'
-            S.attrs['class'] = 'without-header-inside'
+            S.attrs[ATTR_LEVEL] = 'subsub'
+            S.attrs['class'] = CLASS_WITHOUT_HEADER
             S.append(section)
             res.append(S)
         else:
             S = Tag(name='section')
-            S.attrs['level'] = 'subsub'
-            S.attrs['class'] = 'with-header-inside'
+            S.attrs[ATTR_LEVEL] = 'subsub'
+            S.attrs['class'] = CLASS_WITH_HEADER
             S.append(header)
             S.append(section)
             copy_attributes_from_header(S, header)
@@ -897,10 +944,10 @@ def make_sections2(elements, is_marker, copy=False, element_name='div', attrs={}
     sections = []
 
     def make_new():
-        x = Tag(name=element_name)
+        tx = Tag(name=element_name)
         for k, v in attrs.items():
-            x.attrs[k] = v
-        return x
+            tx.attrs[k] = v
+        return tx
 
     current_header = None
     current_section = make_new()

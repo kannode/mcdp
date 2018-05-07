@@ -217,7 +217,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         if main_toc is None:
 
             if add_toc_if_not_existing:
-                logger.info('Generating TOC because it is not there')
+                # logger.info('Generating TOC because it is not there')
 
                 main_toc = bs(generate_toc(soup)).ul
                 main_toc.attrs['class'] = 'toc'  # XXX: see XXX13
