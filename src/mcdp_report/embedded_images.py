@@ -283,7 +283,12 @@ def embed_img_data(soup, resolve, raise_on_error,
                     raise Exception(msg)  # XXX
 
                 max_width = MCDPManualConstants.max_width_for_image
-                tag['src'] = get_link_to_image_file(realpath, max_width)
+                try:
+                    tag['src'] = get_link_to_image_file(realpath, max_width)
+                except IOError as e:
+                    msg = 'Could not resize %s:' % realpath
+                    msg += '\n\n ' + str(e)
+                    res.note_error(msg, locations=HTMLIDLocation.for_element(tag, location))
 
             break
 
@@ -304,6 +309,7 @@ def get_link_to_image_file(filename, max_width):
                 if not os.path.exists(dest):
                     make_sure_dir_exists(dest)
                     resized = im.resize(new_size)
+
                     resized.save(dest)
 
                 return dest
