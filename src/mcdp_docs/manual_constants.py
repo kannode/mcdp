@@ -63,7 +63,8 @@ class MCDPManualConstants(object):
     HEADERS_TO_FIX = HEADERS_TO_INDEX = list(allowed_prefixes_h)
     all_possible_prefixes_that_can_be_implied = [
         'book', 'part', 'sec', 'sub', 'subsub', 'par', 'subpar', 'app', 'appsub', 'appsubsub',
-        'fig', 'tab', 'code',
+         'fig', 'subfig',
+        'tab', 'code',
         'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
 
         'bib',

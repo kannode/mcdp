@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from mcdp_utils_xml import describe_tag
-
 from bs4.element import NavigableString, Tag
-from contracts.utils import raise_desc
+from mcdp_docs.location import HTMLIDLocation
 
 from .logs import logger
 
 
-def make_figure_from_figureid_attr(soup):
+def make_figure_from_figureid_attr(soup, res, location):
     """
         Makes a figure:
             <e figure-id='fig:ure' figure-caption='ciao'/> 
@@ -50,7 +48,8 @@ def make_figure_from_figureid_attr(soup):
             pass
         else:
             msg = 'The ID %r should start with fig: or tab: or code:' % ID
-            raise_desc(ValueError, msg, tag=describe_tag(towrap))
+            res.note_error(msg, locations=HTMLIDLocation.for_element(towrap, location))
+            continue
 
         if 'caption-left' in towrap.attrs.get('figure-class', ''):
             caption_below = False
@@ -70,7 +69,9 @@ def make_figure_from_figureid_attr(soup):
 
             if towrap.has_attr('figure-caption'):
                 msg = 'Already using external caption for %s' % ID
-                raise_desc(ValueError, msg, describe_tag(towrap))
+                res.note_error(msg, location=HTMLIDLocation.for_element(towrap, location))
+                continue
+
         else:
             #             print('could not find external caption %s' % external_caption_id)
             if towrap.has_attr('figure-caption'):

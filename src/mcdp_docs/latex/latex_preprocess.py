@@ -427,7 +427,7 @@ def makeminipage(inside, opt):
 
 
 def makefigure(inside, opt, asterisk):  # @UnusedVariable
-    align = opt  # @UnusedVariable
+    # align = opt  # @UnusedVariable
 #     print('makefigure inside = %r' % inside)
 
     def subfloat_replace(args, opts):
@@ -481,7 +481,9 @@ def makefigure(inside, opt, asterisk):  # @UnusedVariable
         inside, 'caption', sub_caption, nargs=1, nopt=0)
 
 #     print('makefigure inside without caption = %r'  % inside)
-    assert not '\\caption' in inside
+    if '\\caption' in inside:
+        msg = 'Whoops: %r' % inside
+        logger.warning(msg)
 
     if Tmp.label is None:
         Tmp.label = 'fig:' + get_md5(inside)

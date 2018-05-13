@@ -114,8 +114,11 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
 
     for k, v in maths.items():
         if not k in s:
-            msg = 'Cannot find %r (= %r)' % (k, v)
-            raise_desc(DPInternalError, msg, s=s)
+            msg = 'Internal error while dealing with Latex math.'
+            msg += '\nCannot find %r (= %r)' % (k, v)
+            res.note_error(msg, location)
+            # raise_desc(DPInternalError, msg, s=s)
+            continue
 
         def preprocess_equations(x):
             # this gets mathjax confused
@@ -179,7 +182,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # must be before make_figure_from_figureid_attr()
     display_files(soup, defaults={}, res=res, location=location, raise_errors=raise_errors)
 
-    make_figure_from_figureid_attr(soup)
+    make_figure_from_figureid_attr(soup, res, location)
     col_macros(soup)
     fix_subfig_references(soup)
 

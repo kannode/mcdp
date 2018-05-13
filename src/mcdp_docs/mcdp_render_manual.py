@@ -1054,7 +1054,7 @@ def is_ignored_by_catkin(dn):
             return False
     return False
 
-
+from mcdp_docs.location import LocationInString
 def job_bib_contents(context, bib_files):
     bib_files = natsorted(bib_files)
     # read all contents
@@ -1153,7 +1153,12 @@ def render_book(src_dirs, generate_pdf,
                                         ignore_ref_errors=ignore_ref_errors)
     except DPSyntaxError as e:
         msg = 'Could not compile %s' % realpath
-        raise_wrapped(DPSyntaxError, e, msg, compact=True)
+        location0 = LocationInString(e.where, location)
+        res.note_error(msg, locations=location0)
+        fail = "<p>This file could not be compiled</p>"
+        res.set_result(fail)
+        return res
+        # raise_wrapped(DPSyntaxError, e, msg, compact=True)
 
     if False:  # write minimal doc
         doc = get_minimal_document(html_contents,

@@ -21,9 +21,9 @@ def is_inside_markdown_quoted_block_(s, i, delim):
         return True
 
     return False
+from contracts.utils import indent
 
-
-def censor_markdown_code_blocks(s):
+def censor_markdown_code_blocks(s, res, location0):
     def line_transform(x):
         return x
 
@@ -36,7 +36,13 @@ def censor_markdown_code_blocks(s):
         else:
             return 'censored-code'
 
-    return replace_markdown_line_by_line(s, line_transform, code_transform, inside_tag)
+    try:
+        return replace_markdown_line_by_line(s, line_transform, code_transform, inside_tag)
+    except ValueError as e:
+        msg = 'Could not interpret Markdown blocks.'
+        msg += '\n\n' + indent(str(e), ' > ')
+        res.note_error(msg, location0)
+        return "<p>This file could not be interpreted</p>"
 
 
 def replace_markdown_line_by_line(s, line_transform=None, code_transform=None, inside_tag=None):

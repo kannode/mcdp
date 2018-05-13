@@ -34,7 +34,7 @@ def do_preliminary_checks_and_fixes(s, res, location0):
     if False:
         check_lists(s, res, location0)
 
-    s = check_most_of_it_xml(s)
+    s = check_most_of_it_xml(s, res, location0)
     return s
 
 def check_lists(s, res, location):
@@ -132,7 +132,7 @@ def fix_empty_attrs(s):
     return s
 
 
-def check_most_of_it_xml(s):
+def check_most_of_it_xml(s, res, location0):
     """
     Checks that most of it is XML, except:
     - Markdown code blocks
@@ -144,7 +144,7 @@ def check_most_of_it_xml(s):
     # remove entities because ET doesnt't like them
     s_ruin = s
     s_ruin, _maths = extract_maths(s_ruin)
-    s_ruin = censor_markdown_code_blocks(s_ruin)
+    s_ruin = censor_markdown_code_blocks(s_ruin, res, location0)
     s_ruin = re.sub('&#\d+;', 'ENTITY', s_ruin)
     s_ruin = re.sub('&\w+;', 'NAMEDENTITY', s_ruin)
 

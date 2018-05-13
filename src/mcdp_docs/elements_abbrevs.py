@@ -5,7 +5,7 @@ from mcdp.exceptions import DPSyntaxError
 from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_lang_utils import Where, location as find_location
 from mcdp_utils_xml import add_class
-
+from mcdp_docs.location import LocationInString
 
 def other_abbrevs(soup, res, location):
     """
@@ -61,9 +61,8 @@ def check_good_use_of_special_paragraphs(md, res, location0):
                        'to leave an empty line before the special paragraph.')
                 c = find_location(i, 1, md)
                 c_end = c + len(prefix)
-                where = Where(md, c, c_end)#.with_filename(filename)
+                where = Where(md, c, c_end)
                 res.note_error(msg, LocationInString(where, location0))
-                # raise DPSyntaxError(msg, where=where)
 
         # noinspection PyUnreachableCode,PyUnreachableCode
         if False:
