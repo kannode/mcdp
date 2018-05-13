@@ -111,7 +111,7 @@ def substitute_special_paragraph(soup, prefix, klass, res, location):
         
             <div class='klass-wrap'><p class='klass'>contents</p></div>
     """
-    ps = list(soup.select('p'))
+    ps = list(soup.find_all(['p', 'cite']))
     for p in ps:
         # Get first child
         contents = list(p.contents)
