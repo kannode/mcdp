@@ -8,6 +8,7 @@ from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
 
+
 from mcdp_utils_xml import insert_inset
 
 from .pretty_printing import pretty_print_dict
@@ -41,13 +42,14 @@ class Note(object):
         self.created_file = module.__file__
         self.prefix = prefix
 
-    def update_file_path(self, fn_read):
-        prefix = os.path.dirname(fn_read)
+    def update_file_path(self, prefix):
+
         if isinstance(self.msg, Tag):
-            for a in self.msg.select('a[href]'):
-                relative = not a.attrs['href'].startswith('http')
-                if relative:
-                    a.attrs['href'] = os.path.join(prefix, a.attrs['href'])
+            for k, l in self.locations.items():
+                from mcdp_docs.location import RelativeLocation
+                if isinstance(l, RelativeLocation):
+                    l.href = os.path.join(prefix, l.href)
+                    print('updated to %s' % l.href)
 
     def __str__(self):
         s = type(self).__name__
@@ -277,19 +279,21 @@ class AugmentedResult(object):
 
         self.output.extend(other.output)
 
-    def update_file_path(self, fn_read):
+    def update_file_path(self, prefix):
         for note in self.notes:
-            note.update_file_path(fn_read)
+            note.update_file_path(prefix)
 
     def update_refs(self, id2filename):
-        from mcdp_docs.location import HTMLIDLocation
+        from mcdp_docs.location import HTMLIDLocation, RelativeLocation
         for note in self.notes:
             for k, l in note.locations.items():
                 if isinstance(l, HTMLIDLocation):
                     ID = l.element_id
                     if ID in id2filename:
-
-                        print('will update %s' % ID)
+                        href = id2filename[ID] +'#' + ID
+                        print('updated %s to %s' % (ID, href))
+                        n = RelativeLocation(href, l.parent)
+                        note.locations[k] = n
 
 
 

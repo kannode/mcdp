@@ -210,12 +210,44 @@ class HTMLIDLocation(Location):
         if self.parent is not None:
             s += '\n\n' + str(self.parent)
         return s
-        #
-        # d = OrderedDict()
-        # d['element_id'] = self.element_id
-        # s = "HTMLIDLocation"
-        # s += '\n' + indent(pretty_print_dict(d), '| ')
-        # return s
+
+class RelativeLocation(Location):
+    """ A relative path """
+
+    def __init__(self, href, parent=None):
+        self.href = href
+        self.parent = parent
+
+    def get_stack(self):
+        if self.parent is not None:
+            return [self] + self.parent.get_stack()
+        else:
+            return [self]
+
+    def as_html(self, inline=False):
+        div = Tag(name='div')
+
+        if not inline:
+            p = Tag(name='p')
+            p.append('Jump to ')
+            a = Tag(name='a')
+            a.attrs['href'] = self.href
+            a.append('element in output file')
+            p.append(a)
+            p.append('.')
+            div.append(p)
+
+        if self.parent is not None:
+            div.append(self.parent.as_html(inline=False))
+
+        return div
+
+    def __repr__(self):
+        s = 'Pointer to %s' % self.href
+
+        if self.parent is not None:
+            s += '\n\n' + str(self.parent)
+        return s
 
 
 class SnippetLocation(Location):

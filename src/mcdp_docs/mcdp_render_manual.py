@@ -33,7 +33,7 @@ from system_cmd import system_cmd_result
 from .check_bad_input_files import check_bad_input_file_presence
 from .github_edit_links import add_edit_links2, add_last_modified_info
 from .manual_constants import MCDPManualConstants
-from .manual_join_imp import DocToJoin, manual_join, update_refs_
+from .manual_join_imp import DocToJoin, manual_join
 from .minimal_doc import get_minimal_document
 from .read_bibtex import run_bibtex2html
 from .source_info_imp import get_source_info, make_last_modified, NoSourceInfo
