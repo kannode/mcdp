@@ -44,15 +44,17 @@ class Note(object):
 
     def update_file_path(self, prefix):
 
-        if isinstance(self.msg, Tag):
+        # if isinstance(self.msg, Tag):
             for k, l in self.locations.items():
                 from mcdp_docs.location import RelativeLocation
                 if isinstance(l, RelativeLocation):
                     href2 = os.path.join(prefix, l.href)
-                    print( ('updated %s \n' % l.href) +
-                          ('with prefix %s\n' % prefix)  +
-                          ('     -> %s' % ( href2)))
+                    # print( ('updated %s \n%s \n' % (self.tags, l.href)) +
+                    #       ('with prefix %s\n' % prefix)  +
+                    #       ('     -> %s' % ( href2)))
                     l.href = href2
+                # else:
+                    # print('ignore %s '% self.tags)
 
     def __str__(self):
         s = type(self).__name__
@@ -283,12 +285,13 @@ class AugmentedResult(object):
         self.output.extend(other.output)
 
     def update_file_path(self, prefix):
-        for note in self.notes:
+        for i, note in enumerate(self.notes):
+            print('%s - %s - %s' % (i, note.tags, note.locations))
             note.update_file_path(prefix)
 
     def update_refs(self, id2filename):
         from mcdp_docs.location import HTMLIDLocation, RelativeLocation
-        for note in self.notes:
+        for i, note in enumerate(self.notes):
             for k, l in note.locations.items():
                 if isinstance(l, HTMLIDLocation):
                     ID = l.element_id

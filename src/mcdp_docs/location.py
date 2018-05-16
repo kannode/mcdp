@@ -243,7 +243,7 @@ class RelativeLocation(Location):
         return div
 
     def __repr__(self):
-        s = 'Pointer to %s' % self.href
+        s = 'RelativeLocation(%s)' % self.href
 
         if self.parent is not None:
             s += '\n\n' + str(self.parent)
