@@ -676,6 +676,7 @@ function show_feedback() {
     adjust('show_feedback');
 }; 
 
+
 adjust('show_header_change');
 adjust('show_todos');
 adjust('show_status');
@@ -683,12 +684,40 @@ adjust('show_local_changes');
 adjust('show_recent_changes');
 adjust('show_last_change');
 adjust('show_feedback');
-adjust('show_controls');
+
+
+
+document.addEventListener("DOMContentLoaded", function(event) {
+    console.log('ready to run');
+    details = document.getElementById('build-details');
+
+    console.log(details);
+    
+    details.addEventListener("toggle", function() {
+     v = 'show_controls';
+     status = details.hasAttribute("open");
+     console.log(status);
+     if(status) {
+            localStorage.setItem(v, 1);
+        } else {
+            localStorage.setItem(v, 0);}
+     });
+    
+    if(localStorage.getItem(name) == 1) {
+        details.setAttribute("open", "");
+    } else {
+       // e.removeAttribute("open");
+    }
+    
+});
+
+
+
 </script>
     
     """
-    extra_panel_content.append(bs(html))
     extra_panel_content.append(get_notes_panel(aug))
+    extra_panel_content.append(bs(html))
     return extra_panel_content
 
 
