@@ -444,6 +444,9 @@ def get_branch_table(d0, project, builds, active_branches):
             td.append(a)
             td.append(' ')
             td.append(build.get_outcome_string())
+            if build.artefacts:
+                td.append(br())
+                td.append(get_links(build, branch))
             tr.append(td)
 
         else:
