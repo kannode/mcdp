@@ -286,7 +286,7 @@ class AugmentedResult(object):
 
     def update_file_path(self, prefix):
         for i, note in enumerate(self.notes):
-            print('%s - %s - %s' % (i, note.tags, note.locations))
+            # print('%s - %s - %s' % (i, note.tags, note.locations))
             note.update_file_path(prefix)
 
     def update_refs(self, id2filename):

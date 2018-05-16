@@ -130,7 +130,7 @@ def read_build(client, username, project, token, r, d0):
         if r['outcome'] is not None:
             os.makedirs(d_build)
             if has_artifacts:
-                print('collecting artifacts for %s' % build_num)
+
                 artifacts = client.build.artifacts(username, project, build_num)
 
                 path2url = collect(artifacts, token)
@@ -147,6 +147,7 @@ def read_build(client, username, project, token, r, d0):
     # if artefacts:
     #     print(artefacts)
     artifacts = get_artefacts(d0, d_build)
+    print('Collected %s artifacts for %s' % (len(artifacts),  build_num))
     return Build(r=r, artefacts=artifacts)
 
 
