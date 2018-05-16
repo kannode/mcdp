@@ -1,24 +1,9 @@
 # -*- coding: utf-8 -*-
-from collections import OrderedDict
+
 
 from contracts.utils import indent
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
-
-
-STATUS_UNKNOWN = 'unknown'
-
-allowed_statuses = OrderedDict()
-
-allowed_statuses[STATUS_UNKNOWN] = ''
-allowed_statuses['draft'] = 'This is a draft. Drafts are typically hidden from front-facing versions.'
-allowed_statuses['beta'] = 'This is ready for review.'
-
-allowed_statuses['ready'] = 'This is ready to be published.'
-allowed_statuses['to-update'] = 'This is out-of-date and needs a refresh.'
-allowed_statuses['deprecated'] = 'This part is deprecated and will be eventually deleted.'
-allowed_statuses['recently-updated'] = 'This part has been recently updated.'
-
 
 
 def all_headers(soup):
@@ -28,6 +13,7 @@ def all_headers(soup):
 
 
 def check_status_codes(soup, realpath, res, location):
+    allowed_statuses = MCDPManualConstants.allowed_statuses
     for h in all_headers(soup):
         if MCDPManualConstants.ATTR_NOTOC in h.attrs:
             continue
@@ -51,12 +37,11 @@ def check_status_codes(soup, realpath, res, location):
                     msg += '\n\nThe syntax is:\n\n      # My section    {#SECTIONID status=STATUS}'
                     msg += '\n\nThese are the possible choices for the status:\n'
                     for k, v in allowed_statuses.items():
-                        if k != STATUS_UNKNOWN:
+                        if k != MCDPManualConstants.STATUS_UNKNOWN:
                             msg += '\n' + indent(v, '', '%23s   ' % ('status=%s' % k))
                     res.note_error(msg, HTMLIDLocation.for_element(h, location))
 
-            h.attrs[MCDPManualConstants.ATTR_STATUS] = STATUS_UNKNOWN
-
+            h.attrs[MCDPManualConstants.ATTR_STATUS] = MCDPManualConstants.STATUS_UNKNOWN
 
 
 def check_lang_codes(soup, res, location):
@@ -64,8 +49,8 @@ def check_lang_codes(soup, res, location):
         if MCDPManualConstants.LANG_ATTR in h.attrs:
             s = h.attrs[MCDPManualConstants.LANG_ATTR]
             if not s in MCDPManualConstants.allowed_langs:
-                msg = 'Invalid lang code %r; expected one of %r' % (s, MCDPManualConstants.allowed_langs)
+                msg = ('Invalid lang code %r; expected one of %r' %
+                       (s, MCDPManualConstants.allowed_langs))
                 msg += '\n' + indent(str(h), '  ')
                 # note_error2(h, 'syntax error', msg)
                 res.note_error(msg, HTMLIDLocation.for_element(h, location))
-

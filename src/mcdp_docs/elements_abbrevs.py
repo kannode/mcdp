@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-from bs4.element import Tag, NavigableString
+from collections import namedtuple
 
+from bs4.element import Tag, NavigableString
 from mcdp.exceptions import DPSyntaxError
+from mcdp_docs.location import LocationInString, HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_lang_utils import Where, location as find_location
 from mcdp_utils_xml import add_class
-from mcdp_docs.location import LocationInString
+
 
 def other_abbrevs(soup, res, location):
     """
@@ -27,7 +29,6 @@ def other_abbrevs(soup, res, location):
     substitute_task_markers(soup, res, location)
 
 
-
 def other_abbrevs_mcdps(soup, res, location):
     translate = {
         'v': 'mcdp-value',
@@ -40,6 +41,7 @@ def other_abbrevs_mcdps(soup, res, location):
     for k, v in translate.items():
         for e in soup.select(k):
             e.name = v
+
 
 def has_special_line_prefix(line):
     for prefix in MCDPManualConstants.special_paragraphs:
@@ -83,7 +85,73 @@ def check_good_use_of_special_paragraphs(md, res, location0):
                     raise DPSyntaxError(msg, where=where)
 
 
+Result = namedtuple('Result', 'element ns prefix rest')
+
+
+def get_elements_starting_with_string(soup, prefix, names=('p', 'cite')):
+    ps = list(soup.find_all(list(names)))
+    for p in ps:
+        # Get first child
+        contents = list(p.contents)
+        if not contents:
+            continue
+        c = contents[0]
+        if not isinstance(c, NavigableString):
+            continue
+        s = c.string
+        starts = s.lower().startswith(prefix.lower())
+        if not starts:
+            continue
+
+        string_rest = s[len(prefix):]
+
+        yield Result(element=p, ns=c, prefix=prefix, rest=string_rest)
+
+
+def substitute_todo(soup, res, location):
+    prefix = "TODO"
+    klass = 'todo'
+    for r in get_elements_starting_with_string(soup, prefix=prefix):
+        # r.ns.replaceWith(r.rest)
+
+        div = Tag(name='div')
+        add_class(div, klass + '-wrap')
+        add_class(r.element, klass)
+        parent = r.element.parent
+        i = parent.index(r.element)
+        r.element.extract()
+        div.append(r.element)
+        parent.insert(i, div)
+
+        T = 'for'
+        if r.rest.strip().startswith(T):
+            after = r.rest[r.rest.index(T) + len(T):]
+            if ':' in after:
+                i = after.index(':')
+                dest = after[:i]
+
+                r.element.attrs['for'] = dest.strip()
+            else:
+                msg = 'Could not find ":" in "%s"' % after
+                res.note_error(msg, HTMLIDLocation.for_element(div, location))
+
+
+def substitute_assignment(soup, res, location):
+    for prefix in ["Assigned to:", 'Maintainer:']:
+        for r in get_elements_starting_with_string(soup, prefix=prefix):
+            rest = r.rest.strip()
+            s = Tag(name='span')
+            s.attrs['style'] = 'display: none'
+            s.append(rest)
+            s.attrs['class'] = 'assignment'
+            r.element.insert_before(s)
+
+
 def substitute_special_paragraphs(soup, res, location):
+    substitute_assignment(soup, res, location)
+
+    substitute_todo(soup, res, location)
+
     for prefix, klass in MCDPManualConstants.special_paragraphs.items():
         substitute_special_paragraph(soup, prefix, klass, res, location)
 

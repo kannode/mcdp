@@ -1,11 +1,13 @@
 import copy
 import inspect
+import os
 from collections import OrderedDict
 
 from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
+
 from mcdp_utils_xml import insert_inset
 
 from .pretty_printing import pretty_print_dict
@@ -38,6 +40,14 @@ class Note(object):
         self.created_module = module.__name__
         self.created_file = module.__file__
         self.prefix = prefix
+
+    def update_file_path(self, fn_read):
+        prefix = os.path.dirname(fn_read)
+        if isinstance(self.msg, Tag):
+            for a in self.msg.select('a[href]'):
+                relative = not a.attrs['href'].startswith('http')
+                if relative:
+                    a.attrs['href'] = os.path.join(prefix, a.attrs['href'])
 
     def __str__(self):
         s = type(self).__name__
@@ -74,8 +84,17 @@ class Note(object):
 
         for tag in self.tags:
             s = Tag(name='span')
-            s.attrs['style'] = 'font-size: 70%; font-family: arial; border: solid 1px black; padding: 2px; '
             s.attrs['class'] = 'note-tag'
+
+            css = """
+  font-size: 70%;
+  font-family: arial;
+background-color: #dee;
+  padding: 5px;
+  border-radius: 5px;
+  margin: 0.4em;
+"""
+            s.attrs['style'] = css.replace('\n', ' ').strip()
             s.append(tag)
             div.append(s)
 
@@ -131,7 +150,7 @@ class Note(object):
         s = Tag(name='span')
         s.append('Created by function ')
         s.append(stag('code', self.created_function))
-        s.append(Tag(name='br'))
+        # s.append(br())
         s.append(' in module ')
         s.append(stag('code', self.created_module))
         s.append('.')
@@ -258,6 +277,22 @@ class AugmentedResult(object):
 
         self.output.extend(other.output)
 
+    def update_file_path(self, fn_read):
+        for note in self.notes:
+            note.update_file_path(fn_read)
+
+    def update_refs(self, id2filename):
+        from mcdp_docs.location import HTMLIDLocation
+        for note in self.notes:
+            for k, l in note.locations.items():
+                if isinstance(l, HTMLIDLocation):
+                    ID = l.element_id
+                    if ID in id2filename:
+
+                        print('will update %s' % ID)
+
+
+
 
 def get_html_style():
     style = """
@@ -301,26 +336,102 @@ def html_list_of_notes(aug, tag, how_to_call_them, klass, header=None):
     meta.attrs['content'] = "text/html; charset=utf-8"
     meta.attrs['http-equiv'] = "Content-Type"
     head.append(meta)
+    head.append('\n')
     html.append(head)
+    html.append('\n')
     body = Tag(name='body')
     if header is not None:
         body.append(header)
+        body.append('\n')
     html.append(body)
+    html.append('\n')
+
     if not notes:
         p = Tag(name='p')
         p.append('There were no %s.' % how_to_call_them)
         body.append(p)
+        body.append('\n')
     else:
         p = Tag(name='p')
         p.append('There were %d %s.' % (len(notes), how_to_call_them))
         body.append(p)
+        body.append('\n')
 
-        for i, note in enumerate(notes):
-            div = note.as_html()
-            div.attrs['class'] = klass
-            body.append(div)
+        if klass == 'task':  # XXX
+            sorted_notes = sort_by_dest(notes)
+
+            order = sorted(sorted_notes, key=lambda x: -len(sorted_notes[x]) if x else 1000)
+            table = Tag(name='table')
+            for who in order:
+                section_notes = sorted_notes[who]
+                tr = Tag(name='tr')
+                td = Tag(name='td')
+                if who is None:
+                    a = Tag(name='a')
+                    a.attrs['href'] = '#for:%s' % who
+                    who = 'unassigned'
+                    a.append(who)
+                    td.append(a)
+                else:
+                    a = Tag(name='a')
+                    a.attrs['href'] = '#for:%s' % who
+                    a.append(who)
+                    td.append(a)
+                tr.append(td)
+
+                td = Tag(name='td')
+                td.append('%d tasks' % len(section_notes))
+                tr.append(td)
+
+                table.append(tr)
+
+            body.append(table)
+
+            for who, section_notes in sorted_notes.items():
+                sec = Tag(name='div')
+                sec.attrs['id'] = 'for:%s' % who
+                if who is None:
+                    t = '%s unassigned tasks' % len(section_notes)
+                else:
+                    t = '%d tasks assigned to %s' % (len(section_notes), who)
+                h = Tag(name='h3')
+                h.append(t)
+                sec.append(h)
+                for i, note in enumerate(section_notes):
+                    div = note.as_html()
+                    div.attrs['class'] = klass
+                    sec.append(div)
+                    sec.append('\n\n')
+                body.append(sec)
+                body.append('\n\n')
+        else:
+            for i, note in enumerate(notes):
+                div = note.as_html()
+                div.attrs['class'] = klass
+                body.append(div)
+                body.append('\n\n')
+
     body.append(get_html_style())
-    return (html)
+    return html
+
+
+from collections import defaultdict
+
+
+def sort_by_dest(notes):
+    dest2notes = defaultdict(list)
+
+    def get_dests(note):
+        return [x.replace('for:', '') for x in note.tags if x.startswith('for:')]
+
+    for n in notes:
+        dests = get_dests(n)
+        if not dests:
+            dests = [None]
+
+        for d in dests:
+            dest2notes[d].append(n)
+    return dest2notes
 
 
 @contract(aug=AugmentedResult)

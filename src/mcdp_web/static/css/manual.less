@@ -374,8 +374,8 @@ p.todo {
 }
 
 p.todo::before {
-  content: 'TODO: ';
-  font-weight: bold;
+  //content: 'TODO: ';
+  //font-weight: bold;
 }
 
 p.special-par-note::before {
@@ -1388,7 +1388,13 @@ section[status=deprecated] {
 }
 
 details.error, details.warning, details.task {
+  text-align: left;
   margin: 0.4em;
+
+  // Should look for location
+  a {
+    text-decoration: none;
+  }
 }
 
 @media print {

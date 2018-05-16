@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import datetime
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 import mcdp
 from mcdp import MCDPConstants
+
 
 class MCDPManualConstants(object):
     activate_tilde_as_nbsp = False
@@ -13,7 +14,7 @@ class MCDPManualConstants(object):
     pdf_metadata_template = pdf_metadata + '.in'
     main_template = '00_main_template.html'
 
-    macros = {}
+    macros = OrderedDict()
     macros['PYMCDP_VERSION'] = mcdp.__version__
     # 'July 23, 2010'
     now = datetime.datetime.now()
@@ -21,6 +22,7 @@ class MCDPManualConstants(object):
     macros['PYMCDP_COMPILE_DATE'] = today.strftime("%B %d, %Y")
     macros['PYMCDP_COMPILE_TIME'] = now.strftime("%I:%M%p")
     macros['PYMCDP_COMPILE_DATE_SHORT'] = today.strftime('%Y-%m-%d')
+    # XXX: remove
     macros['AUTHOR'] = 'Andrea Censi'
     macros['TITLE'] = 'Formal tools for co-design'
     macros['TITLE_CAPS'] = 'Formal Tools for Co-Design'
@@ -52,7 +54,7 @@ class MCDPManualConstants(object):
     OTHER_THINGS_TO_INDEX = ['figure', 'div', 'cite']
 
     allowed_prefixes_h = {
-        'h1': ['sec', # sec = default
+        'h1': ['sec',  # sec = default
                'app', 'part', 'book'],
         'h2': ['sub', 'appsub'],
         'h3': ['subsub', 'appsubsub'],
@@ -63,7 +65,7 @@ class MCDPManualConstants(object):
     HEADERS_TO_FIX = HEADERS_TO_INDEX = list(allowed_prefixes_h)
     all_possible_prefixes_that_can_be_implied = [
         'book', 'part', 'sec', 'sub', 'subsub', 'par', 'subpar', 'app', 'appsub', 'appsubsub',
-         'fig', 'subfig',
+        'fig', 'subfig',
         'tab', 'code',
         'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm',
 
@@ -77,7 +79,6 @@ class MCDPManualConstants(object):
         'fig', 'subfig',
         'code', 'tab',
         'def', 'eq', 'rem', 'lem', 'prob', 'prop', 'exa', 'thm']
-
 
     counters = [
         "book",
@@ -136,9 +137,8 @@ class MCDPManualConstants(object):
         'Question: ': 'question',
         'Doubt: ': 'doubt',
         "Assigned: ": 'special-par-assigned',
-        'TODO: ': 'todo',
+        # 'TODO: ': 'todo',
         'TOWRITE: ': 'special-par-towrite',
-
     }
 
     # For these classes we will create a <details> environment
@@ -149,16 +149,16 @@ class MCDPManualConstants(object):
     ]
 
     task_markers = {
-        '(TODO)': 'status-todo',
-        '(DONE)': 'status-done',
-        '(IN PROGRESS)': 'status-inprogress',
+        # '(TODO)': 'status-todo',
+        # '(DONE)': 'status-done',
+        # '(IN PROGRESS)': 'status-inprogress',
         'XXX': 'status-XXX',
         '???': 'status-XXX',
     }
 
     task_markers_selectors = ['p', 'h2', 'h3']
 
-    NOTE_TAG_ERROR= 'error'
+    NOTE_TAG_ERROR = 'error'
     NOTE_TAG_WARNING = 'warning'
     NOTE_TAG_TASK = 'task'
 
@@ -185,7 +185,6 @@ class MCDPManualConstants(object):
     ATTR_GITHUB_LAST_MODIFIED_DAYS = 'github-last-modified-days'
     ATTR_GITHUB_LAST_MODIFIED_AUTHOR = 'github-last-modified-author'
 
-
     ATTR_HAS_LOCAL_MODIFICATIONS = 'has-local-changes'
     ATTR_STATUS = 'status'
 
@@ -193,6 +192,18 @@ class MCDPManualConstants(object):
     attrs_to_copy_from_header_to_section = [ATTR_HAS_LOCAL_MODIFICATIONS, ATTR_STATUS, 'lang', 'type']
 
     ATTR_BASE_URL = 'base_url'
+
+    STATUS_UNKNOWN = 'unknown'
+
+    allowed_statuses = OrderedDict()
+
+    allowed_statuses[STATUS_UNKNOWN] = ''
+    allowed_statuses['draft'] = 'This is a draft.'
+    allowed_statuses['beta'] = 'This is ready for review.'
+    allowed_statuses['ready'] = 'This is ready to be published.'
+    allowed_statuses['outdated'] = 'This is out-of-date and needs a refresh.'
+    allowed_statuses['deprecated'] = 'This is deprecated and will be eventually deleted.'
+
 
 Label = namedtuple('Label', 'what number label_self')
 

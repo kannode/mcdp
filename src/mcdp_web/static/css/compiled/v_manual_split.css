@@ -237,8 +237,11 @@ h3.draft {
 span.placeholder {
   padding-left: 1px;
   padding-right: 1px;
-  color: white;
-  background-color: blue;
+  color: blue;
+  background-color: #eee;
+  border-radius: 4px;
+  padding-left: 3px;
+  padding-right: 3px;
   font-family: serif;
   font-style: italic;
 }
@@ -1497,10 +1500,6 @@ p.todo {
   display: inline-block;
   background-color: #fdd;
 }
-p.todo::before {
-  content: 'TODO: ';
-  font-weight: bold;
-}
 p.special-par-note::before {
   content: 'Note: ';
   font-weight: bold;
@@ -2252,7 +2251,13 @@ section[status=deprecated] {
 details.error,
 details.warning,
 details.task {
+  text-align: left;
   margin: 0.4em;
+}
+details.error a,
+details.warning a,
+details.task a {
+  text-decoration: none;
 }
 @media print {
   div.transmuted-details {

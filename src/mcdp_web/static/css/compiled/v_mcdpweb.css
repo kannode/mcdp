@@ -154,8 +154,11 @@ h3.draft {
 span.placeholder {
   padding-left: 1px;
   padding-right: 1px;
-  color: white;
-  background-color: blue;
+  color: blue;
+  background-color: #eee;
+  border-radius: 4px;
+  padding-left: 3px;
+  padding-right: 3px;
   font-family: serif;
   font-style: italic;
 }

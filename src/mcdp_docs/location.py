@@ -13,7 +13,7 @@ from contracts.utils import indent
 from mcdp_docs import logger
 from mcdp_lang_utils import Where
 from mcdp_utils_misc import pretty_print_dict
-from mcdp_utils_xml import stag
+from mcdp_utils_xml import stag, br
 
 
 class Location(object):
@@ -133,8 +133,9 @@ class LocalFile(Location):
     def as_html(self, inline=False):
         div = Tag(name='div')
         p = Tag(name='p')
-        p.append('Local file ')
-        p.append(Tag(name='br'))
+        p.append('File ')
+        # p.append(Tag(name='span'))
+        # p.append(br())
         a = Tag(name='a')
         a.attrs['href'] = self.filename
         a.append(self.filename)
@@ -334,7 +335,7 @@ class GithubLocation(Location):
         p.append('File ')
         # p.append(stag('span', self.path))
         p.append(stag('a', self.path, href=self.edit_url))
-        p.append(Tag(name='br'))
+        p.append(br())
         p.append(' in repo ')
 
         repo = '%s/%s' % (self.org, self.repo)
@@ -345,7 +346,7 @@ class GithubLocation(Location):
         p.append(stag('a', str(self.branch), href=self.branch_url))
         p.append(' commit ')
         p.append(stag('a', self.commit[-8:], href=self.commit_url))
-        p.append(Tag(name='br'))
+        p.append(br())
         p.append(' last modified by %s on %s' % (self.author.name, self.last_modified))
         if self.has_local_modifications:
             t = Tag(name='p')

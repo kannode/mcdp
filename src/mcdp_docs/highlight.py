@@ -7,7 +7,6 @@ import textwrap
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 from contracts.utils import raise_desc, raise_wrapped, indent
-
 from mcdp import logger, MCDPConstants
 from mcdp.development import mcdp_dev_warning
 from mcdp.exceptions import DPSemanticError, DPSyntaxError, DPInternalError
@@ -21,7 +20,7 @@ from mcdp_library.specs_def import SPEC_TEMPLATES
 from mcdp_report.html import ast_to_html
 from mcdp_report.image_source import ImagesFromPaths
 from mcdp_utils_xml import add_class, create_img_png_base64, create_a_to_data, note_error, to_html_stripping_fragment, \
-    describe_tag, project_html
+    describe_tag, project_html, br
 from mocdp.comp.context import Context
 
 from .make_plots_imp import make_plots
@@ -58,7 +57,6 @@ def html_interpret(library, soup, raise_errors=False,
 
 
 def make_image_tag_from_png(f):
-
     def ff(*args, **kwargs):
         png = f(*args, **kwargs)
         rendered = create_img_png_base64(png)
@@ -68,7 +66,6 @@ def make_image_tag_from_png(f):
 
 
 def make_pre(f):
-
     def ff(*args, **kwargs):
         res = f(*args, **kwargs)
         pre = Tag(name='pre')  # **{'class': 'print_value'})
@@ -231,7 +228,7 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
 
     def go(selector, parse_expr, extension, use_pre=True, refine=None):
         for tag in soup.select(selector):
-            source_code = '<unset>' # XXX
+            source_code = '<unset>'  # XXX
             try:
                 if tag.string is None:  # or not tag.string.strip():
                     if not tag.has_attr('id'):
@@ -474,9 +471,9 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
     # this is a bug with bs4...
     for pre in soup.select('pre + pre'):
         #         print('adding br between PREs')
-        br = Tag(name='br')
-        br['class'] = 'pre_after_pre'
-        pre.parent.insert(pre.parent.index(pre), br)
+        br_ = br()
+        br_['class'] = 'pre_after_pre'
+        pre.parent.insert(pre.parent.index(pre), br_)
 
 
 def max_len_of_pre_html(html):
@@ -643,7 +640,7 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
         go(selector, callback)
 
     unsure = list(soup.select('render'))
-    unsure = [_ for _ in unsure if  'errored' not in _.attrs.get('class', '')]
+    unsure = [_ for _ in unsure if 'errored' not in _.attrs.get('class', '')]
     if unsure:
         msg = 'Invalid "render" elements.'
         msg += '\n\n' + '\n\n'.join(str(_) for _ in unsure)

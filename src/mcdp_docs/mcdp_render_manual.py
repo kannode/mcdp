@@ -25,7 +25,7 @@ from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
     html_list_of_notes, mark_in_html
 from mcdp_utils_misc.fileutils import read_data_from_file
-from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs
+from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs, br
 from quickapp import QuickApp
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
@@ -467,7 +467,7 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
                 code.append(id_)
                 a.append(code)
                 a.append(' ')
-                a.append(Tag(name='br'))
+                a.append(br())
             a.append(e2.attrs['label-name'])
             # e2.insert(0, Tag(name='br'))
             # e2.insert(0, ' ')
@@ -481,7 +481,7 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     for img in list(cross.find_all('img')):
         img.extract()
 
-    print('writing cross ref info')
+    # print('writing cross ref info')
     html = Tag(name='html')
     html.append(cross)
     head = Tag(name='head')
@@ -493,7 +493,8 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
     script = Tag(name='script')
     script.append(CROSSREF_SCRIPT)
     cross.append(script)
-    write_data_to_file(str(html), output_crossref)
+    # XXX: we are doing this multiple times
+    write_data_to_file(str(html), output_crossref, quiet=True)
 
 
 def get_crossref_copy(e):
@@ -986,8 +987,9 @@ def write_errors_and_warnings_files(aug, d):
     manifest = []
     nwarnings = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING))
     fn = os.path.join(d, 'warnings.html')
+    aug.update_refs(id2filename)
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_WARNING, 'warnings', 'warning', header=header)
-    update_refs_('warnings', html, id2filename)
+    # update_refs_('warnings', html, id2filename)
 
     write_data_to_file(str(html), fn, quiet=True)
     if nwarnings:
@@ -1000,7 +1002,7 @@ def write_errors_and_warnings_files(aug, d):
     fn = os.path.join(d, 'tasks.html')
 
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_TASK, 'tasks', 'task', header=header)
-    update_refs_('tasks', html, id2filename)
+    # update_refs_('tasks', html, id2filename)
     write_data_to_file(str(html), fn, quiet=True)
     if nwarnings:
         manifest.append(dict(display='%d tasks' % ntasks,
@@ -1011,7 +1013,7 @@ def write_errors_and_warnings_files(aug, d):
     nerrors = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR))
     fn = os.path.join(d, 'errors.html')
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_ERROR, 'errors', 'error', header=header)
-    update_refs_('tasks', html, id2filename)
+    # update_refs_('tasks', html, id2filename)
     write_data_to_file(str(html), fn, quiet=True)
     if nerrors:
         manifest.append(dict(display='%d errors' % nerrors,
@@ -1054,7 +1056,10 @@ def is_ignored_by_catkin(dn):
             return False
     return False
 
+
 from mcdp_docs.location import LocationInString
+
+
 def job_bib_contents(context, bib_files):
     bib_files = natsorted(bib_files)
     # read all contents

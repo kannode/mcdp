@@ -2,6 +2,11 @@ from bs4 import Tag, NavigableString
 from contracts import check_isinstance, contract
 
 
+def br():
+    t = Tag(name='br')
+    t.can_be_empty_element = True
+    return t
+
 def soup_find_absolutely(soup, id_):
     """ Finds the element with the given ID, or raise KeyError. """
     e = soup.find(id=id_)

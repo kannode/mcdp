@@ -9,6 +9,8 @@ import sys
 import tarfile
 from collections import OrderedDict, defaultdict, namedtuple
 
+from mcdp_utils_xml import br
+
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -473,12 +475,12 @@ def get_links_from_artefacts(artefacts, branch=None, build_num=None):
     groups = sorted(set([art.group for art in artefacts]))
     for j, g in enumerate(groups):
         if j > 0:
-            links.append(Tag(name='br'))
+            links.append(br())
         tag_g = Tag(name='span')
         tag_g.attrs['class'] = 'group'
         tag_g.append(' ')
         tag_g.append(g)
-        tag_g.append(Tag(name='br'))
+        tag_g.append(br())
         links.append(tag_g)
 
         links.append('[')
@@ -488,6 +490,7 @@ def get_links_from_artefacts(artefacts, branch=None, build_num=None):
         links.append(']')
 
     return links
+
 
 def get_links2(arts, branch=None, build_num=None):
     div = Tag(name='span')
@@ -511,6 +514,7 @@ def get_links2(arts, branch=None, build_num=None):
             div.append(' ')
         div.append(a)
     return div
+
 
 def get_build_table(builds):
     table = Tag(name='table')

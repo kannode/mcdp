@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from bs4.element import NavigableString, Tag
+from mcdp_docs import logger
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_misc import Note
@@ -11,6 +12,7 @@ def substitute_task_markers(soup, res, location):
     # XXX: this is really not sure
     for sub, klass in MCDPManualConstants.task_markers.items():
         substitute_task_marker(soup, sub, klass, res, location)
+
 
 def get_sanitized_copy(element):
     """ Strips all IDs """
@@ -25,6 +27,7 @@ def get_sanitized_copy(element):
         del a.attrs['href']
     return d
 
+
 def create_notes_from_elements(soup, res, location, unique):
     for klass, tag in MCDPManualConstants.classes_that_create_notes.items():
         markers = list(soup.select('.%s' % klass))
@@ -35,14 +38,21 @@ def create_notes_from_elements(soup, res, location, unique):
             s.append('The following was marked as "%s".' % klass)
             div.append(s)
             div2 = Tag(name='div')
-            div2.attrs['style'] = 'margin: 1em; font-size: 90%; background-color: #eee; border-radius: 5px; padding: 0.5em;'
+            div2.attrs[
+                'style'] = 'margin: 1em; font-size: 90%; background-color: #eee; border-radius: 5px; padding: 0.5em;'
             # Copy:
             p2 = get_sanitized_copy(p)
             div2.append(p2)
             div.append(div2)
 
-            tags = (tag,)
-            note = Note(div, HTMLIDLocation.for_element(p, location, unique=unique), stacklevel=0, tags=tags)
+            tags = [tag]
+            from mcdp_docs.manual_join_imp import split_robustly
+            assignees = split_robustly(p.attrs.get("for", ""), ',')
+            for a in assignees:
+                tags.append('for:%s' % a)
+
+            note = Note(div, HTMLIDLocation.for_element(p, location, unique=unique),
+                        stacklevel=0, tags=tuple(sorted(tags)))
             res.add_note(note)
 
 

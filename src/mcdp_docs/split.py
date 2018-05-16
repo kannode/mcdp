@@ -337,7 +337,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
     update_refs_('toc.html', main_toc, id2filename)
     out_toc = os.path.join(output_dir, 'toc.html')
-    write_data_to_file(str(main_toc), out_toc)
+    write_data_to_file(str(main_toc), out_toc, quiet=True)
 
     return context.comp(wait_assets, res, asset_jobs)
 

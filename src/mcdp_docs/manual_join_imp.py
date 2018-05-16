@@ -11,9 +11,9 @@ from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
 from mcdp.logs import logger
 from mcdp_docs.add_edit_links import add_github_links_if_edit_url
-from mcdp_docs.check_missing_links import detect_duplicate_IDs
+from mcdp_docs.check_missing_links import detect_duplicate_IDs, get_id2element
 from mcdp_docs.github_file_ref.substitute_github_refs_i import substitute_github_refs
-from mcdp_docs.location import LocationUnknown
+from mcdp_docs.location import LocationUnknown, HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_misc.timing import timeit_wall as timeit
@@ -195,7 +195,7 @@ def manual_join(template, files_contents,
                 hook_before_final_pass(soup=d)
 
         with timeit('document_final_pass_before_toc'):
-            document_final_pass_before_toc(d, remove, remove_selectors)
+            document_final_pass_before_toc(d, remove, remove_selectors, result)
 
         with timeit('hook_before_toc'):
             if hook_before_toc is not None:
@@ -253,7 +253,84 @@ def manual_join(template, files_contents,
         return result
 
 
+def find_first_parent_section(e):
+    parent = e.parent
+
+    def good(x):
+        return x.name == 'section' and 'with-header-inside' in x.attrs['class']
+
+    while not good(parent):
+        parent = parent.parent
+        if parent is None:
+            raise ValueError()
+    return parent
+
+
+def split_robustly(what, sep):
+    if not what:
+        return []
+    return [x.strip() for x in what.split(sep) if x.strip()]
+
+
+ATTR_ASSIGNMENT = 'assignment'
+
+
+def process_assignment(soup, res):
+    sep = ','
+    for e in soup.select('.assignment'):
+        parent = find_first_parent_section(e)
+        current = split_robustly(parent.attrs.get(ATTR_ASSIGNMENT, ''), sep)
+        more = split_robustly(e.string, sep)
+        now = current + more
+        parent.attrs[ATTR_ASSIGNMENT] = sep.join(now)
+    fix_notes_assignees(soup, res)
+
+
+def fix_notes_assignees(soup, res):
+    id2element, duplicates = get_id2element(soup, 'id')
+
+    assert isinstance(res, AugmentedResult)
+    # logger.warn('here: %s' % len(res.notes))
+    for note in res.notes:
+        locations = note.locations
+        if len(locations) == 1:
+            location = list(locations.values())[0]
+            if isinstance(location, HTMLIDLocation):
+                ID = location.element_id
+                if ID in id2element:
+                    element = id2element[ID]
+                    assignees = get_assignees_from_parents(element)
+                    if assignees:
+                        tags = list(note.tags)
+                        for a in assignees:
+                            tags.append('for:%s' % a)
+                        note.tags = tuple(sorted(set(tags)))
+                    else:
+                        pass
+                        # logger.warn('could not find assignees for %s' % ID)
+                else:
+                    pass
+                    logger.warn('could not find element %r' % ID)
+
+
+def get_assignees_from_parents(element):
+    parent = element.parent
+    while True:
+        # print('considering %s %s' % (parent.name, parent.attrs))
+        if ATTR_ASSIGNMENT in parent.attrs:
+            found = split_robustly(parent.attrs[ATTR_ASSIGNMENT], ',')
+            # logger.info('found assignment %s' % found)
+            return found
+        parent = parent.parent
+        if parent is None:
+            # logger.warn('Could not find any assignment')
+            return []
+
+
 def document_final_pass_before_toc(soup, remove, remove_selectors, res=None):
+    if res is None:
+        logger.warn('no res passed')
+
     logger.info('reorganizing contents in <sections>')
 
     with timeit('find body'):
@@ -264,6 +341,8 @@ def document_final_pass_before_toc(soup, remove, remove_selectors, res=None):
 
     with timeit('reorganize_contents'):
         body2 = reorganize_contents(body)
+
+    process_assignment(body2, res)
 
     body.replace_with(body2)
 
@@ -519,6 +598,7 @@ ATTR_NEXT = 'next'
 CLASS_LINK_NEXT = 'link_next'
 CLASS_LINK_PREV = 'link_prev'
 
+
 def add_prev_next_links(filename2contents, only_for=None):
     new_one = OrderedDict()
     for filename, contents in list(filename2contents.items()):
@@ -691,7 +771,7 @@ def get_id2filename(filename2contents):
         if 'id' in contents.attrs:
             id_ = contents.attrs['id']
             id2filename[id_] = filename
-    
+
     return id2filename
 
 
@@ -752,6 +832,7 @@ def is_chapter_marker(x):
            (not 'part:' in x.attrs.get('id', '')) and \
            (not 'book:' in x.attrs.get('id', ''))
 
+
 def is_part_marker(x):
     if not isinstance(x, Tag):
         return False
@@ -761,6 +842,7 @@ def is_part_marker(x):
     id_ = x.attrs.get('id', '')
     id_starts_with_part = id_.startswith('part:')
     return id_starts_with_part
+
 
 def is_book_marker(x):
     if not isinstance(x, Tag):
@@ -772,10 +854,12 @@ def is_book_marker(x):
     id_starts_with_part = id_.startswith('book:')
     return id_starts_with_part
 
+
 ATTR_LEVEL = 'level'
 
 CLASS_WITH_HEADER = 'with-header-inside'
 CLASS_WITHOUT_HEADER = 'without-header-inside'
+
 
 def reorganize_by_books(body):
     elements = list(body.contents)
@@ -803,6 +887,7 @@ def reorganize_by_books(body):
                 copy_attributes_from_header(S, header)
                 res.append(S)
         return res
+
 
 def reorganize_by_parts(body):
     elements = list(body.contents)
@@ -833,7 +918,6 @@ def reorganize_by_parts(body):
 
 
 def reorganize_by_chapters(section):
-
     elements = list(section.contents)
     sections = make_sections2(elements, is_chapter_marker, attrs={'level': 'sec-down'})
     res = tag_like(section)
