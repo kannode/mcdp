@@ -688,26 +688,29 @@ adjust('show_feedback');
 
 
 document.addEventListener("DOMContentLoaded", function(event) {
-    console.log('ready to run');
+    
     details = document.getElementById('build-details');
-
-    console.log(details);
+    v = 'show_controls';
     
-    details.addEventListener("toggle", function() {
-     v = 'show_controls';
-     status = details.hasAttribute("open");
-     console.log(status);
-     if(status) {
-            localStorage.setItem(v, 1);
-        } else {
-            localStorage.setItem(v, 0);}
-     });
     
-    if(localStorage.getItem(name) == 1) {
+    current = localStorage.getItem(v);
+    console.log('current ' + current)
+    if(current == 1) {
         details.setAttribute("open", "");
     } else {
        // e.removeAttribute("open");
     }
+
+    details.addEventListener("toggle", function() {
+        
+         if(details.open) {
+                localStorage.setItem(v, 1);
+                console.log("set current to 1");
+         } else {
+                localStorage.setItem(v, 0);
+                console.log("set current to 0");
+         }
+     });
     
 });
 
