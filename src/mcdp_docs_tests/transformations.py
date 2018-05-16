@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from comptests.registrar import comptest, run_module_tests, comptest_fails
 from contracts.utils import raise_desc, indent
+from mcdp_docs.location import LocationUnknown
 from mcdp_docs.mark.markd import render_markdown
 from mcdp_docs.mark.markdown_transform import censor_markdown_code_blocks
 from mcdp_docs.minimal_doc import get_minimal_document
 from mcdp_docs.pipeline import render_complete
 from mcdp_docs.prerender_math import TAG_DOLLAR
 from mcdp_library.library import MCDPLibrary
+from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_misc.string_repr import indent_plus_invisibles
 
 
@@ -24,14 +26,14 @@ def tryit(s, write_to=None, forbid=[]):
             print('written to %s' % write_to)
 
     tests = {
-     'doctype': not 'DOCTYPE' in s2,
-     'warn_caption': not 'caption' in s2,
-     'warn_centering': not 'centering' in s2,
-     'warn_tabular': not 'tabular' in s2,
-     'funny': not '&amp;#96;' in s2,
-     'dollarfix': not TAG_DOLLAR in s2,
-#     assert not '&#96;' in s2
-#     assert not '&amp;' in s2
+        'doctype': not 'DOCTYPE' in s2,
+        'warn_caption': not 'caption' in s2,
+        'warn_centering': not 'centering' in s2,
+        'warn_tabular': not 'tabular' in s2,
+        'funny': not '&amp;#96;' in s2,
+        'dollarfix': not TAG_DOLLAR in s2,
+        #     assert not '&#96;' in s2
+        #     assert not '&amp;' in s2
 
     }
     for x in forbid:
@@ -144,21 +146,22 @@ syntax ``instance `Name``. The backtick means "load symbols from the library".
 
 @comptest
 def conv_f3():
-#     s = """
-# That is, $\\funsp=\\mathbb{R}_{+}^{[\\text{J}]}$ and $\\ressp=\\mathbb{R}_{+}^{[\text{g}]}$.
-# """
+    #     s = """
+    # That is, $\\funsp=\\mathbb{R}_{+}^{[\\text{J}]}$ and $\\ressp=\\mathbb{R}_{+}^{[\text{g}]}$.
+    # """
     s = r"""
 That is, $F=\mathbb{R}_{+}^{[\text{J}]}$ and $R=\mathbb{R}_{+}^{[\text{g}]}$.
 
 and $c=d_e$ and ``code_b`` and <code>a_b</code>.
 """
     tryit(s, write_to="f3.html", forbid=['<em'])
+
+
 #     print s2
 
 
 @comptest
 def conv_f4():
-
     m = ' \\uparrow U = \\{ x : \\text{property}(x) \}'
     s = """
 Try: $%s $
@@ -168,7 +171,7 @@ $$%s$$
 
 """ % (m, m)
     tryit(s, write_to="f4.html",
-               forbid=['<em'])
+          forbid=['<em'])
 
 
 @comptest
@@ -222,7 +225,7 @@ S & \\mapsto & \\{y\\in P:\\exists\\,x\\in S:x\\leq y\\}.
 
 """
     tryit(s, write_to="f6.html",
-               forbid=['<em', ' {y'])
+          forbid=['<em', ' {y'])
 
 
 others = [
@@ -260,119 +263,119 @@ the library ``src/mcdp_data/libraries/examples/example-battery.mcdplib``, use:
 
     $ mcdp-solve -d src/mcdp_data/libraries/examples/example-battery.mcdplib battery "<1 hour, 0.1 kg, 1 W>"
 """,
-r"""
-Requires <strong>`bold</strong>.
-
-Requires <mcdp-poset>`bold</mcdp-poset>.
-
-Requires <mcdp-poset>`bold</mcdp-poset> and <mcdp-poset>`bold</mcdp-poset>
-
-Requires <strong>`bold</strong> and <strong>`brave</strong>.
-""",
-"""
-This is fbox: \\fbox{ ciao !!! }
-
-This is fbox2: \\fbox{ ciao !!! }
-""",
-"""
-A:
-
-r~~~
-<strong>This should be pre, not strong</strong>
-~~~
-""",
-"""
-\\begin{figure}[H]
-\\hfill{}\\subfloat[\\label{fig:Simple-DP}]{\\centering{}
-figure removed
-}
-\\caption{\\label{fig:ceil-1}One feedback connection and a topologically continuous~$\\ftor$
-are sufficient to induce a disconnected feasible set.}
-\\end{figure}
-""",
-# \\includegraphics[scale=0.33]{gmcdptro_nonconvex1b}}
-"""
-The minimal MCDP can be defined as in <a href="#code:empty"/>.
-
-<pre class='mcdp' id='empty' figure-id='code:empty'>
-mcdp {
-
-}
-</pre>
-""",
-"""
-
-Citing them in order:
-
-* <a href="#sec:sA"/> (should be: sA)
-* no label:
-
-  <ul>
-  <li> child</li>
-  <li> child: <a href="#sub:child_second"/> (should be 2.2)</li>
-  </ul>
-
-* <a href="#sec:sB"/> (should be: sB)
-* sC
-
-  <ul>
-  <li>no</li>
-  <li> <a href="#sub:sC_child"/></li>
-  </ul>
-
-* <a href="#sub:sssF"/> (should be: sssF)
-
-
-
-\\section{sA \\label{sec:sA} (should be 1)}
-\\section{second bu without label (should be 2)}
-\\subsection{child of second (should be 2.1)}
-\\subsection{child of second \\label{sub:child_second} (should be 2.2)}
-\\subsubsection{child of child of sA}
-
-\\section{sB \\label{sec:sB}}
-
-\\section*{sB-not numbered}
-\\subsection{child of sB - this will be 3.0 however it's a bug - no numbered inside nn}
-\\section{sC (should be Section 4)}
-\\subsection{ssC \\label{sub:sC_child} (should be Subsection 4.1)}
-\\subsection{ssD (should be Subsection 4.2)}
-\\subsubsection{sssF \\label{sub:sssF} should be 4.2-A}
-\\subsubsection*{sssG unnumbered}
-\\subsubsection{sssF2 \\label{sub:sssF2} should be 4.2-B}
-\\subsection*{ssE unnumbered}
-
-<style>
-h1 {page-break-before: avoid !important;}
-
-h1 { text-align: left !important; }
-h2 { margin-left: 3em !important; }
-h3 { margin-left: 6em !important; }
-</style>
-""",
-"""
-This is a ``best'' occasion for you. This is code: ``ciao``.
-This is confusing: ``twosingle''twosingle``
-This is a ``best`` occasion for you.
-""",
-"""
-I would like to acknowledge:
-
-* Co-authors [David Spivak][spivak] and Joshua Tan, who developed the categorical
-  foundations of this theory.
-
-DRAFT
-
-* Jerry Marsden for geometry. (Here, I'm proud that the invariance group is quite large: it
-is the group of all invariants..)
-
-/DRAFT
-
-[spivak]: http://math.mit.edu/%7edspivak/
-""",
-"""
-
-"""
+    r"""
+    Requires <strong>`bold</strong>.
+    
+    Requires <mcdp-poset>`bold</mcdp-poset>.
+    
+    Requires <mcdp-poset>`bold</mcdp-poset> and <mcdp-poset>`bold</mcdp-poset>
+    
+    Requires <strong>`bold</strong> and <strong>`brave</strong>.
+    """,
+    """
+    This is fbox: \\fbox{ ciao !!! }
+    
+    This is fbox2: \\fbox{ ciao !!! }
+    """,
+    """
+    A:
+    
+    r~~~
+    <strong>This should be pre, not strong</strong>
+    ~~~
+    """,
+    """
+    \\begin{figure}[H]
+    \\hfill{}\\subfloat[\\label{fig:Simple-DP}]{\\centering{}
+    figure removed
+    }
+    \\caption{\\label{fig:ceil-1}One feedback connection and a topologically continuous~$\\ftor$
+    are sufficient to induce a disconnected feasible set.}
+    \\end{figure}
+    """,
+    # \\includegraphics[scale=0.33]{gmcdptro_nonconvex1b}}
+    """
+    The minimal MCDP can be defined as in <a href="#code:empty"/>.
+    
+    <pre class='mcdp' id='empty' figure-id='code:empty'>
+    mcdp {
+    
+    }
+    </pre>
+    """,
+    """
+    
+    Citing them in order:
+    
+    * <a href="#sec:sA"/> (should be: sA)
+    * no label:
+    
+      <ul>
+      <li> child</li>
+      <li> child: <a href="#sub:child_second"/> (should be 2.2)</li>
+      </ul>
+    
+    * <a href="#sec:sB"/> (should be: sB)
+    * sC
+    
+      <ul>
+      <li>no</li>
+      <li> <a href="#sub:sC_child"/></li>
+      </ul>
+    
+    * <a href="#sub:sssF"/> (should be: sssF)
+    
+    
+    
+    \\section{sA \\label{sec:sA} (should be 1)}
+    \\section{second bu without label (should be 2)}
+    \\subsection{child of second (should be 2.1)}
+    \\subsection{child of second \\label{sub:child_second} (should be 2.2)}
+    \\subsubsection{child of child of sA}
+    
+    \\section{sB \\label{sec:sB}}
+    
+    \\section*{sB-not numbered}
+    \\subsection{child of sB - this will be 3.0 however it's a bug - no numbered inside nn}
+    \\section{sC (should be Section 4)}
+    \\subsection{ssC \\label{sub:sC_child} (should be Subsection 4.1)}
+    \\subsection{ssD (should be Subsection 4.2)}
+    \\subsubsection{sssF \\label{sub:sssF} should be 4.2-A}
+    \\subsubsection*{sssG unnumbered}
+    \\subsubsection{sssF2 \\label{sub:sssF2} should be 4.2-B}
+    \\subsection*{ssE unnumbered}
+    
+    <style>
+    h1 {page-break-before: avoid !important;}
+    
+    h1 { text-align: left !important; }
+    h2 { margin-left: 3em !important; }
+    h3 { margin-left: 6em !important; }
+    </style>
+    """,
+    """
+    This is a ``best'' occasion for you. This is code: ``ciao``.
+    This is confusing: ``twosingle''twosingle``
+    This is a ``best`` occasion for you.
+    """,
+    """
+    I would like to acknowledge:
+    
+    * Co-authors [David Spivak][spivak] and Joshua Tan, who developed the categorical
+      foundations of this theory.
+    
+    DRAFT
+    
+    * Jerry Marsden for geometry. (Here, I'm proud that the invariance group is quite large: it
+    is the group of all invariants..)
+    
+    /DRAFT
+    
+    [spivak]: http://math.mit.edu/%7edspivak/
+    """,
+    """
+    
+    """
 ]
 
 
@@ -457,7 +460,9 @@ The equality in \ref{eq:lfp-one} can be relaxed to ``$xxx$''.
 The least fixed point need not exist. Monotonicity of the map~$f$
 plus completeness is sufficient to ensure existence.
 """
-    s2 = censor_markdown_code_blocks(s)
+    res = AugmentedResult()
+    location = LocationUnknown()
+    s2 = censor_markdown_code_blocks(s, res, location)
 
     print('original:')
     print indent_plus_invisibles(s)
@@ -482,11 +487,11 @@ def no_dollar():
 """
     s2 = tryit(s)
 
-#     print('original:')
-#     print indent_plus_invisibles(s)
-#     print('later:')
-#     print indent_plus_invisibles(s2)
-#
+    #     print('original:')
+    #     print indent_plus_invisibles(s)
+    #     print('later:')
+    #     print indent_plus_invisibles(s2)
+    #
     assert not 'DOLLAR' in s2
 
 
@@ -529,7 +534,6 @@ A _emphasis_.
 
 @comptest
 def codeblocks_in_quote():
-
     s = r"""
 
 > This is a quote
@@ -543,12 +547,12 @@ def codeblocks_in_quote():
 """
     s2 = render_markdown(s, fix_blockquote_pre=False)
     assert '<p><code>' in s2
-#<blockquote>
-#<p>This is a quote</p>
-#<p><code>c++
-#f(x)</code></p>
-#<p>that contained a code block.</p>
-#</blockquote>
+    # <blockquote>
+    # <p>This is a quote</p>
+    # <p><code>c++
+    # f(x)</code></p>
+    # <p>that contained a code block.</p>
+    # </blockquote>
     s3 = render_markdown(s, fix_blockquote_pre=True)
     assert '<p><code>' not in s3
     assert '<pre><code>' in s3
@@ -556,4 +560,3 @@ def codeblocks_in_quote():
 
 if __name__ == '__main__':
     run_module_tests()
-
