@@ -48,8 +48,11 @@ class Note(object):
             for k, l in self.locations.items():
                 from mcdp_docs.location import RelativeLocation
                 if isinstance(l, RelativeLocation):
-                    l.href = os.path.join(prefix, l.href)
-                    print('updated to %s' % l.href)
+                    href2 = os.path.join(prefix, l.href)
+                    print( ('updated %s \n' % l.href) +
+                          ('with prefix %s\n' % prefix)  +
+                          ('     -> %s' % ( href2)))
+                    l.href = href2
 
     def __str__(self):
         s = type(self).__name__
@@ -291,11 +294,9 @@ class AugmentedResult(object):
                     ID = l.element_id
                     if ID in id2filename:
                         href = id2filename[ID] +'#' + ID
-                        print('updated %s to %s' % (ID, href))
+                        # print('updated %s to %s' % (ID, href))
                         n = RelativeLocation(href, l.parent)
                         note.locations[k] = n
-
-
 
 
 def get_html_style():

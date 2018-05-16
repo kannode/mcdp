@@ -6,8 +6,7 @@ from mcdp.constants import MCDPConstants
 from mcdp.logs import logger
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_docs.manual_constants import MCDPManualConstants
-from mcdp_utils_xml import Tag
-from mcdp_utils_xml.add_class_and_style import has_class
+from mcdp_utils_xml import Tag, has_class
 
 show_debug_message_for_corrected_links = False
 
@@ -142,8 +141,8 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
 
                 if matches[0] not in id2element_current:
                     element = id2element[matches[0]]
-                    msg = 'Using foreign resolve for %s -> %s' % (matches[0], a['href'])
-                    logger.info(msg)
+                    # msg = 'Using foreign resolve for %s -> %s' % (matches[0], a['href'])
+                    # logger.info(msg)
                     a.attrs['href_external'] = element.attrs['base_url'] + '#' + matches[0]
 
                 if show_debug_message_for_corrected_links:
@@ -174,10 +173,14 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
             location = HTMLIDLocation.for_element(a, location0)
             res.note_error(msg, location)
 
+
 class MultipleMatches(Exception):
     pass
+
+
 class NoMatches(Exception):
     pass
+
 
 def match_ref(ref, id2element):
     if ref in id2element:

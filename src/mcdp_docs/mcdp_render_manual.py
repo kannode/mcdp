@@ -421,7 +421,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                                                permalink_prefix=permalink_prefix,
                                                only_refs=only_refs)
 
-        context.comp(write_errors_and_warnings_files, id2filename_aug, out_split_dir)
+        if not only_refs:
+            context.comp(write_errors_and_warnings_files, id2filename_aug, out_split_dir)
         context.comp(write_manifest_html, out_split_dir)
 
     if out_pdf is not None:
@@ -982,12 +983,15 @@ def write_errors_and_warnings_files(aug, d):
     else:
         id2filename = {}
     # print('id2filename: %s' % sorted(id2filename))
-    header = get_notes_panel(aug)
     assert isinstance(aug, AugmentedResult)
+    aug.update_refs(id2filename)
+
+    header = get_notes_panel(aug)
+
     manifest = []
     nwarnings = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING))
     fn = os.path.join(d, 'warnings.html')
-    aug.update_refs(id2filename)
+
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_WARNING, 'warnings', 'warning', header=header)
     # update_refs_('warnings', html, id2filename)
 

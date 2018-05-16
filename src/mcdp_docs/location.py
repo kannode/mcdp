@@ -229,7 +229,7 @@ class RelativeLocation(Location):
 
         if not inline:
             p = Tag(name='p')
-            p.append('Jump to ')
+            p.append('Location ')
             a = Tag(name='a')
             a.attrs['href'] = self.href
             a.append('element in output file')
