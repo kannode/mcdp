@@ -65,6 +65,7 @@ def make_page(contents, head0, add_toc, extra_panel_content, add_home_link):
 
             if extra_panel_content is not None:
                 details = Tag(name='details')
+                details.attrs['id'] = 'build-details'
                 summary = Tag(name='summary')
                 summary.append('build details')
                 details.append(summary)

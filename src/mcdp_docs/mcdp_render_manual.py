@@ -590,7 +590,6 @@ def get_extra_content(aug):
     <a id='button-show_header_change' class='button' onclick='show_header_change()'>in-page changes</a>
     <a id='button-show_feedback' class='button' onclick='show_feedback()'>feedback controls</a>
 
-    
 </p>
 
 <style>
@@ -684,8 +683,8 @@ adjust('show_local_changes');
 adjust('show_recent_changes');
 adjust('show_last_change');
 adjust('show_feedback');
+adjust('show_controls');
 </script>
-
     
     """
     extra_panel_content.append(bs(html))

@@ -460,12 +460,36 @@ def get_branch_table(d0, project, builds, active_branches):
 
 
 def get_links(build, branch=None):
-    s = Tag(name='details')
     summary = Tag(name='summary')
+
+
+
+    # if there is an "index" or "summary" use it
+    res = Tag(name='div')
+    for art in build.artefacts:
+        # print 'display: %s' % art.display
+        if art.display in ['index', 'summary']:
+            # print('using %s as index' % str(art))
+            a = Tag(name='a')
+            path = art.rel
+            if branch is not None:
+                path = path.replace('builds/%s' % build.get_build_num(),
+                                    'branch/%s' % path_frag_from_branch(branch))
+
+            a.attrs['href'] = path
+            # a.append(art.display)
+            a.append('index')
+            # a.attrs['style'] = 'float:left'
+            summary.append(a)
+            summary.append(' ')
+
     summary.append('%d\xc2\xa0artefacts' % (len(build.artefacts)))
+    
+    s = Tag(name='details')
     s.append(summary)
     s.append(get_links_(build, branch))
-    return s
+    res.append(s)
+    return res
 
 
 def get_links_(build, branch=None):
@@ -476,6 +500,8 @@ def get_links_(build, branch=None):
 def get_links_from_artefacts(artefacts, branch=None, build_num=None):
     links = Tag(name='span')
     links.attrs['class'] = 'links'
+
+
     groups = sorted(set([art.group for art in artefacts]))
     for j, g in enumerate(groups):
         if j > 0:
