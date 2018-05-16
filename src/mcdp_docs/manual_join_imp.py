@@ -299,15 +299,18 @@ def fix_notes_assignees(soup, res):
                 ID = location.element_id
                 if ID in id2element:
                     element = id2element[ID]
-                    assignees = get_assignees_from_parents(element)
-                    if assignees:
-                        tags = list(note.tags)
-                        for a in assignees:
-                            tags.append('for:%s' % a)
-                        note.tags = tuple(sorted(set(tags)))
-                    else:
-                        pass
-                        # logger.warn('could not find assignees for %s' % ID)
+                    has_assignees = any(_.startswith('for:') for _ in note.tags)
+
+                    if not has_assignees:
+                        assignees = get_assignees_from_parents(element)
+                        if assignees:
+                            tags = list(note.tags)
+                            for a in assignees:
+                                tags.append('for:%s' % a)
+                            note.tags = tuple(sorted(set(tags)))
+                        else:
+                            pass
+                            # logger.warn('could not find assignees for %s' % ID)
                 else:
                     pass
                     logger.warn('could not find element %r' % ID)
