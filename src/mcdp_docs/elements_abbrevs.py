@@ -137,12 +137,23 @@ def substitute_todo(soup, res, location):
 
 
 def substitute_assignment(soup, res, location):
+    # from mcdp_docs.manual_join_imp import split_robustly
     for prefix in ["Assigned to:", 'Maintainer:']:
         for r in get_elements_starting_with_string(soup, prefix=prefix):
-            rest = r.rest.strip()
+            # names = split_robustly(r.rest, ",")
+            # span = Tag(name='span')
+            # for i, n in enumerate(names):
+            #     if i > 0:
+            #         span.append(", ")
+            #     ns = Tag(name='span')
+            #     ns.attrs['style'] = 'font-weight: bold'
+            #     ns.append(n)
+            #     ns.attrs['class'] = 'person-name'
+            #     span.append(ns)
+
             s = Tag(name='span')
             s.attrs['style'] = 'display: none'
-            s.append(rest)
+            s.append(r.rest.strip())
             s.attrs['class'] = 'assignment'
             r.element.insert_before(s)
 

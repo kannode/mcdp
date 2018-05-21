@@ -28,10 +28,10 @@ def get_minimal_document(body_contents, title=None,
 
     head = Tag(name='head')
     body = Tag(name='body')
-
+    head.append('\n')
     head.append(Tag(name='meta', attrs={'http-equiv':"Content-Type",
                                         'content': "application/xhtml+xml; charset=utf-8"}))
-
+    head.append('\n')
     if stylesheet is None:
         stylesheet = 'v_mcdp_render_default'
 
@@ -40,17 +40,23 @@ def get_minimal_document(body_contents, title=None,
         link['rel'] = 'stylesheet'
         link['type'] = 'text/css'
         link['href'] = get_css_filename('compiled/%s' % stylesheet)
+        head.append('\n')
         head.append(link)
+        head.append('\n')
 
     tag_title = Tag(name='title')
     tag_title.append(NavigableString(title))
+    head.append('\n')
     head.append(tag_title)
+    head.append('\n')
     parsed = bs(body_contents)
 
     assert parsed.name == 'fragment'
     parsed.name = 'div'
     body.append(parsed)
+    html.append('\n')
     html.append(head)
+    html.append('\n')
     html.append(body)
     soup.append(html)
 
@@ -83,4 +89,6 @@ def add_extra_css(soup, css):
 
     style = Tag(name='style', attrs={'type':'text/css'})
     style.string = css
+    head.append('\n')
     head.append(style)
+    head.append('\n')

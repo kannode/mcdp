@@ -289,7 +289,7 @@ def process_assignment(soup, res):
 def fix_notes_assignees(soup, res):
     id2element, duplicates = get_id2element(soup, 'id')
 
-    assert isinstance(res, AugmentedResult)
+    assert isinstance(res, AugmentedResult), type(res)
     # logger.warn('here: %s' % len(res.notes))
     for note in res.notes:
         locations = note.locations
@@ -333,6 +333,7 @@ def get_assignees_from_parents(element):
 def document_final_pass_before_toc(soup, remove, remove_selectors, res=None):
     if res is None:
         logger.warn('no res passed')
+        res = AugmentedResult()
 
     logger.info('reorganizing contents in <sections>')
 
@@ -879,7 +880,9 @@ def reorganize_by_books(body):
                 S.attrs['class'] = CLASS_WITHOUT_HEADER
                 section2 = reorganize_by_parts(section)
                 S.append(section2)
+                res.append('\n\n')
                 res.append(S)
+                res.append('\n\n')
             else:
                 S = Tag(name='section')
                 S.attrs[ATTR_LEVEL] = 'book'
@@ -888,7 +891,9 @@ def reorganize_by_books(body):
                 section2 = reorganize_by_parts(section)
                 S.append(section2)
                 copy_attributes_from_header(S, header)
+                res.append('\n\n')
                 res.append(S)
+                res.append('\n\n')
         return res
 
 
@@ -907,7 +912,9 @@ def reorganize_by_parts(body):
                 S.attrs['class'] = CLASS_WITHOUT_HEADER
                 section2 = reorganize_by_chapters(section)
                 S.append(section2)
+                res.append('\n\n')
                 res.append(S)
+                res.append('\n\n')
             else:
                 S = Tag(name='section')
                 S.attrs[ATTR_LEVEL] = 'part'
@@ -916,7 +923,9 @@ def reorganize_by_parts(body):
                 section2 = reorganize_by_chapters(section)
                 S.append(section2)
                 copy_attributes_from_header(S, header)
+                res.append('\n\n')
                 res.append(S)
+                res.append('\n\n')
         return res
 
 
@@ -932,7 +941,10 @@ def reorganize_by_chapters(section):
             S.attrs['class'] = CLASS_WITHOUT_HEADER
             section2 = reorganize_by_section(section)
             S.append(section2)
+            res.append('\n\n')
             res.append(S)
+            res.append('\n\n')
+
 
         else:
             S = Tag(name='section')
@@ -942,7 +954,9 @@ def reorganize_by_chapters(section):
             section2 = reorganize_by_section(section)
             S.append(section2)
             copy_attributes_from_header(S, header)
+            res.append('\n\n')
             res.append(S)
+            res.append('\n\n')
     return res
 
 
@@ -959,7 +973,9 @@ def reorganize_by_section(section):
             S.attrs[ATTR_LEVEL] = 'sub'
             S.attrs['class'] = CLASS_WITHOUT_HEADER
             S.append(section)
+            res.append('\n\n')
             res.append(S)
+            res.append('\n\n')
         else:
             S = Tag(name='section')
             S.attrs[ATTR_LEVEL] = 'sub'
@@ -968,7 +984,9 @@ def reorganize_by_section(section):
             section2 = reorganize_by_subsection(section)
             S.append(section2)
             copy_attributes_from_header(S, header)
+            res.append('\n\n')
             res.append(S)
+            res.append('\n\n')
 
     return res
 
@@ -986,7 +1004,9 @@ def reorganize_by_subsection(section):
             S.attrs[ATTR_LEVEL] = 'subsub'
             S.attrs['class'] = CLASS_WITHOUT_HEADER
             S.append(section)
+            res.append('\n\n')
             res.append(S)
+            res.append('\n\n')
         else:
             S = Tag(name='section')
             S.attrs[ATTR_LEVEL] = 'subsub'
@@ -994,7 +1014,9 @@ def reorganize_by_subsection(section):
             S.append(header)
             S.append(section)
             copy_attributes_from_header(S, header)
+            res.append('\n\n')
             res.append(S)
+            res.append('\n\n')
 
     return res
 
