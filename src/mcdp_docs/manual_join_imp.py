@@ -195,7 +195,8 @@ def manual_join(template, files_contents,
                 hook_before_final_pass(soup=d)
 
         with timeit('document_final_pass_before_toc'):
-            document_final_pass_before_toc(d, remove, remove_selectors, result)
+            location = LocationUnknown()
+            document_final_pass_before_toc(d, remove, remove_selectors, result, location)
 
         with timeit('hook_before_toc'):
             if hook_before_toc is not None:
@@ -275,10 +276,15 @@ def split_robustly(what, sep):
 ATTR_ASSIGNMENT = 'assignment'
 
 
-def process_assignment(soup, res):
+def process_assignment(soup, res, location):
     sep = ','
     for e in soup.select('.assignment'):
-        parent = find_first_parent_section(e)
+        try:
+            parent = find_first_parent_section(e)
+        except ValueError:
+            msg = 'Could not find parent section for this annotation.'
+            res.note_error(msg, HTMLIDLocation.for_element(e, location))
+            continue
         current = split_robustly(parent.attrs.get(ATTR_ASSIGNMENT, ''), sep)
         more = split_robustly(e.string, sep)
         now = current + more
@@ -330,10 +336,12 @@ def get_assignees_from_parents(element):
             return []
 
 
-def document_final_pass_before_toc(soup, remove, remove_selectors, res=None):
+def document_final_pass_before_toc(soup, remove, remove_selectors, res=None, location=None):
     if res is None:
         logger.warn('no res passed')
         res = AugmentedResult()
+    if location is None:
+        location = LocationUnknown()
 
     logger.info('reorganizing contents in <sections>')
 
@@ -346,7 +354,7 @@ def document_final_pass_before_toc(soup, remove, remove_selectors, res=None):
     with timeit('reorganize_contents'):
         body2 = reorganize_contents(body)
 
-    process_assignment(body2, res)
+    process_assignment(body2, res, location)
 
     body.replace_with(body2)
 
@@ -879,6 +887,7 @@ def reorganize_by_books(body):
                 S.attrs[ATTR_LEVEL] = 'book'
                 S.attrs['class'] = CLASS_WITHOUT_HEADER
                 section2 = reorganize_by_parts(section)
+                S.append('\n')
                 S.append(section2)
                 res.append('\n\n')
                 res.append(S)
@@ -887,6 +896,7 @@ def reorganize_by_books(body):
                 S = Tag(name='section')
                 S.attrs[ATTR_LEVEL] = 'book'
                 S.attrs['class'] = CLASS_WITH_HEADER
+                S.append('\n')
                 S.append(header)
                 section2 = reorganize_by_parts(section)
                 S.append(section2)
@@ -910,6 +920,7 @@ def reorganize_by_parts(body):
                 S = Tag(name='section')
                 S.attrs[ATTR_LEVEL] = 'part'
                 S.attrs['class'] = CLASS_WITHOUT_HEADER
+                S.append('\n')
                 section2 = reorganize_by_chapters(section)
                 S.append(section2)
                 res.append('\n\n')
@@ -919,6 +930,7 @@ def reorganize_by_parts(body):
                 S = Tag(name='section')
                 S.attrs[ATTR_LEVEL] = 'part'
                 S.attrs['class'] = CLASS_WITH_HEADER
+                S.append('\n')
                 S.append(header)
                 section2 = reorganize_by_chapters(section)
                 S.append(section2)
@@ -939,6 +951,7 @@ def reorganize_by_chapters(section):
             S = Tag(name='section')
             S.attrs[ATTR_LEVEL] = 'sec'
             S.attrs['class'] = CLASS_WITHOUT_HEADER
+            S.append('\n')
             section2 = reorganize_by_section(section)
             S.append(section2)
             res.append('\n\n')
@@ -950,6 +963,7 @@ def reorganize_by_chapters(section):
             S = Tag(name='section')
             S.attrs[ATTR_LEVEL] = 'sec'
             S.attrs['class'] = CLASS_WITH_HEADER
+            S.append('\n')
             S.append(header)
             section2 = reorganize_by_section(section)
             S.append(section2)
@@ -972,6 +986,7 @@ def reorganize_by_section(section):
             S = Tag(name='section')
             S.attrs[ATTR_LEVEL] = 'sub'
             S.attrs['class'] = CLASS_WITHOUT_HEADER
+            S.append('\n')
             S.append(section)
             res.append('\n\n')
             res.append(S)
@@ -980,6 +995,7 @@ def reorganize_by_section(section):
             S = Tag(name='section')
             S.attrs[ATTR_LEVEL] = 'sub'
             S.attrs['class'] = CLASS_WITH_HEADER
+            S.append('\n')
             S.append(header)
             section2 = reorganize_by_subsection(section)
             S.append(section2)
@@ -1074,6 +1090,7 @@ def make_sections2(elements, is_marker, copy=False, element_name='div', attrs={}
             current_section['class'] = 'with-header-inside'
         else:
             x2 = x.__copy__() if copy else x.extract()
+            check_no_headers_inside_div(x2)
             current_section.append(x2)
 
     if current_header or contains_something_else_than_space(current_section):
@@ -1082,6 +1099,12 @@ def make_sections2(elements, is_marker, copy=False, element_name='div', attrs={}
     debug('make_sections: %s found using marker %s' %
           (len(sections), is_marker.__name__))
     return sections
+
+
+def check_no_headers_inside_div(x):
+    if x.name == 'div' and list(x.find_all(['h1', 'h2', 'h3', 'h4', 'h5'])):
+        msg = 'There are headers inside this <div>'
+        logger.error(msg)
 
 
 def contains_something_else_than_space(element):

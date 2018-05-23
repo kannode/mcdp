@@ -22,6 +22,11 @@ def copy_contents_into(a, b):
     for e in a.children:
         b.append(e.__copy__())
 
+def copy_contents_into_beginning(a, b):
+    """ Copy the contents of a into b """
+    for i, e in enumerate(a.children):
+        b.insert(i, e.__copy__())
+
 
 
 @contract(text='str|unicode')

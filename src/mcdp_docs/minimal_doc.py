@@ -54,11 +54,16 @@ def get_minimal_document(body_contents, title=None,
     assert parsed.name == 'fragment'
     parsed.name = 'div'
     body.append(parsed)
+    from mcdp_docs.manual_join_imp import dissolve
+    dissolve(parsed)
     html.append('\n')
     html.append(head)
     html.append('\n')
     html.append(body)
     soup.append(html)
+
+    # print parsed
+
 
     if extra_css is not None:
         add_extra_css(soup, extra_css)

@@ -159,7 +159,7 @@ def get_bib_files(src_dirs):
 import requests
 
 
-def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
+def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs):
     res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
     id2file = {}
@@ -215,6 +215,12 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs=None):
             msg += '\n\n' + indent(str(ex), ' > ')
             res.note_error(msg)
         else:
+            print r.status_code
+            if r.status_code == 404:
+                msg = 'Could not read external cross refs: %s' % r.status_code
+                msg += '\n url: ' + extra_crossrefs
+                res.note_error(msg)
+                logger.error(msg)
             s = bs(r.text)
             add_from_soup(s, extra_crossrefs, ignore_alread_present=True, ignore_if_conflict=True)
 
