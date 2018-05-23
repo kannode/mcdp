@@ -141,6 +141,8 @@ class MCDPManualConstants(object):
         'TOWRITE: ': 'special-par-towrite',
     }
 
+    ASSIGNMENTS_PREFIXES = ["Assigned to:", 'Maintainer:']
+
     # For these classes we will create a <details> environment
     special_paragraphs_foldable = [
         'comment',

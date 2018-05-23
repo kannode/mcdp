@@ -17,7 +17,7 @@ from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
 from mcdp_docs.composing.cli import compose_go2, ComposeConfig
 from mcdp_docs.embed_css import embed_css_files
-from mcdp_docs.location import LocalFile
+from mcdp_docs.location import LocalFile, HTMLIDLocation
 from mcdp_docs.prerender_math import prerender_mathjax
 from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
@@ -215,7 +215,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs):
             msg += '\n\n' + indent(str(ex), ' > ')
             res.note_error(msg)
         else:
-            print r.status_code
+            logger.debug('%s %s' % (r.status_code, extra_crossrefs))
             if r.status_code == 404:
                 msg = 'Could not read external cross refs: %s' % r.status_code
                 msg += '\n url: ' + extra_crossrefs
@@ -751,6 +751,8 @@ def add_related(joined_aug):
 def add_related_(soup, res):
     posts, users = get_related(res)
 
+    add_person_links(soup, users, res)
+
     tag2posts = defaultdict(list)
     for post in posts.values():
         for tag in post['tags']:
@@ -824,6 +826,26 @@ def add_related_(soup, res):
             p.append(a)
 
         section.append(p)
+
+def find_user_by_name(users, name):
+    for k, user in users.items():
+        if user['name'] == name:
+            return k
+    raise KeyError(name)
+
+def add_person_links(soup, users, res):
+    for span in soup.select('span.person-name'):
+        name = span.text
+        print span
+        try:
+            k = find_user_by_name(users, name)
+            span.name = 'a'
+            span.attrs['href'] = users[k]['user_url']
+        except KeyError:
+            msg = u'Could not find user "%s" in DB.' % name
+            res.note_warning(msg.encode('utf8'), HTMLIDLocation.for_element(span))
+
+
 
 
 def get_related(res):

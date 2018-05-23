@@ -104,6 +104,9 @@ def add_last_modified_info(soup, location):
             msg = ('Could not match text %s ' % header_ident.text)
             raise NoIdent(msg)
 
+
+    from mcdp_docs.elements_abbrevs import format_name
+
     if l.header2sourceinfo is not None:
         for ident, source_info in l.header2sourceinfo.items():
             try:
@@ -125,7 +128,9 @@ def add_last_modified_info(soup, location):
             commit_url = l.repo_base + '/commit/' + source_info.commit
             a.attrs['href'] = commit_url
             p.append(a)
-            p.append(' by %s' % source_info.author.name)
+            p.append(' by ')
+
+            p.append(format_name(source_info.author.name))
             element.insert_after(p)
     else:
 
@@ -135,7 +140,10 @@ def add_last_modified_info(soup, location):
             p.attrs['class'] = 'last-modified'
             author = l.author
             when = compact_when(l.last_modified)
-            p.append('Modified %s by %s (' % (when, author))
+            p.append('Modified %s by ' % (when))
+
+            p.append(format_name(author))
+            p.append(' (')
             a = Tag(name='a')
             a.attrs['href'] = l.commit_url
             a.append('commit %s' % l.commit[-8:])
@@ -196,11 +204,6 @@ def get_repo_information(repo_root):
                 committed_date=committed_date,
                 author_name=author_name,
                 author_email=author_email)
-
-
-#
-# def get_file_information(repo_root, path):
-#     commit = repo.iter_commits(paths=blob.path, max_count=1).next()
 
 
 def org_repo_from_url(url):

@@ -9,6 +9,8 @@ from mcdp_lang_utils import Where, location as find_location
 from mcdp_utils_xml import add_class
 
 
+
+
 def other_abbrevs(soup, res, location):
     """
         v, val, value   --> mcdp-value
@@ -138,24 +140,41 @@ def substitute_todo(soup, res, location):
 
 def substitute_assignment(soup, res, location):
     # from mcdp_docs.manual_join_imp import split_robustly
-    for prefix in ["Assigned to:", 'Maintainer:']:
-        for r in get_elements_starting_with_string(soup, prefix=prefix):
-            # names = split_robustly(r.rest, ",")
-            # span = Tag(name='span')
-            # for i, n in enumerate(names):
-            #     if i > 0:
-            #         span.append(", ")
-            #     ns = Tag(name='span')
-            #     ns.attrs['style'] = 'font-weight: bold'
-            #     ns.append(n)
-            #     ns.attrs['class'] = 'person-name'
-            #     span.append(ns)
+    from mcdp_docs.manual_join_imp import split_robustly
+
+    for prefix in MCDPManualConstants.ASSIGNMENTS_PREFIXES:
+        for r in list(get_elements_starting_with_string(soup, prefix=prefix)):
+            names = split_robustly(r.rest, ",")
+            span = format_list_of_names(names)
+
+            rep = Tag(name='p')
+            rep.append(prefix)
+            rep.append(' ')
+            rep.append(span)
 
             s = Tag(name='span')
             s.attrs['style'] = 'display: none'
             s.append(r.rest.strip())
             s.attrs['class'] = 'assignment'
             r.element.insert_before(s)
+            r.element.replace_with(rep)
+
+def format_name(name):
+    ns = Tag(name='span')
+    ns.append(name)
+    ns.attrs['class'] = 'person-name'
+    return ns
+
+
+def format_list_of_names(names):
+    span = Tag(name='span')
+    span.attrs['class'] = 'people'
+    for i, name in enumerate(names):
+        if i > 0:
+            span.append(", ")
+        ns = format_name(name)
+        span.append(ns)
+    return span
 
 
 def substitute_special_paragraphs(soup, res, location):
