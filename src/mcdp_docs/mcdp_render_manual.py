@@ -834,9 +834,12 @@ def find_user_by_name(users, name):
     raise KeyError(name)
 
 def add_person_links(soup, users, res):
+    if not MCDPManualConstants.add_person_links:
+        return
+
     for span in soup.select('span.person-name'):
         name = span.text
-        print span
+
         try:
             k = find_user_by_name(users, name)
             span.name = 'a'
