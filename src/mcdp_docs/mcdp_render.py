@@ -162,8 +162,8 @@ def render(library, docname, data, realpath, out_dir, generate_pdf, stylesheet,
     soup = bs_entire_document(doc)
 
     document_final_pass_before_toc(soup, remove=None, remove_selectors=[], res=res)
-    generate_and_add_toc(soup)
-    document_final_pass_after_toc(soup)
+    generate_and_add_toc(soup, res=res)
+    document_final_pass_after_toc(soup, res=res)
 
     if use_mathjax and symbols:
         add_mathjax_preamble(soup, symbols)

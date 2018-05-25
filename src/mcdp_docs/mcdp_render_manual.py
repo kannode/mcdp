@@ -159,7 +159,7 @@ def get_bib_files(src_dirs):
 import requests
 
 
-def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs):
+def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, ignore=[]):
     res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
     id2file = {}
@@ -195,7 +195,12 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs):
                 soup.append(e2)
                 soup.append('\n')
 
+    ignore = [os.path.realpath(_) for _ in ignore]
     for _f in files:
+        if os.path.realpath(_f) in ignore:
+            msg = 'Ignoring file %r'  % _f
+            logger.info(msg)
+            continue
         logger.info('cross ref file %s' % _f)
         data = open(_f).read()
         if permalink_prefix in data:
@@ -346,10 +351,9 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                         source_info=source_info)
         files_contents.append(tuple(doc))  # compmake doesn't do namedtuples
 
-    crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs)
+    crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs,
+                                   ignore=[output_crossref])
 
-    # out_collected_crossrefs = os.path.join(out_split_dir, '..', 'collected_crossref.html')
-    # write_data_to_file(str(crossrefs), out_collected_crossrefs)
 
     bib_files = get_bib_files(src_dirs)
 
@@ -382,7 +386,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     #         c = (('unused', docname), contents)
     #         files_contents.append(c)
 
-    # crossrefs = str(crossrefs)
+
     cs = get_md5((crossrefs_aug.get_result()))[:8]
 
     joined_aug = context.comp(manual_join, template=template, files_contents=files_contents,

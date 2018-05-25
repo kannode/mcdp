@@ -149,7 +149,7 @@ def get_things_to_index(soup):
             pass
 
 
-def generate_toc(soup, max_depth=None, max_levels=2, aug=AugmentedResult()):
+def generate_toc(soup, max_depth=None, max_levels=2, res=AugmentedResult()):
     max_levels += 1 # since we added "book"
     stack = [Item(None, -1, 'root', 'root', [])]
 
@@ -170,14 +170,14 @@ def generate_toc(soup, max_depth=None, max_levels=2, aug=AugmentedResult()):
 
     root = stack[0]
 
-    number_items2(root)
+    number_items2(root, res)
 
     without_levels = root.copy_excluding_levels(MCDPManualConstants.exclude_from_toc)
-    res = without_levels.to_html(root=True, max_levels=max_levels)
+    result = without_levels.to_html(root=True, max_levels=max_levels)
 
-    if ZERO in res:
-        aug.note_error("Some counters had zero values")
-    return res
+    if ZERO in result:
+        res.note_error("Some counters had zero values")
+    return result
 
 
 def toc_summary(root):
@@ -222,7 +222,7 @@ class Item(object):
                 tag=self.tag, depth=self.depth, name=self.name, _id=self.id, items=items)
         return item
 
-    def to_html(self, root, max_levels, ):
+    def to_html(self, root, max_levels):
         s = u''
         if not root:
             if MCDPManualConstants.ATTR_NONUMBER in self.tag.attrs:
@@ -252,7 +252,7 @@ class Item(object):
                 yield item2
 
 
-def number_items2(root):
+def number_items2(root, res):
     counters = set(MCDPManualConstants.counters)
 
     # TODO: make configurable
@@ -308,6 +308,9 @@ def number_items2(root):
                 item.tag.attrs[LABEL_WHAT] = what
                 item.tag.attrs[LABEL_SELF] = render(label_spec.label_self, counter_state)
 
+                if ZERO in item.tag.attrs[LABEL_SELF]:
+                    msg = 'This has zero counter.'
+                    res.note_error(msg, HTMLIDLocation.for_element(item.tag))
                 if item.name is None:
                     item.tag.attrs[LABEL_WHAT_NUMBER_NAME] = what + ' ' + number
                 else:

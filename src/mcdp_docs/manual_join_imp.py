@@ -204,7 +204,7 @@ def manual_join(template, files_contents,
 
         with timeit('generate_and_add_toc'):
             try:
-                generate_and_add_toc(d, raise_error=True, aug=result)
+                generate_and_add_toc(d, raise_error=True, res=result)
             except NoTocPlaceholder as e:
                 if require_toc_placeholder:
                     msg = 'Could not find toc placeholder: %s' % e
@@ -1254,12 +1254,12 @@ class NoTocPlaceholder(Exception):
     pass
 
 
-def generate_and_add_toc(soup, raise_error=False, aug=None):
-    if aug is None:
+def generate_and_add_toc(soup, raise_error=False, res=None):
+    if res is None:
         aug = AugmentedResult()
     logger.info('adding toc')
     body = soup.find('body')
-    toc = generate_toc(body, aug)
+    toc = generate_toc(body, res)
 
     # logger.info('TOC:\n' + str(toc))
     toc_ul = bs(toc).ul
@@ -1267,7 +1267,7 @@ def generate_and_add_toc(soup, raise_error=False, aug=None):
         # empty TOC
         msg = 'Could not find toc.'
         # logger.warning(msg)
-        aug.note_error(msg)
+        res.note_error(msg)
         # XXX
     else:
         toc_ul.extract()
@@ -1281,8 +1281,8 @@ def generate_and_add_toc(soup, raise_error=False, aug=None):
             msg = 'Cannot find any element of type %r to put TOC inside.' % toc_selector
             if raise_error:
                 raise NoTocPlaceholder(msg)
-            # logger.warning(msg)
-            aug.note_error(msg)
+            logger.warning(msg)
+            res.note_error(msg)
         else:
             toc_place = tocs[0]
             toc_place.replaceWith(toc_ul)
