@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
-from abc import ABCMeta, abstractmethod
-from collections import OrderedDict
 import inspect
 import os
+from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
+from datetime import datetime
 
-from compmake.utils.friendly_path_imp import friendly_path
-from contracts import contract
+from bs4 import Comment
+from bs4.element import Tag
+from contracts import contract, check_isinstance
 from contracts.interface import location
 from contracts.utils import indent
-from mcdp_docs.github_edit_links import NoRootRepo
+from mcdp_docs import logger
 from mcdp_lang_utils import Where
 from mcdp_utils_misc import pretty_print_dict
-
-from .github_edit_links import get_repo_root, get_repo_information
+from mcdp_utils_xml import stag, br
 
 
 class Location(object):
-
     __metaclass__ = ABCMeta
     """
 
@@ -31,6 +31,15 @@ class Location(object):
     def get_stack(self):
         """ Returns the set of all locations, including this one. """
 
+    def as_html(self, inline=False):
+        pre = Tag(name='pre')
+        code = Tag(name='span')
+        code.attrs['class'] = 'location'
+        s = str(self)
+        code.append(s)
+        pre.append(code)
+        return pre
+
 
 class LocationInString(Location):
 
@@ -39,12 +48,29 @@ class LocationInString(Location):
         self.where = where
         self.parent = parent
 
+    def __eq__(self, other):
+        return isinstance(other, LocationInString) and \
+               (self.where == other.where) and \
+               (self.parent == other.parent)
+
     def __repr__(self):
-        s2 = indent(str(self.where), '  ')
-        s2 += '\n\n' + str(self.parent)
-        s = 'Location in string'
-        s += '\n\n' + indent(s2, '| ')
+        s = 'Location in string:'
+        s += '\n\n' + indent(str(self.where), '  ')
+        s += '\n\n' + str(self.parent)
         return s
+
+    def as_html(self, inline=False):
+        div = Tag(name='div')
+        pre = Tag(name='pre')
+        code = Tag(name='span')
+        code.attrs['class'] = 'location'
+        code.append(str(self.where))
+        pre.append(code)
+        div.append(pre)
+
+        div.append(self.parent.as_html(inline=inline))
+
+        return div
 
     def get_stack(self):
         return [self] + self.parent.get_stack()
@@ -56,13 +82,25 @@ class LocationUnknown(Location):
     def __init__(self, level=1):  # 1 = our caller @UnusedVariable
         self.caller_location = None  # location_from_stack(level)
 
+    def as_html(self, inline=False):
+        div = Tag(name='div')
+        if inline:
+            div.append(Comment(str(self)))
+            pass
+        else:
+            p = Tag(name='p')
+            p.append('Location not known more precisely.')
+            div.append(p)
+        return div
+
     def __repr__(self):
-        return "LocationUnknown"
-#         d = OrderedDict()
-#         d['caller'] = self.caller_location
-#         s = "LocationUnknown"
-#         s += '\n' + indent(pretty_print_dict(d), '| ')
-#         return s
+        return "Location unknown"
+
+    #         d = OrderedDict()
+    #         d['caller'] = self.caller_location
+    #         s = "LocationUnknown"
+    #         s += '\n' + indent(pretty_print_dict(d), '| ')
+    #         return s
 
     def get_stack(self):
         return [self]
@@ -73,16 +111,17 @@ class LocalFile(Location):
     def __init__(self, filename):
         self.filename = filename
         self.github_info = get_github_location(filename)
+        self.last_local_modification = datetime.fromtimestamp(os.path.getmtime(filename))
+        if self.github_info is not None:
+            if self.github_info.has_local_modifications:
+                msg = 'Local file %s has local modifications' % filename
+                logger.debug(msg)
 
     def __repr__(self):
-        d = OrderedDict()
-        d['filename'] = friendly_path(self.filename)
+        s = "In local file %s" % self.filename
         if self.github_info is not None:
-            d['github'] = self.github_info
-        else:
-            d['github'] = '(not available)'
-        s = "LocalFile"
-        s += '\n' + indent(pretty_print_dict(d), '| ')
+            s += '\n\n' + str(self.github_info)
+        s += '\n last modification: %s' % self.last_local_modification
         return s
 
     def get_stack(self):
@@ -90,6 +129,125 @@ class LocalFile(Location):
             return [self] + self.github_info.get_stack()
         else:
             return [self]
+
+    def as_html(self, inline=False):
+        div = Tag(name='div')
+        p = Tag(name='p')
+        p.append('File ')
+        # p.append(Tag(name='span'))
+        # p.append(br())
+        a = Tag(name='a')
+        a.attrs['href'] = self.filename
+        a.append(self.filename)
+        p.append(a)
+        p.append('.')
+        #        a = Tag(name='a')
+        #        a.attrs['href'] = 'edit://' + self.filename
+        #        a.append('edit')
+
+        div.append(p)
+        if self.github_info is not None:
+            div.append(self.github_info.as_html(inline=inline))
+        return div
+
+
+class HTMLIDLocation(Location):
+
+    @staticmethod
+    def for_element(element, parent=None, unique=None):
+        from mcdp_docs.tocs import add_id_if_not_present
+        add_id_if_not_present(element, unique=unique)
+        return HTMLIDLocation(element.attrs['id'], parent)
+
+    @staticmethod
+    def before_element(element, parent=None, unique=None):
+        from mcdp_docs.tocs import add_id_if_not_present
+        if element.previous_sibling:
+            element = element.previous_sibling
+        if element.parent is not None:
+            element = element.parent
+        else:
+            pass
+        add_id_if_not_present(element, unique=unique)
+        return HTMLIDLocation(element.attrs['id'], parent)
+
+    def __init__(self, element_id, parent=None):
+        self.element_id = element_id
+        self.parent = parent
+
+    def get_stack(self):
+        if self.parent is not None:
+            return [self] + self.parent.get_stack()
+        else:
+            return [self]
+
+    def as_html(self, inline=False):
+        div = Tag(name='div')
+
+        if not inline:
+            p = Tag(name='p')
+            p.append('Jump to ')
+            a = Tag(name='a')
+            # if inline:
+            #     href = '#%s' % self.element_id
+            # else:
+            href = '#%s' % self.element_id
+            a.attrs['href'] = href
+            a.append('element in output file')
+            p.append(a)
+            p.append('.')
+            div.append(p)
+
+        if self.parent is not None:
+            div.append(self.parent.as_html(inline=False))
+
+        return div
+
+    def __repr__(self):
+
+        s = 'Found at element %s' % self.element_id
+
+        if self.parent is not None:
+            s += '\n\n' + str(self.parent)
+        return s
+
+class RelativeLocation(Location):
+    """ A relative path """
+
+    def __init__(self, href, parent=None):
+        self.href = href
+        self.parent = parent
+
+    def get_stack(self):
+        if self.parent is not None:
+            return [self] + self.parent.get_stack()
+        else:
+            return [self]
+
+    def as_html(self, inline=False):
+        div = Tag(name='div')
+
+        if not inline:
+            p = Tag(name='p')
+            p.append('Location ')
+            a = Tag(name='a')
+            a.attrs['href'] = self.href
+            a.append('element in output file')
+            p.append(a)
+            p.append('.')
+            div.append(p)
+
+        if self.parent is not None:
+            div.append(self.parent.as_html(inline=False))
+
+        return div
+
+    def __repr__(self):
+        s = 'RelativeLocation(%s)' % self.href
+
+        if self.parent is not None:
+            s += '\n\n' + str(self.parent)
+        return s
 
 
 class SnippetLocation(Location):
@@ -100,43 +258,92 @@ class SnippetLocation(Location):
         self.line = line
         self.element_id = element_id
 
+    def as_html(self, inline=False):
+        div = Tag(name='div')
+
+        if not inline:
+            p = Tag(name='p')
+            p.append('Jump to ')
+            a = Tag(name='a')
+
+            # if inline:
+            #     href = '#%s' % self.element_id
+            # else:
+            href = '#%s' % self.element_id
+            a.attrs['href'] = href
+            a.append('element in output file')
+            p.append(a)
+            p.append('.')
+            div.append(p)
+
+        p = Tag(name='p')
+        p.append('It happened at line %s of:' % self.line)
+        div.append(p)
+
+        div.append(self.original_file.as_html(inline=False))
+
+        return div
+
     def __repr__(self):
-        d = OrderedDict()
-        d['line'] = self.line
-        d['element_id'] = self.element_id
-        d['original_file'] = self.original_file
-        s = "SnippetLocation"
-        s += '\n' + indent(pretty_print_dict(d), '| ')
+        s = 'In element #%s.' % self.element_id
+
+        s += '\n\nAt line %d of:' % self.line
+
+        s += '\n\n' + str(self.original_file)
         return s
+
+        # d = OrderedDict()
+        # d['line'] = self.line
+        # d['element_id'] = self.element_id
+        # d['original_file'] = self.original_file
+        # s = "SnippetLocation"
+        # s += '\n' + indent(pretty_print_dict(d), '| ')
+        # return s
 
     def get_stack(self):
         return [self] + self.original_file.get_stack()
 
 
 class GithubLocation(Location):
+    """
+        Represents the location of a file in a Github repository.
 
-    ''' Represents the location of a file in a Github repository. '''
 
-    def __init__(self, org, repo, path, blob_base, blob_url, branch, commit, edit_url):
+    """
+
+    def __init__(self, org, repo, path, blob_base, blob_url, branch, commit, edit_url,
+                 repo_base, branch_url, commit_url, author, last_modified,
+                 has_local_modifications, header2sourceinfo=None):
+        check_isinstance(path, str)
+        check_isinstance(branch, str)
         self.org = org
         self.repo = repo
         self.path = path
         self.blob_base = blob_base
         self.blob_url = blob_url
         self.edit_url = edit_url
+        self.branch_url = branch_url
+        self.commit_url = commit_url
         self.commit = commit
         self.branch = branch
+        self.repo_base = repo_base
+        self.author = author
+        self.last_modified = last_modified
+        self.has_local_modifications = has_local_modifications
+        self.header2sourceinfo = header2sourceinfo
 
     def __repr__(self):
         d = OrderedDict()
 
-        d['org'] = self.org
-        d['repo'] = self.repo
-        d['path'] = self.path
-#         d['blob_url'] = self.blob_url
-#         d['edit_url'] = self.edit_url
-        d['commit'] = self.commit
+        # d['org'] = self.org
+        d['repo'] = '%s/%s' % (self.org, self.repo)
         d['branch'] = self.branch
+        d['path'] = self.path
+        #         d['blob_url'] = self.blob_url
+        #         d['edit_url'] = self.edit_url
+        d['author'] = self.author
+        d['last_modified'] = self.last_modified
+        d['commit'] = self.commit
 
         s = "GithubLocation"
         s += '\n' + indent(pretty_print_dict(d), '| ')
@@ -154,17 +361,50 @@ class GithubLocation(Location):
 
         return pretty_print_dict(d)
 
+    def as_html(self, inline=False):
+        p = Tag(name='p')
+
+        p.append('File ')
+        # p.append(stag('span', self.path))
+        p.append(stag('a', self.path, href=self.edit_url))
+        p.append(br())
+        p.append(' in repo ')
+
+        repo = '%s/%s' % (self.org, self.repo)
+        p.append(stag('a', repo, href=self.repo_base))
+        p.append(' branch ')
+
+        # print('branch: %s' % self.branch.__repr__())
+        p.append(stag('a', str(self.branch), href=self.branch_url))
+        p.append(' commit ')
+        p.append(stag('a', self.commit[-8:], href=self.commit_url))
+        p.append(br())
+        p.append(' last modified by %s on %s' % (self.author.name, self.last_modified))
+        if self.has_local_modifications:
+            t = Tag(name='p')
+            t.append('File has local modifications')
+            p.append(t)
+        return p
+
     def get_stack(self):
         return [self]
 
 
 @contract(returns='$GithubLocation|None')
 def get_github_location(filename):
+    from .github_edit_links import NoRootRepo
+    from .github_edit_links import get_repo_root, get_repo_information
 
+    # TODO: detect if the copy is dirty
+    if not os.path.exists(filename):
+        return None  # XXX
     try:
-        repo_root = get_repo_root(filename)
-    except NoRootRepo:
+        # need realpath because of relative names, e.g. filename = 'docs/file.md' and the root is at ..
+        filename_r = os.path.realpath(filename)
+        repo_root = get_repo_root(filename_r)
+    except NoRootRepo as e:
         # not in Git
+        print('file %s not in Git: %s' % (filename, e))
         return None
 
     repo_info = get_repo_information(repo_root)
@@ -179,15 +419,39 @@ def get_github_location(filename):
     relpath = os.path.relpath(filename, repo_root)
 
     repo_base = 'https://github.com/%s/%s' % (org, repo)
-    blob_base = repo_base + '/blob/%s' % (branch)
-    edit_base = repo_base + '/edit/%s' % (branch)
+    commit_url = repo_base + '/commit/' + commit
+    branch_url = repo_base + '/tree/' + branch
+    blob_base = repo_base + '/blob/' + branch
+    edit_base = repo_base + '/edit/' + branch
 
     blob_url = blob_base + "/" + relpath
     edit_url = edit_base + "/" + relpath
+
+    from .source_info_imp import get_source_info, NoSourceInfo
+
+    # try:
+    try:
+        source_info = get_source_info(filename)
+    except NoSourceInfo as e:
+        logger.error(e)
+        return None  # XX
+
+    author = source_info.author
+    last_modified = source_info.last_modified
+    has_local_modifications = source_info.has_local_modifications
+    header2sourceinfo = source_info.header2sourceinfo
+
     return GithubLocation(org=org, repo=repo, path=relpath,
+                          repo_base=repo_base,
                           blob_base=blob_base, blob_url=blob_url,
                           edit_url=edit_url,
-                          branch=branch, commit=commit)
+                          branch=branch, commit=commit,
+                          commit_url=commit_url,
+                          branch_url=branch_url,
+                          author=author,
+                          has_local_modifications=has_local_modifications,
+                          last_modified=last_modified,
+                          header2sourceinfo=header2sourceinfo)
 
 
 def location_from_stack(level):
@@ -229,4 +493,3 @@ def location_from_stack(level):
     lf = LocalFile(filename)
     res = LocationInString(where, lf)
     return res
-

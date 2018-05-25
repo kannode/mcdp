@@ -1,81 +1,298 @@
 @media screen {
 
-    @tocwidth: 25em;
+  @tocwidth: 25em;
+  @tocpadding: 1em;
 
-body {
+  body {
     padding-left: @tocwidth;
-}
-#tocdiv {
-    font-size: 8pt;
+  }
+
+  #tocdiv {
+    //font-size: 8pt;
     display: block;
-    width: @tocwidth;
+    width: calc(@tocwidth ~"-" @tocpadding ~"-" @tocpadding);
     left: 0;
     top: 0;
     position: absolute;
+    padding: @tocpadding;
 
     ul {
-    list-style-type: none;
+      list-style-type: none;
     }
     ul ul.toc_what {
-        display: None;
+      display: None;
     }
 
     a {
-        color: black;
+      color: black;
     }
-}
-
-}
-
-
-
-
-div#tocdiv {
-    padding: 2em;
 
     .link-different-file {
-        padding: 1px;
+      padding: 1px;
     }
 
     .link-same-file {
-        padding: 1px;
-        background-color: #ddd !important;
-        color: darkblue;
+      padding: 1px;
+      //background-color: #ddd !important;
+      color: darkblue;
     }
 
     .toc_li_for_sec {
-        // display: none;
+      // display: none;
     }
-     .toc_a_for_part {
-    text-align: left !important;
-    font-weight: bold;
-    font-size: 120%;
+    .toc_a_for_book {
+      font-weight: bold;
+      margin-bottom: 0.5;
+      display: inline-block;
+      font-size: 150%;
     }
+    .toc_a_for_part {
+      text-align: left !important;
+      font-weight: bold;
+      font-size: 120%;
+    }
+
+    #extra-panel-content {
+
+      background-color: white;
+      margin: 0;
+      padding-left: @tocpadding;
+      padding-right: @tocpadding;
+      width: calc(@tocwidth ~"-" @tocpadding ~"-" @tocpadding);
+    }
+
+    details {
+      margin-bottom: 2em;
+    }
+    details[open] summary {
+      margin: 0;
+
+    }
+  }
+
+  // #tocdiv
+
 }
 
 .navigation {
-    display: block;
-    margin-bottom: 1em;
-    margin-top: 0.5em;
+  display: block;
+  margin-bottom: 1em;
+  margin-top: 0.5em;
 }
 
 .link_next, .link_prev {
-    display: block;
-    font-weight: bold;
-    // font-size: smaller;
+  display: block;
+  font-weight: bold;
+  // font-size: smaller;
 }
 
 .link_next {
-    // width: 40em;
-    // margin-top: 1em;
-    // padding-right: 2em;
-    // text-align: right;
-    float: right;
+  // width: 40em;
+  // margin-top: 1em;
+  // padding-right: 2em;
+  // text-align: right;
+  float: right;
 }
 
 .link_prev {
-    // margin-bottom: 1em;
-    // padding-left: 2em;
-    // text-align: left;
-    float: left;
+  // margin-bottom: 1em;
+  // padding-left: 2em;
+  // text-align: left;
+  float: left;
+}
+
+.show_status a.toc_link {
+
+  &[status]::before {
+    margin-right: 3px;
+    font-family: sans-serif;
+    font-size: 50%;
+  }
+
+  &[status=draft]::before {
+    content: 'DRAFT';
+    color: red;
+  }
+
+  //&[status=unknown]::before {
+  //  content: '?';
+  //  color: #051d64;
+  //}
+
+  &[status=beta]::before {
+    content: 'BETA';
+    color: #733c00;
+  }
+
+  &[status=to-update]::before {
+    content: 'OUTDATED';
+    color: #051d64;
+  }
+
+  &[status=deprecated]::before {
+    content: 'DEPRECATED';
+    color: purple;
+  }
+
+}
+
+.show_local_changes {
+  a[has-local-changes] {
+    background-color: rgba(167, 0, 170, 0.22);
+
+    //&::after {
+    //  color: purple;
+    //  content: 'local changes';
+    //  margin-right: 3px;
+    //  font-family: sans-serif;
+    //  font-size: 50%;
+    //}
+  }
+}
+
+.like_buttons {
+  display: none;
+  background-color: #f9f9f9;
+  padding: 0.3em;
+  margin-left: 2em;
+  margin-right: 2em;
+  border-radius: 10px;
+}
+
+.show_feedback {
+  .like_buttons {
+    display: block;
+  }
+}
+
+/* The last modified next to headers */
+p.last-modified {
+  text-align: right;
+  font-size: smaller;
+  padding-top: 0;
+  margin-top: 0;
+  color: green;
+  display: none;
+  a {
+    text-decoration: none;
+    //color: inherit !important;
+  }
+}
+
+.show_header_change p.last-modified {
+  display: block;
+}
+
+.show_last_change {
+
+  a[github-last-modified-days] {
+    &::after {
+      content: attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
+      color: darkblue;
+      font-size: smaller;
+      font-family: sans-serif;
+      margin-left: 0.2em;
+      display: block;
+
+    }
+  }
+  a[github-last-modified-days='0'],
+  a[github-last-modified-days='1'],
+  a[github-last-modified-days='2'],
+  a[github-last-modified-days='3'],
+  a[github-last-modified-days='4'],
+  a[github-last-modified-days='5'],
+  a[github-last-modified-days='6'] {
+    &::after {
+      color: darkgreen;
+    }
+  }
+
+}
+
+.show_recent_changes {
+  a[github-last-modified-days='0']::after {
+    content: 'modified today by ' attr(github-last-modified-author);
+    color: darkgreen;
+  }
+
+  a[github-last-modified-days='1']::after {
+    content: 'modified yesterday by ' attr(github-last-modified-author);
+    color: darkgreen;
+  }
+
+  a[github-last-modified-days='2'],
+  a[github-last-modified-days='3'],
+  a[github-last-modified-days='4'],
+  a[github-last-modified-days='5'],
+  a[github-last-modified-days='6'] {
+    &::after {
+      content: ' modified ' attr(github-last-modified-days) ' days ago by ' attr(github-last-modified-author);
+      color: darkgreen;
+    }
+  }
+
+  a[github-last-modified-days='0'],
+  a[github-last-modified-days='1'],
+  a[github-last-modified-days='2'],
+  a[github-last-modified-days='3'],
+  a[github-last-modified-days='4'],
+  a[github-last-modified-days='5'],
+  a[github-last-modified-days='6'] {
+    &::after {
+      font-size: smaller;
+      font-family: sans-serif;
+      margin-left: 0.2em;
+      display: block;
+    }
+  }
+
+}
+
+.show_todos {
+
+  a[summary]::after {
+    content: attr(summary);
+    color: blue;
+    font-size: 60%;
+    font-family: sans-serif;
+    text-align: right;
+    margin-left: 1em;
+    //display: block;
+  }
+
+  a[summary][nerrors]::after {
+    color: red;
+  }
+}
+
+.toc_a_for_book > span.toc_sep {
+  display: none;
+}
+
+.questions-asked::before {
+  content: 'Questions asked about this section:';
+}
+
+.questions-asked {
+  padding: 0.3em;
+  margin-left: 3em;
+  font-size: smaller;
+  margin: 0.5em;
+  background-color: #f2dede;
+  border-radius: 5px;
+}
+
+.questions-asked td {
+  padding: 10px;
+}
+
+.questions-prompt {
+  padding: 0.3em;
+  margin-left: 3em;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  font-size: smaller;
+  background-color: #f2dede;
+  border-radius: 5px;
 }

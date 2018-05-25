@@ -4,24 +4,23 @@ import traceback
 from bs4.element import Tag
 from contracts import contract
 from contracts.utils import check_isinstance, indent
-
 from mcdp import logger
 from mcdp_utils_xml import add_class
 from mcdp_utils_xml.parsing import bs
 
 # class to give to the <details> element
-ERROR_CLASS = 'error' 
+ERROR_CLASS = 'error'
 WARNING_CLASS = 'warning'
 
 
 def search_for_errors(soup):
-    ''' 
+    """
         Returns a string summarizing all errors
-        marked by note_error() 
-    '''
+        marked by note_error()
+    """
 
     s = ''
-    for element in soup.select('details.'+ERROR_CLASS):
+    for element in soup.select('details.' + ERROR_CLASS):
         summary = element.summary.text.encode('utf8')
         e2 = element.__copy__()
         e2.summary.extract()
@@ -42,23 +41,45 @@ if __name__ == '__main__':
     else:
         logger.info('No errors found.')
 
+
+@contract(long_error='str|$Tag')
 def insert_inset(element, short, long_error, klasses=[]):
     """ Inserts an errored details after element """
     details = Tag(name='details')
-#     add_class(details, 'error')
     summary = Tag(name='summary')
-    summary.append(short)
+    s = Tag(name='strong')
+    s.append(short)
+    summary.append(s)
+
     details.append(summary)
-    pre = Tag(name='pre')
-#     add_class(pre, 'error')
-    
+    if isinstance(long_error, Tag):
+        pre = Tag(name='div')
+    else:
+        pre = Tag(name='pre')
+
     for c in klasses:
         add_class(pre, c)
         add_class(details, c)
         add_class(summary, c)
     pre.append(long_error)
     details.append(pre)
+
+    element0 = element
+    while element.next_sibling and element.next_sibling.name == 'details':
+        element = element.next_sibling
+        add_class(element0, 'contains-consecutive-notes')
+        add_class(element, 'consecutive-note')
+        add_class(details, 'consecutive-note')
+
     element.insert_after(details)
+
+    parent = element0.parent
+    if 'style' not in parent.attrs:
+        if parent.name != 'blockquote':
+            parent.attrs['style'] = 'display: inline;'
+
+    return details
+
 
 @contract(e=BaseException)
 def note_error(tag0, e):
@@ -66,7 +87,8 @@ def note_error(tag0, e):
     add_class(tag0, 'errored')
     short = 'Error'
     long_error = traceback.format_exc(e)
-    insert_inset(tag0, short, long_error, [ERROR_CLASS, type(e).__name__])
+    return insert_inset(tag0, short, long_error, [ERROR_CLASS, type(e).__name__])
+
 
 @contract(tag0=Tag, msg=bytes)
 def note_error_msg(tag0, msg):
@@ -74,21 +96,19 @@ def note_error_msg(tag0, msg):
     add_class(tag0, 'errored')
     short = 'Error'
     long_error = msg
-    insert_inset(tag0, short, long_error, [ERROR_CLASS])
+    return insert_inset(tag0, short, long_error, [ERROR_CLASS])
 
+
+@contract(short=str, long_error='str|$Tag')
 def note_error2(element, short, long_error, other_classes=[]):
-    if 'errored' in element.attrs.get('class', ''):
-        return 
+    # if 'errored' in element.attrs.get('class', ''):
+    #     return None
     add_class(element, 'errored')
-    logger.error(short + '\n'+ long_error)
-    insert_inset(element, short, long_error, [ERROR_CLASS]  + other_classes)
-    parent = element.parent
-    if not 'style' in parent.attrs:
-        parent.attrs['style']= 'display:inline;'
+    # logger.error(short + '\n' + long_error)
+    inset = insert_inset(element, short, long_error, [ERROR_CLASS] + other_classes)
+    return inset
 
 def note_warning2(element, short, long_error, other_classes=[]):
-    logger.warning(short + '\n' + long_error)
-    insert_inset(element, short, long_error, [WARNING_CLASS]  + other_classes)
-
-
-
+    # logger.warning(short + '\n' + long_error)
+    inset = insert_inset(element, short, long_error, [WARNING_CLASS] + other_classes)
+    return inset

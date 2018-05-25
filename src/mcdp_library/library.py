@@ -386,6 +386,8 @@ class MCDPLibrary(object):
             msg += '\nSearch directories: %s' % self.search_dirs
                 
             raise_desc(DPSemanticError, msg)
+            raise Exception() # XXX
+        
         found = self.file_to_contents[match]
         return found
 
@@ -465,9 +467,10 @@ class MCDPLibrary(object):
                     msg += '\n  now from %s' % from_search_dir
                     msg += '\n prev from %s' % self.file_to_contents[basename]['from_search_dir']
                     if not strict:
-                        logger.warning(msg + "\n" +
-                                       format_obs(dict(path1=path1,
-                                                  path2=res['path'])))
+                        pass
+                        # logger.warning(msg + "\n" +
+                        #                format_obs(dict(path1=path1,
+                        #                           path2=res['path'])))
                     else:
                         raise_desc(DPSemanticError, msg,
                                    path1=path1,

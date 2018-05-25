@@ -1,20 +1,42 @@
-from collections import OrderedDict
 import copy
 import inspect
+import os
+from collections import OrderedDict
 
+from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
 from mcdp import logger
+
+
+
+
+from mcdp_utils_xml import insert_inset
 
 from .pretty_printing import pretty_print_dict
 
 
 class Note(object):
 
-    def __init__(self, msg, locations=None, stacklevel=0, prefix=()):
-        self.msg = msg
-        if locations is None: locations = OrderedDict()
-        self.locations = OrderedDict(locations)
+    def __init__(self, msg, locations=None, stacklevel=0, prefix=(), tags=()):
+        if isinstance(msg, Tag):
+            if msg.parent is not None:
+                raise Exception('no parents: %s' % msg)
+            # frag = bs(str(msg))
+            # frag.name = 'div'
+            self.msg = msg
+        elif isinstance(msg, (str)):
+            self.msg = msg
+        else:
+            raise TypeError(msg)
+        self.tags = tuple(tags)
+        if locations is None:
+            locations = OrderedDict()
+        from mcdp_docs.location import Location
+        if isinstance(locations, Location):
+            locations = {'location': locations}
+        check_isinstance(locations, dict)
+        self.locations = OrderedDict(**locations)
         stack = inspect.stack()
         self.created_function = stack[1 + stacklevel][3]
         module = inspect.getmodule(stack[1 + stacklevel][0])
@@ -22,13 +44,31 @@ class Note(object):
         self.created_file = module.__file__
         self.prefix = prefix
 
+    def update_file_path(self, prefix):
+
+        # if isinstance(self.msg, Tag):
+            for k, l in self.locations.items():
+                from mcdp_docs.location import RelativeLocation
+                if isinstance(l, RelativeLocation):
+                    href2 = os.path.join(prefix, l.href)
+                    # print( ('updated %s \n%s \n' % (self.tags, l.href)) +
+                    #       ('with prefix %s\n' % prefix)  +
+                    #       ('     -> %s' % ( href2)))
+                    l.href = href2
+                # else:
+                    # print('ignore %s '% self.tags)
+
     def __str__(self):
         s = type(self).__name__
         if self.msg:
             s += "\n\n" + indent(self.msg, '  ') + '\n'
         else:
             s += '\n\n   (No messages given) \n'
-        if self.locations:
+        if not self.locations:
+            s += '\n(No locations provided)'
+        elif len(self.locations) == 1:
+            s += str(list(self.locations.values())[0])
+        else:
             s += '\nThese are the locations indicated:\n'
             locations = OrderedDict()
             from mcdp_docs.location import LocationUnknown
@@ -38,24 +78,96 @@ class Note(object):
                 else:
                     locations[k] = v
             s += '\n' + indent(pretty_print_dict(locations), '  ')
-        else:
-            s += '\n(No locations provided)'
+
         s += '\n\nCreated by function %s()' % self.created_function
         s += '\n   in module %s' % self.created_module
-#         s += '\n   in file %s' % self.created_file
+        #         s += '\n   in file %s' % self.created_file
         # TODO: use Location
         if self.prefix:
             p = "/".join(self.prefix)
             s = indent(s, p + '> ')
         return s
 
+    def as_html(self, inline=False):
+        div = Tag(name='div')
 
-class NoteError(Note):
-    pass
+        for tag in self.tags:
+            s = Tag(name='span')
+            s.attrs['class'] = 'note-tag'
 
+            css = """
+  font-size: 70%;
+  font-family: arial;
+background-color: #dee;
+  padding: 5px;
+  border-radius: 5px;
+  margin: 0.4em;
+"""
+            s.attrs['style'] = css.replace('\n', ' ').strip()
+            s.append(tag)
+            div.append(s)
 
-class NoteWarning(Note):
-    pass
+        div.attrs['class'] = 'note'
+        container = Tag(name='div')
+        if self.msg is not None:
+            if isinstance(self.msg, Tag):
+                container.append(self.msg.__copy__())
+            else:
+                pre = Tag(name='pre')
+                pre.append(self.msg)
+                container.append(pre)
+        else:
+            p = Tag(name='p')
+            p.append("No message given.")
+            container.append(p)
+        div.append(container)
+
+        if self.locations:
+
+            if len(self.locations) > 1:
+                p = Tag(name='p')
+                p.append('These are the locations indicated:')
+                div.append(p)
+
+                dl = Tag(name='dl')
+
+                for k, v in self.locations.items():
+                    dt = Tag(name='dt')
+                    dt.append(k)
+                    dl.append(dt)
+
+                    dd = Tag(name='dd')
+                    # setting inline - False
+                    dd.append(v.as_html(inline=False))
+                    dl.append(dd)
+
+                div.append(dl)
+            else:
+                # p = Tag(name='p')
+                # p.append("Location:")
+                # div.append(p)
+
+                location = list(self.locations.values())[0]
+                div.append(location.as_html(inline=inline))
+        else:
+            p = Tag(name='p')
+            p.append("(No locations provided)")
+            div.append(p)
+
+        from mcdp_utils_xml import stag
+
+        s = Tag(name='span')
+        s.append('Created by function ')
+        s.append(stag('code', self.created_function))
+        # s.append(br())
+        s.append(' in module ')
+        s.append(stag('code', self.created_module))
+        s.append('.')
+
+        p = Tag(name='p')
+        p.append(s)
+        div.append(s)
+        return div
 
 
 class AugmentedResult(object):
@@ -71,14 +183,18 @@ class AugmentedResult(object):
         self.notes = []
         self.output = []
 
-    def get_errors(self):
-        return [_ for _ in self.notes if isinstance(_, NoteError)]
+    def __str__(self):
+        # ne = len(self.get_errors())
+        # nw = len(self.get_warnings())
+        n = len(self.notes)
+        return 'AugmentedResult(%s notes)' % n
 
-    def get_warnings(self):
-        return [_ for _ in self.notes if isinstance(_, NoteWarning)]
+    def get_notes_by_tag(self, tag):
+        return [_ for _ in self.notes if tag in _.tags]
 
     def assert_no_error(self):
-        errors = self.get_errors()
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        errors = self.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR)
         if errors:
             msg = 'We have obtained %d errors.' % len(errors)
             d = OrderedDict()
@@ -89,16 +205,20 @@ class AugmentedResult(object):
 
     def assert_error_contains(self, s):
         """ Asserts that one of the errors contains the string """
-        for _ in self.notes:
-            if isinstance(_, NoteError):
-                ss = str(_)
-                if s in ss:
-                    return
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        for _ in self.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR):
+            ss = str(_)
+            if s in ss:
+                return
         msg = 'No error contained the string %r' % s
         raise AssertionError(msg)
 
-    def info(self, s):
-        self.log.append('info: %s' % s)
+    # def info(self, s):
+    #     self.log.append('info: %s' % s)
+
+    def has_result(self):
+        # XXX: this should change
+        return self.result is not None
 
     def set_result(self, x):
         self.result = x
@@ -113,48 +233,41 @@ class AugmentedResult(object):
 
     def summary(self):
         s = "AugmentedResult (%s)" % self.desc
-#         s += '\n' + indent(self.desc, ': ')
+        #         s += '\n' + indent(self.desc, ': ')
         if self.notes:
             d = OrderedDict()
             for i, note in enumerate(self.notes):
-                if isinstance(note, NoteWarning):
-                    what = 'Warning'
-                elif isinstance(note, NoteError):
-                    what = 'Error'
-                else:
-                    assert False, note
+                # d['tags'] = ",".join(note.tags)
 
-                d['%s %d' % (what, i)] = note
+                d['%d' % i] = note
             s += "\n" + indent(pretty_print_dict(d), '| ')
         else:
             s += '\n' + '| (no notes found)'
-        return s
-
-    def summary_only_errors(self):
-        s = "AugmentedResult (%s)" % self.desc
-        notes = self.get_errors()
-
-        if notes:
-            d = OrderedDict()
-            for i, note in enumerate(notes):
-                d['error %d' % i] = note
-            s += "\n" + indent(pretty_print_dict(d), '| ')
-        else:
-            s += '\n' + '| (no notes found)'
-
         return s
 
     @contract(note=Note)
     def add_note(self, note):
         self.notes.append(note)
 
-    def note_error(self, msg, locations=None):
-        logger.error(msg)
-        self.add_note(NoteError(msg, locations, stacklevel=1))
+    def note_error(self, msg, locations=None, tags=()):
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        tags = tuple(tags) + (MCDPManualConstants.NOTE_TAG_ERROR,)
+        note = Note(msg, locations, stacklevel=1, tags=tags)
+        self.add_note(note)
+        logger.error(str(note))
 
-    def note_warning(self, msg, locations=None):
-        logger.warning(msg)
-        self.add_note(NoteWarning(msg, locations, stacklevel=1))
+    def note_warning(self, msg, locations=None, tags=()):
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        tags = tuple(tags) + (MCDPManualConstants.NOTE_TAG_WARNING,)
+        note = Note(msg, locations, stacklevel=1, tags=tags)
+        self.add_note(note)
+        # logger.warn(str(note))
+
+    def note_task(self, msg, locations=None, tags=()):
+        from mcdp_docs.manual_constants import MCDPManualConstants
+        tags = tuple(tags) + (MCDPManualConstants.NOTE_TAG_TASK,)
+        note = Note(msg, locations, stacklevel=1, tags=tags)
+        self.add_note(note)
 
     @contract(prefix='str|tuple')
     def merge(self, other, prefix=()):
@@ -164,10 +277,278 @@ class AugmentedResult(object):
         have = set()
         for n in self.notes:
             have.add(n.msg)
+
         for note in other.notes:
-            if not note.msg in have:
-                note2 = copy.deepcopy(note)
+            if note.msg not in have:
+                note2 = copy.copy(note)
                 note2.prefix = prefix + note2.prefix
                 self.notes.append(note2)
 
         self.output.extend(other.output)
+
+    def update_file_path(self, prefix):
+        for i, note in enumerate(self.notes):
+            # print('%s - %s - %s' % (i, note.tags, note.locations))
+            note.update_file_path(prefix)
+
+    def update_refs(self, id2filename):
+        from mcdp_docs.location import HTMLIDLocation, RelativeLocation
+        for i, note in enumerate(self.notes):
+            for k, l in note.locations.items():
+                if isinstance(l, HTMLIDLocation):
+                    ID = l.element_id
+                    if ID in id2filename:
+                        href = id2filename[ID] +'#' + ID
+                        # print('updated %s to %s' % (ID, href))
+                        n = RelativeLocation(href, l.parent)
+                        note.locations[k] = n
+
+
+def get_html_style():
+    style = """
+    div.error, div.warning, div.task {
+        border-radius: 10px;
+        display: inline-block;
+        padding: 1em;
+
+        margin-bottom: 2em;
+        margin: 1em;
+        
+    }
+    div.error pre,
+    div.warning pre {
+        white-space: pre-wrap;
+    }
+    div.error {
+        border: solid 1px red;
+        color: darkred;
+    }
+    div.warning {
+        border: solid 1px orange;
+        color: darkorange;
+    }
+    div.task {
+        border: solid 1px blue;
+        color: darkblue;
+    }
+    """
+    s = Tag(name='style')
+    s.append(style)
+    return s
+
+
+def html_list_of_notes(aug, tag, how_to_call_them, klass, header=None):
+    from mcdp_docs.elements_abbrevs import format_name
+    notes = aug.get_notes_by_tag(tag)
+    # print('%d notes for tag %s' % (len(notes), tag))
+    html = Tag(name='html')
+    head = Tag(name='head')
+    meta = Tag(name='meta')
+    meta.attrs['content'] = "text/html; charset=utf-8"
+    meta.attrs['http-equiv'] = "Content-Type"
+    head.append(meta)
+    head.append('\n')
+    html.append(head)
+    html.append('\n')
+    body = Tag(name='body')
+    if header is not None:
+        body.append(header)
+        body.append('\n')
+    html.append(body)
+    html.append('\n')
+
+    if not notes:
+        p = Tag(name='p')
+        p.append('There were no %s.' % how_to_call_them)
+        body.append(p)
+        body.append('\n')
+    else:
+        p = Tag(name='p')
+        p.append('There were %d %s.' % (len(notes), how_to_call_them))
+        body.append(p)
+        body.append('\n')
+
+        if klass == 'task':  # XXX
+            sorted_notes = sort_by_dest(notes)
+
+            order = sorted(sorted_notes, key=lambda x: -len(sorted_notes[x]) if x else 1000)
+            table = Tag(name='table')
+            for who in order:
+                section_notes = sorted_notes[who]
+                tr = Tag(name='tr')
+                td = Tag(name='td')
+                if who is None:
+                    a = Tag(name='a')
+                    a.attrs['href'] = '#for:%s' % who
+                    who = 'unassigned'
+                    a.append(who)
+                    td.append(a)
+                else:
+                    a = Tag(name='a')
+                    a.attrs['href'] = '#for:%s' % who
+                    a.append("Tasks assigned to")
+                    td.append(a)
+                    td.append(' ')
+                    td.append(format_name(who))
+                tr.append(td)
+
+                td = Tag(name='td')
+                td.append('%d tasks' % len(section_notes))
+                tr.append(td)
+
+                table.append(tr)
+
+            body.append(table)
+
+            for who, section_notes in sorted_notes.items():
+                sec = Tag(name='div')
+                sec.attrs['id'] = 'for:%s' % who
+                if who is None:
+                    t = '%s unassigned tasks' % len(section_notes)
+                else:
+                    t = '%d tasks assigned to %s' % (len(section_notes), who)
+                h = Tag(name='h3')
+                h.append(t)
+                sec.append(h)
+                for i, note in enumerate(section_notes):
+                    div = note.as_html()
+                    div.attrs['class'] = klass
+                    sec.append(div)
+                    sec.append('\n\n')
+                body.append(sec)
+                body.append('\n\n')
+        else:
+            for i, note in enumerate(notes):
+                div = note.as_html()
+                div.attrs['class'] = klass
+                body.append(div)
+                body.append('\n\n')
+
+    body.append(get_html_style())
+    return html
+
+
+from collections import defaultdict
+
+
+def sort_by_dest(notes):
+    dest2notes = defaultdict(list)
+
+    def get_dests(note):
+        return [x.replace('for:', '') for x in note.tags if x.startswith('for:')]
+
+    for n in notes:
+        dests = get_dests(n)
+        if not dests:
+            dests = [None]
+
+        for d in dests:
+            dest2notes[d].append(n)
+    return dest2notes
+
+
+@contract(aug=AugmentedResult)
+def mark_in_html(aug, soup):
+    """ Marks the errors and warnings in the html soup."""
+    from mcdp_docs.manual_constants import MCDPManualConstants
+
+    warnings = aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING)
+    errors = aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR)
+    tasks = aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_TASK)
+    warnings_list = list(_mark_in_html_iterate_id_note_with_location(warnings))
+    errors_list = list(_mark_in_html_iterate_id_note_with_location(errors))
+    tasks_list = list(_mark_in_html_iterate_id_note_with_location(tasks))
+    mark_in_html_notes(errors_list, soup, 'error', 'errors.html',
+                       [MCDPManualConstants.CLASS_NOTE_ERROR])
+    mark_in_html_notes(warnings_list, soup, 'warning', 'warnings.html',
+                       [MCDPManualConstants.CLASS_NOTE_WARNING])
+    mark_in_html_notes(tasks_list, soup, 'task', 'tasks.html',
+                       [MCDPManualConstants.CLASS_NOTE_TASK])
+
+
+def mark_in_html_notes(notes, soup, note_type, index_url, klasses):
+    from mcdp_docs.check_missing_links import get_id2element
+    id2element, duplicates = get_id2element(soup, 'id')
+    ids_ordered = list(id2element)
+
+    N = len(notes)
+    indices = [None for _ in range(len(notes))]
+    for i in range(len(notes)):
+        eid, note = notes[i]
+        if eid in id2element:
+            indices[i] = ids_ordered.index(eid)
+        else:
+            indices[i] = None
+
+    indices = sorted(range(N), key=lambda _: indices[_])
+
+    def idfor(x):
+        return 'note-%s-%d' % (note_type, x)
+
+    def linkto(x):
+        eid_, _ = notes[indices[x]]
+        return '#%s' % eid_
+
+    from mcdp_utils_xml import stag
+
+    # TODO: there is the case where there are multiple notes that refer to the same element..
+    for b, i in enumerate(indices):
+        eid, note = notes[i]
+
+        element = id2element.get(eid, None)
+        if element is None:
+            msg = 'Cannot find the element corresponding to ID %r' % eid
+            msg += '\n\nI cannot mark this note:'
+            msg += '\n\n' + indent(note, '  | ')
+            # raise Exception(msg)  # FIXME
+            logger.error(msg)
+        else:
+            if element.name == 'code' and element.parent and element.parent.name == 'pre':
+                element = element.parent
+
+            note_html = note.as_html(inline=True)
+
+            inset = insert_inset(element, short=note_type,  # XXX
+                                 long_error=note_html,
+                                 klasses=klasses)
+
+            inset.attrs['id'] = idfor(b)
+
+            summary = inset.find('summary')
+
+            summary.append('\n')
+            if b > 0:
+                a = Tag(name='a')
+                a.attrs['class'] = 'note-navigation'
+                a.append('previous ')
+                a.attrs['href'] = linkto(b - 1)
+                summary.insert(0, a)
+
+            if b < N - 1:
+                a = Tag(name='a')
+                a.attrs['class'] = 'note-navigation'
+                a.append(' next')
+                a.attrs['href'] = linkto(b + 1)
+                summary.append(a)
+            summary.append(' (%d of %s) ' % (b + 1, len(notes)))
+            summary.append('\n')
+            summary.append(stag('a', 'index', href=index_url))
+            summary.append('\n')
+
+
+def _mark_in_html_iterate_id_note_with_location(notes):
+    from mcdp_docs.location import LocationUnknown
+    from mcdp_docs.location import SnippetLocation
+    from mcdp_docs.location import HTMLIDLocation
+    for _note in notes:
+        for location in _note.locations.values():
+            if isinstance(location, LocationUnknown):
+                continue
+            stack = location.get_stack()
+            for l in stack:
+                if isinstance(l, SnippetLocation):
+                    _eid = l.element_id
+                    yield _eid, _note
+                if isinstance(l, HTMLIDLocation):
+                    _eid = l.element_id
+                    yield _eid, _note

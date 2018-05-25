@@ -132,7 +132,7 @@ def with_dir_content(data, use_dir=None):
     elif isinstance(data, list):
         datas = data
     else:
-        raise Exception()
+        raise ValueError()
 
     import yaml
     files = OrderedDict()
@@ -141,8 +141,8 @@ def with_dir_content(data, use_dir=None):
         files.update(data_files)
 
     if use_dir is not None:
-        if '/' in use_dir:
-            raise Exception(use_dir)
+#        if '/' in use_dir:
+#            raise Exception(use_dir)
         d = os.path.join(get_comptests_output_dir(), use_dir)
         remove_tree_contents(d)
         write_hierarchy(d, files)

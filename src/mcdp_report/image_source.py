@@ -18,13 +18,13 @@ class ImagesSource(object):
     @abstractmethod
     @contract(returns=bytes, name=str, data_format=str)
     def get_image(self, name, data_format):
-        ''' 
+        """
             Get an image with the given name.
-        
+
             data_format: one of jpg,png,pdf,svg
-            
-            Raise NoImageFound if such image is not found. 
-        '''
+
+            Raise NoImageFound if such image is not found.
+        """
         
 class NoImages(ImagesSource):
     def get_image(self, name, data_format):
@@ -66,8 +66,8 @@ def _warn_once(msg):
     
 @memoize_simple
 def _list_files_with_extension(dirname, extension):
-    ''' List all files in the given directory with an extension.
-        The result is cached. '''
+    """ List all files in the given directory with an extension.
+        The result is cached. """
     pattern = '*.%s' % extension
     res = list(locate_files(dirname, pattern))
     return res

@@ -523,7 +523,7 @@ class GvGen(object):
     def structure(self):
         def example(level, node, children_results):  # @UnusedVariable
             if children_results:
-                c = ", ".join(["%s" % (v) for k, v in children_results.items()])  # @UnusedVariable
+                c = ", ".join(["%s" % v for k, v in children_results.items()])  # @UnusedVariable
                 return "%s { %s } " % (node['id'], c)
             else:
                 return node['id']
@@ -548,7 +548,7 @@ class GvGen(object):
             if self.options:
                 for key, value in self.options.iteritems():
                     s += ("    %s=%s;" % (key, value))
-                s += ("\n")
+                s += "\n"
             assert isinstance(s, str), s.__repr__()
             r = indented_results(children_results)  # .decode("unicode_escape")
             try:

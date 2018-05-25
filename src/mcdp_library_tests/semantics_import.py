@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-from nose.tools import assert_equal
-
-from comptests.registrar import comptest
+from comptests import comptest
 from mcdp_library import Librarian
-from mocdp.comp.context import Context
-
 from mcdp_utils_misc.create_mockups import create_hierarchy
+from mocdp.comp.context import Context
+from nose.tools import assert_equal
 
 @comptest
 def feat_import1():
@@ -36,7 +34,7 @@ def feat_import2():
     data = {
         'lib1.mcdplib/model1.mcdp': "mcdp {}",
         'lib2.mcdplib/model2.mcdp': "`lib1.model1",
-    
+
         'lib2.mcdplib/model3.mcdp': """\
         mcdp {
             a = instance `lib1.model1
@@ -47,13 +45,14 @@ def feat_import2():
     librarian = Librarian()
     librarian.find_libraries(d)
     lib1 = librarian.load_library('lib1')
-    
+
     _model1 = lib1.load_ndp('model1', context=Context())
     lib2 = librarian.load_library('lib2')
-    
+
     context = lib1._generate_context_with_hooks()
     _model2 = lib2.load_ndp('model2', context)
     _model3 = lib2.load_ndp('model3', context)
+
 
 @comptest
 def feat_import3():
@@ -70,6 +69,7 @@ def feat_import3():
     context = lib2._generate_context_with_hooks()
     _model2 = lib2.load_ndp('model2', context)
 
+
 @comptest
 def feat_import4():
     data = {
@@ -85,6 +85,7 @@ def feat_import4():
     context = lib2._generate_context_with_hooks()
     _model2 = lib2.load_ndp('model2', context)
 
+
 @comptest
 def feat_import5():
     """ Warnings in imports. """
@@ -95,14 +96,14 @@ def feat_import5():
             f <= Nat: 2
         }
         """,
-        'lib1.mcdplib/model1.mcdp': 
-        """
-        mcdp {
-            a = instance `model0
-        }
-        """
+        'lib1.mcdplib/model1.mcdp':
+            """
+            mcdp {
+                a = instance `model0
+            }
+            """
     }
-   
+
     d = create_hierarchy(data)
     librarian = Librarian()
     librarian.find_libraries(d)

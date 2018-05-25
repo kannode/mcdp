@@ -14,7 +14,7 @@ from mcdp_utils_misc import get_md5
 from .latex_inside_equation_abbrevs import replace_inside_equations
 
 
-class LatexProcessingConstants():
+class LatexProcessingConstants:
     justignore = [
         'vfill', 'pagebreak', 'leavevmode', 'clearpage', 'hline',
         'hfill', 'quad', 'qquad', 'noindent',
@@ -427,7 +427,7 @@ def makeminipage(inside, opt):
 
 
 def makefigure(inside, opt, asterisk):  # @UnusedVariable
-    align = opt  # @UnusedVariable
+    # align = opt  # @UnusedVariable
 #     print('makefigure inside = %r' % inside)
 
     def subfloat_replace(args, opts):
@@ -446,7 +446,7 @@ def makefigure(inside, opt, asterisk):  # @UnusedVariable
                 msg = 'Subfigure labels should start with "subfig:"; found %r.' % (
                     label)
                 label = 'sub' + label
-                msg += 'I will change to %r.' % label
+                msg += ' I will change to %r.' % label
                 logger.debug(msg)
 
         # we need to make up an ID
@@ -481,7 +481,9 @@ def makefigure(inside, opt, asterisk):  # @UnusedVariable
         inside, 'caption', sub_caption, nargs=1, nopt=0)
 
 #     print('makefigure inside without caption = %r'  % inside)
-    assert not '\\caption' in inside
+    if '\\caption' in inside:
+        msg = 'Whoops: %r' % inside
+        logger.warning(msg)
 
     if Tmp.label is None:
         Tmp.label = 'fig:' + get_md5(inside)
@@ -696,6 +698,7 @@ def substitute_command(s, name, sub):
         bit = after[:max(len(after), 15)]
         msg = 'Could not find completion for "%s".' % bit
         raise_wrapped(Malformed, e, msg)
+        raise
     inside = inside_plus_brace[1:-1]
     replace = sub(name=name, inside=inside)
     before = s[:istart]
@@ -822,7 +825,12 @@ def replace_environment(s, envname, classname, labelprefix, make_label_if_missin
             id_part = "id='%s' " % label
         else:
             if make_label_if_missing:
-                makeup_id = labelprefix + get_md5(inside)[:5]
+                if isinstance(labelprefix, tuple):
+                    usel = labelprefix[0]
+                else:
+                    usel = labelprefix
+
+                makeup_id = usel + get_md5(inside)[:5]
                 id_part = "id='%s'" % makeup_id
             else:
                 id_part = ''
@@ -849,7 +857,7 @@ def replace_captionsideleft(s):
         else:
             idpart = ""
         res = ('<figure class="captionsideleft caption_left"%s>' % idpart)
-        res += ('%s<figcaption></figcaption></figure>') % second
+        res += '%s<figcaption></figcaption></figure>' % second
 
         return res
 
@@ -1132,6 +1140,7 @@ def extract_maths(s):
 
     def acceptance(s0, i):
         inside = is_inside_markdown_quoted_block(s0, i)
+        # print('accepted %r')
         return not inside
 
     subs = {}

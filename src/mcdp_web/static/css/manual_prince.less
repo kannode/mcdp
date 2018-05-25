@@ -1,14 +1,10 @@
 /* These are the fixes for printing / prince */
 
-
 // This is  valid only for printing pdf
 // a { color: black !important; }
 
-
-
-
 body {
-    page: normal;
+  page: normal;
 }
 
 h1:not(#booktitle) {
@@ -16,13 +12,25 @@ h1:not(#booktitle) {
   string-set: current-header content();
 }
 
+section#part\:introduction\:section {
+  page: part-introduction;
+}
 
+section#part\:domains\:section {
+  page: part-domains;
+}
 
-section#part\:introduction\:section {    page: part-introduction; }
-section#part\:domains\:section {    page: part-domains; }
-section#part\:reference\:section {    page: part-reference; }
-section#part\:math\:section      {    page: part-math; }
-section#part\:developers\:section      {    page: part-developers; }
+section#part\:reference\:section {
+  page: part-reference;
+}
+
+section#part\:math\:section {
+  page: part-math;
+}
+
+section#part\:developers\:section {
+  page: part-developers;
+}
 
 @part-introduction-color: #f1d6f9;
 @part-domains-color: #d8d6f9;
@@ -30,248 +38,236 @@ section#part\:developers\:section      {    page: part-developers; }
 @part-math-color: #d9f9d6;
 @part-developers-color: #f9d6d6;
 
-
 @page part-introduction:left {
-    @left-top {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @left-middle {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @left-bottom {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @top-left-corner {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @bottom-left-corner {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
+  @left-top {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @left-middle {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @left-bottom {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @top-left-corner {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @bottom-left-corner {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
 }
 
 @page part-introduction:right {
-    @right-middle {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @right-top {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @right-bottom {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @top-right-corner {
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @bottom-right-corner{
-        background-color: @part-introduction-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
+  @right-middle {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @right-top {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @right-bottom {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @top-right-corner {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @bottom-right-corner {
+    background-color: @part-introduction-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
 }
 
-
-
 @page part-domains:left {
-    @left-top {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @left-middle {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @left-bottom {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @top-left-corner {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @bottom-left-corner {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
+  @left-top {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @left-middle {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @left-bottom {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @top-left-corner {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @bottom-left-corner {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
 }
 
 @page part-domains:right {
-    @right-middle {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @right-top {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @right-bottom {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @top-right-corner {
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @bottom-right-corner{
-        background-color: @part-domains-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
+  @right-middle {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @right-top {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @right-bottom {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @top-right-corner {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @bottom-right-corner {
+    background-color: @part-domains-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
 }
 
-
 @page part-reference:left {
-    @left-top {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @left-middle {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @left-bottom {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @top-left-corner {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @bottom-left-corner {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
+  @left-top {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @left-middle {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @left-bottom {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @top-left-corner {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @bottom-left-corner {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
 }
 
 @page part-reference:right {
-    @right-middle {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @right-top {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @right-bottom {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @top-right-corner {
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @bottom-right-corner{
-        background-color: @part-reference-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
+  @right-middle {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @right-top {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @right-bottom {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @top-right-corner {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @bottom-right-corner {
+    background-color: @part-reference-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
 }
 
-
-
 @page part-math:left {
-    @left-top {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @left-middle {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @left-bottom {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @top-left-corner {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @bottom-left-corner {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
+  @left-top {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @left-middle {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @left-bottom {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @top-left-corner {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @bottom-left-corner {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
 }
 
 @page part-math:right {
-    @right-middle {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @right-top {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @right-bottom {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @top-right-corner {
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
-    @bottom-right-corner{
-        background-color: @part-math-color;
-        content: ' '; // necessary, otherwise the background color is not applied
-    }
+  @right-middle {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @right-top {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @right-bottom {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @top-right-corner {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
+  @bottom-right-corner {
+    background-color: @part-math-color;
+    content: ' '; // necessary, otherwise the background color is not applied
+  }
 }
-
-
-
-
 
 @pagenumber-fontsize: 10pt;
 @pagenumber-padding-outer: 5pt;
 @pagenumber-padding-bottom: 10pt;
 @page {
-    @top {
-        vertical-align: bottom;
-        content: string(current-header);
-        font-size: 10pt;
-        font-variant: small-caps;
-        padding-bottom: 10pt;
-    }
+@top {
+  vertical-align: bottom;
+  content: string(current-header);
+  font-size: 10pt;
+  font-variant: small-caps;
+  padding-bottom: 10pt;
+}
 }
 
 @page :right {
-    @top-right {
-        vertical-align: bottom;
-        font-size: @pagenumber-fontsize;
-        content: counter(page);
-        padding-bottom: @pagenumber-padding-bottom;
-        padding-right: @pagenumber-padding-outer;
-    }
+  @top-right {
+    vertical-align: bottom;
+    font-size: @pagenumber-fontsize;
+    content: counter(page);
+    padding-bottom: @pagenumber-padding-bottom;
+    padding-right: @pagenumber-padding-outer;
+  }
 }
 
 @page :left {
-    @top-left {
-        vertical-align: bottom;
-        font-size: @pagenumber-fontsize;
-        content: counter(page);
-        padding-bottom: @pagenumber-padding-bottom;
-        padding-left: @pagenumber-padding-outer;
-     }
+  @top-left {
+    vertical-align: bottom;
+    font-size: @pagenumber-fontsize;
+    content: counter(page);
+    padding-bottom: @pagenumber-padding-bottom;
+    padding-left: @pagenumber-padding-outer;
+  }
 }
-
 
 @page :first {
-    @top {
-        // content: ':first';
-        content: none;
-    }
-    @top-right {
-        content: none;
-    }
+@top {
+  // content: ':first';
+  content: none;
+}
+  @top-right {
+    content: none;
+  }
 }
 
-h1[id^='part:'] { display: flow(part-string); }
-
-
-
+h1[id^='part:'] {
+  display: flow(part-string);
+}
 
 /* only in the manual */
 // h1:not(#booktitle) {
@@ -283,16 +279,15 @@ h1[id^='part:'] { display: flow(part-string); }
 //     page-break-before: always;
 // }
 
- td pre { margin-top: 0 !important;  margin: 0 !important;}
-
+td pre {
+  //margin-top: 0 !important;
+  margin: 0 !important;
+}
 
 // error { color: red; }
 
-
-
-
 p + table {
-    margin-top: 0.9em !important;
+  margin-top: 0.9em !important;
 }
 
 /*
@@ -302,64 +297,64 @@ pre {
     margin-right: auto !important;
 }*/
 
-#mine { text-align: center; }
+#mine {
+  text-align: center;
+}
 
 /*table {
     width: 100% !important;
 }
 */
 @media screen {
-    body div > ul:not(.toc) {
-        margin-left: 0em;
-        padding-left: 2em;
-        /*border : solid 1px blue;*/
- margin-top: 0.2em;
- margin-bottom: 0.2em;
-    }
+  body div > ul:not(.toc) {
+    margin-left: 0;
+    padding-left: 2em;
+    /*border : solid 1px blue;*/
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+  }
 }
+
 @media print {
-/* this is some thing weird, not very robust. Need div.document */
-body div > ul:not(.toc) {
-  /*border : solid 1px blue;*/
- margin-left: 2em; /*prince wants */
- margin-top: 0.5em;
- margin-bottom: 0.5em;
-}
+  /* this is some thing weird, not very robust. Need div.document */
+  body div > ul:not(.toc) {
+    /*border : solid 1px blue;*/
+    margin-left: 2em; /*prince wants */
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
 
-ul.toc ul:not(.toc) {
-  /*border : solid 1px red;*/
 }
-}
-
-
 
 footnote {
-    float: footnote;
-    font-size: smaller;
+  float: footnote;
+  font-size: smaller;
 
 }
 
 @page {
-    @footnotes {
-    border-top: solid black thin;
-    margin-left: 1em;
-    padding-top: 3pt;
-    margin-top: 5pt;
-    }
+@footnotes {
+  border-top: solid black thin;
+  margin-left: 1em;
+  padding-top: 3pt;
+  margin-top: 5pt;
 }
-
+}
 
 /* saves 75% of time */
 /*ul.toc { display: none; }*/
 
-
 /*span.MathJax_SVG { border: solid 1px red;  position: relative; left: -4em;}*/
 
 /* fix this in Prince */
-svg { max-width: 100%;}
+svg {
+  max-width: 100%;
+}
 
+figcaption {
+  page-break-before: avoid;
+}
 
-figcaption {page-break-before: avoid;}
 /*
 @media print {
 h1::after {
@@ -375,15 +370,14 @@ h1::after {
 }
 */
 
-
 #main_toc {
-    ul, li {
-        padding-left: 0 !important;
-        margin-left: 0 !important;
-    }
-    code.keyword {
-        color:black;
-    }
+  ul, li {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+  code.keyword {
+    color: black;
+  }
 }
 
 //

@@ -6,7 +6,7 @@ jobs:
           environment:
               COLUMNS: 160
               NODE_PATH: /root/project/node_modules
-     parallelism: 4
+     parallelism: 3
      resource_class: large
      steps:
         - checkout

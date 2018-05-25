@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from collections import defaultdict
 import os
 
@@ -60,5 +61,4 @@ def check_lfs_checkout(ext2filenames):
                 check_not_lfs_pointer(fn, data)
             
    
-    
     

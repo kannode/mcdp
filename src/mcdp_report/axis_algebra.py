@@ -16,14 +16,14 @@ def enlarge_x(b, f):
     # h = b[3] - b[2]
     dw = f * w
     dh = 0
-    return (b[0] - dw, b[1] + dw, b[2] - dh, b[3] + dh)
+    return b[0] - dw, b[1] + dw, b[2] - dh, b[3] + dh
 
 def enlarge_y(b, f):
     # w = b[1] - b[0]
     h = b[3] - b[2]
     dw = 0
     dh = h * f
-    return (b[0] - dw, b[1] + dw, b[2] - dh, b[3] + dh)
+    return b[0] - dw, b[1] + dw, b[2] - dh, b[3] + dh
 
 @contract(b='seq[4](float|int)', f='float,>=0')
 def enlarge(b, f):
@@ -50,7 +50,7 @@ def enlarge_topright(b, f):
     h = b[3] - b[2]
     dw = f * w
     dh = h * f
-    return (b[0], b[1] + dw, b[2], b[3] + dh)
+    return b[0], b[1] + dw, b[2], b[3] + dh
 
 def reduce_bounds(b1, b2):
     return (min(b1[0], b2[0]),
@@ -60,7 +60,7 @@ def reduce_bounds(b1, b2):
 
 def get_bounds(points):
     if not points:
-        return (0, 0, 0, 0)
+        return 0, 0, 0, 0
     xs = [p[0] for p in points]
     ys = [p[1] for p in points]
     return (min_comp(xs, 0.0),

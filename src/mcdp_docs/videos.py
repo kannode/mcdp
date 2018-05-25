@@ -1,15 +1,15 @@
-from collections import namedtuple
+# -*- coding: utf-8 -*-
 import json
-from urllib2 import URLError
 import urllib2
+from collections import namedtuple
+from urllib2 import URLError
 
 from bs4.element import Tag, Comment
+from contracts.utils import raise_wrapped
+from mcdp_docs.location import HTMLIDLocation
 
-from contracts.utils import raise_desc, raise_wrapped
-from mcdp_utils_xml import note_error2
 
-
-def make_videos(soup, raise_on_errors=False):
+def make_videos(soup, res, location, raise_on_errors=False):
     """
         Looks for tags of the kind:
         
@@ -17,44 +17,50 @@ def make_videos(soup, raise_on_errors=False):
     
     
     """
-    
+
     for o in soup.find_all('dtvideo'):
-        make_videos_(o, raise_on_errors)
-        
-def make_videos_(o, raise_on_errors):
-    if not 'src' in o.attrs:
+        make_videos_(o, res, location, raise_on_errors)
+
+
+def make_videos_(o, res, location, raise_on_errors):
+    if 'src' not in o.attrs:
         msg = 'The video does not have a "src" attribute.'
-        raise_desc(ValueError, msg, element=str(o))
-    
+        res.note_error(msg, HTMLIDLocation.for_element(o, location))
+        return
+        # raise_desc(ValueError, msg, element=str(o))
+
     src = o.attrs['src']
     prefix = 'vimeo:'
     if not src.startswith(prefix):
-        msg = 'Invalid attribute "src": it does not start with %r.' % (src, prefix)
-        raise_desc(ValueError, msg, element=str(o))
-        
+        msg = 'Invalid src attribute "%s": it does not start with %r.' % (src, prefix)
+        res.note_error(msg, HTMLIDLocation.for_element(o, location))
+        return
+        # raise_desc(ValueError, msg, element=str(o))
+
     vimeo_id = src[len(prefix):]
-    
-#     <iframe src="https://player.vimeo.com/video/152233002" 
-#         class="embed-responsive-item" 
-#         frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="">
-    
+
+    #     <iframe src="https://player.vimeo.com/video/152233002"
+    #         class="embed-responsive-item"
+    #         frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="">
+
     try:
         vimeo_info = get_vimeo_info(vimeo_id)
     except VimeoInfoException as e:
         if raise_on_errors:
             raise
         else:
-            note_error2(o, 'Resource error', str(e))
-            return 
-    
-    
+            msg = str(e)
+            # note_error2(o, 'Resource error', str(e))
+            res.note_error(msg, HTMLIDLocation.for_element(o, location))
+            return
+
     d = Tag(name='div')
     d.attrs['class'] = 'video'
-    
-    ONLY_WEB ='only-web'
-    ONLY_EBOOK ='only-ebook'
-    ONLY_DEADTREE ='only-deadtree'
-    
+
+    ONLY_WEB = 'only-web'
+    ONLY_EBOOK = 'only-ebook'
+    ONLY_DEADTREE = 'only-deadtree'
+
     d.append(Comment('This is the iframe, for online playing.'))
     C = Tag(name='div')
     C.attrs['class'] = ONLY_WEB
@@ -68,7 +74,7 @@ def make_videos_(o, raise_on_errors):
         r.attrs['allowfullscreen'] = 1
         C.append(r)
     d.append(C)
-    
+
     d.append(Comment('This is the thumbnail, for ebook'))
     C = Tag(name='div')
     C.attrs['class'] = ONLY_EBOOK
@@ -82,7 +88,7 @@ def make_videos_(o, raise_on_errors):
         a.append(img)
         C.append(a)
     d.append(C)
-    
+
     d.append(Comment('This is the textual version for printing.'))
     C = Tag(name='div')
     C.attrs['class'] = ONLY_DEADTREE
@@ -92,17 +98,20 @@ def make_videos_(o, raise_on_errors):
         img.attrs['src'] = vimeo_info.thumbnail_large
         img.attrs['title'] = vimeo_info.title
         C.append(img)
-        p = Tag(name='p') 
-        p.append("The video is at %s." % vimeo_info.url )
+        p = Tag(name='p')
+        p.append("The video is at %s." % vimeo_info.url)
         C.append(p)
     d.append(C)
-    
+
     o.replace_with(d)
-    
+
+
 VimeoInfo = namedtuple('VimeoInfo', 'title thumbnail_large url')
+
 
 class VimeoInfoException(Exception):
     pass
+
 
 def get_vimeo_info(vimeo_id):
     url = 'http://vimeo.com/api/v2/video/%s.json' % vimeo_id
@@ -110,21 +119,18 @@ def get_vimeo_info(vimeo_id):
         response = urllib2.urlopen(url)
     except URLError as e:
         msg = 'Cannot open URL'
-        msg += '\n\n   ' + url 
-        raise_wrapped(VimeoInfoException, e, msg) 
-         
+        msg += '\n\n   ' + url
+        raise_wrapped(VimeoInfoException, e, msg, compact=True)
+        raise
     data = response.read()
-    #logger.debug(data)
-    
+    # logger.debug(data)
+
     data = json.loads(data)
-    #logger.debug(json.dumps(data))
+    # logger.debug(json.dumps(data))
     v = data[0]
-    
+
     assert v['id'] == int(vimeo_id)
     title = v['title']
     thumbnail_large = v['thumbnail_large']
-    
+
     return VimeoInfo(title=title, thumbnail_large=thumbnail_large, url=v['url'])
-    
-    
-    

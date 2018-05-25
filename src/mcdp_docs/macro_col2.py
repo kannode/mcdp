@@ -1,4 +1,5 @@
-'''
+# -*- coding: utf-8 -*-
+"""
 
 This:
 
@@ -11,14 +12,14 @@ This:
 
 becomes
     <table class='col2'>
-        <tr><td> 
+        <tr><td>
             <a>
         </td><td>
             <b>
         <tr></tr>
     </table>
 
-'''
+"""
 import math
 import re
 
@@ -151,5 +152,4 @@ def col_macro_(e, ncols):
     wrapper.append(NavigableString(NL))
     
     parent.insert(original_position, wrapper) 
-    
     

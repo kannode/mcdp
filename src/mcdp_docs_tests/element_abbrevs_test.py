@@ -1,3 +1,5 @@
+from mcdp_docs.location import LocationUnknown
+from mcdp_utils_misc import AugmentedResult
 from nose.tools import assert_equal
 
 from comptests.registrar import comptest, run_module_tests
@@ -8,10 +10,12 @@ from mcdp_utils_xml import bs, to_html_stripping_fragment
 @comptest
 def elements_abbrevs_test1():
     s = "<p>TODO: paragraph</p>"
-    e = """<div class="todo-wrap"><p class="todo">paragraph</p></div>"""
+    e = """<div class="todo-wrap"><p class="todo">TODO: paragraph</p></div>"""
     soup = bs(s.strip())
-    
-    substitute_special_paragraphs(soup)
+
+    res = AugmentedResult()
+    location = LocationUnknown()
+    substitute_special_paragraphs(soup, res, location)
     
     o = to_html_stripping_fragment(soup)
     #print o
@@ -21,10 +25,12 @@ def elements_abbrevs_test1():
 @comptest
 def elements_abbrevs_test2():
     s = "<p>TODO: paragraph <strong>Strong</strong></p>"
-    e = """<div class="todo-wrap"><p class="todo">paragraph <strong>Strong</strong></p></div>"""
+    e = """<div class="todo-wrap"><p class="todo">TODO: paragraph <strong>Strong</strong></p></div>"""
     soup = bs(s.strip())
-    
-    substitute_special_paragraphs(soup)
+
+    res = AugmentedResult()
+    location = LocationUnknown()
+    substitute_special_paragraphs(soup, res, location)
     
     o = to_html_stripping_fragment(soup)
     #print o

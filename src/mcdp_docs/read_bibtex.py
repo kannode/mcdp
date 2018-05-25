@@ -2,12 +2,12 @@
 import os
 
 from bs4 import Tag, NavigableString, BeautifulSoup
-from contracts import contract
 from system_cmd import system_cmd_result
 
+from contracts import contract
 from mcdp import logger
-from mcdp_utils_misc import tmpdir
-from mcdp_utils_xml import bs
+from mcdp_utils_misc import tmpdir, AugmentedResult
+from mcdp_utils_misc.fileutils import write_data_to_file
 
 
 #
@@ -24,9 +24,11 @@ from mcdp_utils_xml import bs
 # <a href="http://dx.doi.org/10.1007/978-3-642-01492-5">DOI</a>&nbsp;]
 #
 # </dd>
-@contract(contents='str', returns='str')
+@contract(contents='str', returns=AugmentedResult)
 def run_bibtex2html(contents):
-    with tmpdir(prefix='bibtex', erase=False, keep_on_exception=True) as d:
+    res = AugmentedResult()
+    erase = True
+    with tmpdir(prefix='bibtex', erase=erase, keep_on_exception=True) as d:
         fn = os.path.join(d, 'input.bib')
         fno = os.path.join(d, 'out')
         fno1 = fno + '.html'
@@ -56,18 +58,16 @@ def run_bibtex2html(contents):
 
         out = process_bibtex2html_output(fixed, d)
 
-        with open(os.path.join(d, 'processed.html'), 'w') as f:
-            f.write(out)
-#        print('processed:\n' + out)
-        print('see also %s' % d)
-        return out
+        write_data_to_file(out, os.path.join(d, 'processed.html'))
+
+        res.set_result(out)
+        return res
 
 
 def process_bibtex2html_output(bibtex2html_output, d):
-    """ 
-        From the bibtex2html output, get clean version. 
     """
-#    frag = bs(bibtex2html_output)
+        From the bibtex2html output, get clean version.
+    """
     frag = BeautifulSoup(bibtex2html_output, 'html.parser')
 
     with open(os.path.join(d, 'fixed_interpreted.html'), 'w') as f:
@@ -98,7 +98,7 @@ def process_bibtex2html_output(bibtex2html_output, d):
                     s = s.replace(']', '')
                     y = NavigableString(unicode(s, 'utf-8'))
                     x.replace_with(y)
-                    #print('string %r' % x.string)
+                    # print('string %r' % x.string)
                 if isinstance(x, Tag) and x.name == 'a' and x.string == 'bib':
                     x.extract()
         res.append(NavigableString('\n'))
@@ -121,5 +121,3 @@ def extract_bibtex_blocks(soup):
         else:
             code.extract()
     return s
-
-

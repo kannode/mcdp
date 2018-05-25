@@ -1,0 +1,1307 @@
+/*
+
+
+
+    -----------------
+
+
+    -----------------
+
+
+
+
+
+
+        Automatically created ---  do not modify 
+
+
+    -----------------
+
+
+    -----------------
+
+
+    -----------------
+
+
+    -----------------
+
+
+
+*//* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol,
+ul {
+  list-style: none;
+}
+blockquote,
+q {
+  quotes: none;
+}
+blockquote::before,
+blockquote::after,
+q::before,
+q::after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+/* basics (after reset) */
+ul {
+  list-style-type: disc;
+  list-style-position: inside;
+}
+ol {
+  list-style-type: decimal;
+  list-style-position: inside;
+}
+ul ul,
+ol ul {
+  list-style-type: circle;
+  list-style-position: inside;
+  margin-left: 15px;
+}
+ol ol,
+ul ol {
+  list-style-type: lower-latin;
+  list-style-position: inside;
+  margin-left: 15px;
+}
+li {
+  padding-left: 0;
+}
+q::before {
+  content: '“';
+}
+q::after {
+  content: '”';
+}
+pre,
+code {
+  font-family: monospace;
+}
+dt {
+  display: inline;
+  font-weight: bold;
+}
+dl {
+  margin-left: 2em;
+}
+dd {
+  margin-left: 1em;
+}
+li {
+  margin-top: 3pt;
+}
+strong {
+  font-weight: bold;
+}
+blockquote {
+  font-size: 100%;
+}
+em {
+  font-style: italic;
+}
+h1.draft,
+h2.draft,
+h3.draft {
+  color: red !important;
+}
+span.placeholder {
+  padding-left: 1px;
+  padding-right: 1px;
+  color: blue;
+  background-color: #eee;
+  border-radius: 4px;
+  padding-left: 3px;
+  padding-right: 3px;
+  font-family: serif;
+  font-style: italic;
+}
+.figcontent {
+  margin: 0;
+  padding: 0;
+}
+@media screen {
+  div.caption-left figure {
+    display: table;
+  }
+  div.caption-left figure > figcaption {
+    display: inline-block;
+    margin-right: 3em;
+  }
+  div.caption-left figure > .figcontent {
+    display: table-cell;
+  }
+  div.caption-right figure {
+    display: table-row;
+  }
+  div.caption-right figure > figcaption {
+    display: inline-block;
+    margin-left: 3em;
+  }
+  div.caption-right figure > .figcontent {
+    display: table-cell;
+  }
+}
+img.video-vimeo-thumbnail-ebook,
+img.video-vimeo-thumbnail-deadtree {
+  width: 15em;
+}
+img.video-vimeo-thumbnail-ebook,
+img.video-vimeo-thumbnail-deadtree {
+  max-width: 20em;
+  width: 20em;
+}
+.syntax_highlight.python {
+  background-color: black;
+}
+.syntax_highlight {
+  /* Comment */
+  /* Error */
+  /* Keyword */
+  /* Operator */
+  /* Comment.Hashbang */
+  /* Comment.Multiline */
+  /* Comment.Preproc */
+  /* Comment.PreprocFile */
+  /* Comment.Single */
+  /* Comment.Special */
+  /* Generic.Deleted */
+  /* Generic.Emph */
+  /* Generic.Error */
+  /* Generic.Heading */
+  /* Generic.Inserted */
+  /* Generic.Output */
+  /* Generic.Prompt */
+  /* Generic.Strong */
+  /* Generic.Subheading */
+  /* Generic.Traceback */
+  /* Keyword.Constant */
+  /* Keyword.Declaration */
+  /* Keyword.Namespace */
+  /* Keyword.Pseudo */
+  /* Keyword.Reserved */
+  /* Keyword.Type */
+  /* Literal.Number */
+  /* Literal.String */
+  /* Name.Attribute */
+  /* Name.Builtin */
+  /* Name.Class */
+  /* Name.Constant */
+  /* Name.Decorator */
+  /* Name.Entity */
+  /* Name.Exception */
+  /* Name.Function */
+  /* Name.Label */
+  /* Name.Namespace */
+  /* Name.Tag */
+  /* Name.Variable */
+  /* Operator.Word */
+  /* Text.Whitespace */
+  /* Literal.Number.Bin */
+  /* Literal.Number.Float */
+  /* Literal.Number.Hex */
+  /* Literal.Number.Integer */
+  /* Literal.Number.Oct */
+  /* Literal.String.Backtick */
+  /* Literal.String.Char */
+  /* Literal.String.Doc */
+  /* Literal.String.Double */
+  /* Literal.String.Escape */
+  /* Literal.String.Heredoc */
+  /* Literal.String.Interpol */
+  /* Literal.String.Other */
+  /* Literal.String.Regex */
+  /* Literal.String.Single */
+  /* Literal.String.Symbol */
+  /* Name.Builtin.Pseudo */
+  /* Name.Variable.Class */
+  /* Name.Variable.Global */
+  /* Name.Variable.Instance */
+  /* Literal.Number.Integer.Long */
+}
+.syntax_highlight .hll {
+  background-color: #ffffcc;
+}
+.syntax_highlight .c {
+  color: #aaa;
+}
+.syntax_highlight .err {
+  border: 1px solid #ff0000;
+}
+.syntax_highlight .k {
+  color: #009ae8;
+  font-weight: bold;
+}
+.syntax_highlight .o {
+  color: #009ae8;
+}
+.syntax_highlight .ch {
+  color: #408080;
+  font-style: italic;
+}
+.syntax_highlight .cm {
+  color: #408080;
+  font-style: italic;
+}
+.syntax_highlight .cp {
+  color: #bc7a00;
+}
+.syntax_highlight .cpf {
+  color: #408080;
+  font-style: italic;
+}
+.syntax_highlight .c1 {
+  color: #aaa;
+}
+.syntax_highlight .cs {
+  color: #aaa;
+}
+.syntax_highlight .gd {
+  color: #a00000;
+}
+.syntax_highlight .ge {
+  font-style: italic;
+}
+.syntax_highlight .gr {
+  color: #ff0000;
+}
+.syntax_highlight .gh {
+  color: #000080;
+}
+.syntax_highlight .gi {
+  color: #00a000;
+}
+.syntax_highlight .go {
+  color: #888888;
+}
+.syntax_highlight .gp {
+  color: #000080;
+}
+.syntax_highlight .gs {
+  font-weight: bold;
+}
+.syntax_highlight .gu {
+  color: #800080;
+}
+.syntax_highlight .gt {
+  color: #0044dd;
+}
+.syntax_highlight .kc {
+  color: #008000;
+}
+.syntax_highlight .kd {
+  color: #008000;
+}
+.syntax_highlight .kn {
+  color: #009ae8;
+}
+.syntax_highlight .kp {
+  color: #008000;
+}
+.syntax_highlight .kr {
+  color: #008000;
+  font-weight: bold;
+}
+.syntax_highlight .kt {
+  color: #b00040;
+}
+.syntax_highlight .m {
+  color: #666666;
+}
+.syntax_highlight .s {
+  color: #ba2121;
+}
+.syntax_highlight .na {
+  color: #7d9029;
+}
+.syntax_highlight .nb {
+  color: #008000;
+}
+.syntax_highlight .nc {
+  color: #f19f3b;
+}
+.syntax_highlight .no {
+  color: #880000;
+}
+.syntax_highlight .nd {
+  color: #aa22ff;
+}
+.syntax_highlight .ni {
+  color: #999999;
+}
+.syntax_highlight .ne {
+  color: #d2413a;
+}
+.syntax_highlight .nf {
+  color: orange;
+}
+.syntax_highlight .nl {
+  color: #a0a000;
+}
+.syntax_highlight .nn {
+  color: #b5ffbb;
+}
+.syntax_highlight .nt {
+  color: #008000;
+}
+.syntax_highlight .nv {
+  color: #b5ffbb;
+}
+.syntax_highlight .ow {
+  color: #aa22ff;
+}
+.syntax_highlight .w {
+  color: #bbbbbb;
+}
+.syntax_highlight .mb {
+  color: pink;
+}
+.syntax_highlight .mf {
+  color: pink;
+}
+.syntax_highlight .mh {
+  color: pink;
+}
+.syntax_highlight .mi {
+  color: pink;
+}
+.syntax_highlight .mo {
+  color: pink;
+}
+.syntax_highlight .sb {
+  color: pink;
+}
+.syntax_highlight .sc {
+  color: pink;
+}
+.syntax_highlight .sd {
+  color: pink;
+}
+.syntax_highlight .s2 {
+  color: pink;
+}
+.syntax_highlight .se {
+  color: #bb6622;
+}
+.syntax_highlight .sh {
+  color: pink;
+}
+.syntax_highlight .si {
+  color: #bb6688;
+}
+.syntax_highlight .sx {
+  color: pink;
+}
+.syntax_highlight .sr {
+  color: pink;
+}
+.syntax_highlight .s1 {
+  color: pink;
+}
+.syntax_highlight .ss {
+  color: #b5ffbb;
+}
+.syntax_highlight .bp {
+  color: #009ae8;
+}
+.syntax_highlight .vc {
+  color: #b5ffbb;
+}
+.syntax_highlight .vg {
+  color: #b5ffbb;
+}
+.syntax_highlight .vi {
+  color: #b5ffbb;
+}
+.syntax_highlight .il {
+  color: #666666;
+}
+.syntax_highlight .p {
+  color: #009ae8;
+}
+.syntax_highlight .n {
+  color: #b5ffbb;
+}
+.syntax_highlight .p-indicator {
+  color: blue;
+  font-weight: bold;
+}
+.chapter_toc {
+  display: none;
+}
+ul#main_toc,
+ul#main_toc ul,
+ul#main_toc li {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+.toc a {
+  color: black !important;
+  text-decoration: none;
+}
+/************ TOC ***************/
+@media screen {
+  ul#main_toc > li > ul > li {
+    padding-top: 2pt;
+  }
+  ul#main_toc > li > ul > li > ul {
+    margin-top: 1pt;
+    margin-bottom: 1pt;
+  }
+}
+.toc_a_for_part {
+  padding-top: 5px;
+}
+.toc_a_for_sec,
+.toc_a_for_app {
+  padding-top: 4px;
+}
+.toc_a_for_sec .toc_what,
+.toc_a_for_app .toc_what,
+.toc_a_for_sec .toc_number,
+.toc_a_for_app .toc_number,
+.toc_a_for_sec .toc_name,
+.toc_a_for_app .toc_name {
+  font-weight: bold;
+}
+/** two-column format */
+/** add page numbers for the first two */
+.toc_a_for_part::after,
+.toc_a_for_sec::after,
+.toc_a_for_sub::after {
+  content: leader('.') target-counter(attr(href), page);
+  font-weight: bold;
+}
+/* keywords appearing in headers */
+#maintoc code {
+  /*color: red !important;*/
+  font-size: 7pt !important;
+  color: #a2a2a2 !important;
+}
+ul.toc,
+ul.toc ul {
+  padding: 0;
+  margin-left: 1em;
+}
+ul.toc li {
+  padding: 0;
+  margin: 0;
+}
+ul.toc,
+ul.toc li,
+ul.toc ul {
+  margin: 0;
+  padding: 0;
+}
+ul.toc li {
+  word-break: break-all;
+}
+.toc_a_for_part {
+  display: block;
+  font-weight: bold;
+  font-size: 120%;
+  padding-top: 1em;
+  color: black !important;
+}
+/*prince-text-replace: "ffi" "\fb03" "fi" "\fb01" "ffl" "\fb04" "fl" "\fb02" "ff" "\fb00";*/
+/*font-variant: prince-opentype(onum) prince-opentype(liga);*/
+/*pre, pre code { font-family:"Consolas", "Anka/Coder Narrow" !important; }*/
+/* ⟨ */
+span.OpenBraceKeyword,
+span.CloseBraceKeyword,
+span.PlaceholderLabel {
+  font-family: "Cambria Math" !important;
+}
+body {
+  font-family: STIX, STIXMath, Times, monospace;
+  font-variant: prince-opentype(kern, liga, dlig, clig, calt);
+  font-kerning: normal;
+}
+@font-face {
+  font-family: monospace;
+  src: local("Anka/Coder Narrow");
+}
+code {
+  font-family: "Anka/Coder Narrow", monospace, Cambria, "Cambria Math";
+}
+@font-face {
+  font-family: STIXMath;
+  src: local("Stix Two Math");
+}
+@font-face {
+  font-family: STIX;
+  font-style: normal;
+  font-weight: normal;
+  src: local("STIX Two Text");
+}
+@font-face {
+  font-family: STIX;
+  font-style: normal;
+  font-weight: bold;
+  src: local("STIX Two Text Bold");
+}
+@font-face {
+  font-family: STIX;
+  font-style: italic;
+  font-weight: normal;
+  src: local("STIX Two Text Italic");
+}
+@font-face {
+  font-family: STIX;
+  font-style: italic;
+  font-weight: bold;
+  src: local("STIX Two Text Bold Italic");
+}
+body {
+  /*padding-left: 3em;*/
+  /*width: 50em;*/
+}
+pre {
+  background-color: #eee;
+  white-space: pre-wrap;
+  margin-left: 2em;
+  /*margin-top: 2em;*/
+  padding: 10px;
+  border-radius: 10px;
+  /*display: inline-block;*/
+  margin-right: 1em;
+  /*white-space: pre-wrap;                 /* CSS3 browsers  */
+  /*white-space: -moz-pre-wrap !important; /* 1999+ Mozilla  */
+  /*white-space: -pre-wrap;                /* Opera 4 thru 6 */
+  /*white-space: -o-pre-wrap;              /* Opera 7 and up */
+  /*word-wrap: break-word;                 /* IE 5.5+ and up */
+}
+@media screen {
+  pre {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  }
+}
+pre.error,
+pre.DPSemanticError,
+pre.DPSyntaxError {
+  color: darkred;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+details.comment,
+details.doubt,
+details.question {
+  font-family: sans-serif;
+  font-size: 80%;
+  margin-top: 1.1em;
+  margin-bottom: 1em;
+}
+details.comment summary,
+details.doubt summary,
+details.question summary {
+  display: inline-block;
+  font-size: smaller;
+  padding: 2px;
+}
+span.inside-unknown-link {
+  color: red;
+  font-weight: bold;
+  font-size: smaller;
+}
+details .note-tag {
+  display: none;
+}
+details.comment summary {
+  color: black;
+  background-color: #dbe8fc;
+}
+details[open].comment {
+  background-color: #dbe8fc;
+}
+details.doubt summary {
+  color: black;
+  background-color: pink;
+}
+details[open].doubt {
+  background-color: pink;
+}
+details.question summary {
+  color: black;
+  background-color: #dbfce0;
+}
+details[open].question {
+  background-color: #dbfce0;
+}
+@media print {
+  details.question {
+    background-color: #dbfce0;
+  }
+  details.comment {
+    background-color: #dbe8fc;
+  }
+  details.doubt {
+    background-color: pink;
+  }
+}
+details summary::before {
+  content: '+';
+  margin-right: 3pt;
+}
+details[open] summary::before {
+  content: '-';
+  margin-right: 3pt;
+}
+.ndp_graph_expand,
+.ndp_graph_enclosed,
+.ndp_graph_normal,
+.ndp_graph_templatized,
+.ndp_graph_templatized_labeled,
+.template_graph_enclosed {
+  max-width: 100%;
+  /*height: auto;*/
+}
+/* This screws up wkhtomlpdf */
+@media screen {
+  .ndp_graph_expand,
+  .ndp_graph_enclosed,
+  .ndp_graph_normal,
+  .ndp_graph_templatized,
+  .ndp_graph_templatized_labeled,
+  .template_graph_enclosed {
+    height: auto;
+  }
+}
+span.label_outside {
+  display: block;
+  font-size: 6pt;
+  letter-spacing: 0.4pt;
+  font-family: "Andale Mono", monospace;
+  text-align: left;
+  padding-left: 1em;
+  padding-bottom: 2pt;
+  font-weight: bold;
+  color: gray;
+}
+span.label_outside + * {
+  page-break-before: avoid;
+}
+pre span.label_inside {
+  display: none;
+  float: right;
+  font-style: italic;
+  border-radius: 10px;
+  /*border: solid 1px black; */
+  background-color: #eee;
+  padding: 5px;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: -1.8em;
+  margin-right: 1em;
+}
+/*svg text {color: red !important;}
+svg { border: solid 1px red; }*/
+td br.added_before_pre {
+  display: none;
+}
+/* sometimes we want to text-align: left; the entire pre */
+pre {
+  text-align: left;
+}
+pre.console {
+  background-color: black;
+  color: #ccf;
+  display: inline-block;
+}
+pre.console .console_sign {
+  color: #cfc;
+}
+pre.console .program {
+  color: #cff;
+}
+pre.console .program_command {
+  color: #cff;
+}
+/*ol + h4, ul + h4 {color: red;}*/
+h4::after {
+  content: ':';
+}
+/*ul { margin-bottom: 1em; border: solid; clear: left; margin-left:0; }
+li {border: solid 1px red;}
+*/
+h4 {
+  font-size: 100%;
+  font-style: italic;
+  font-weight: normal;
+  margin-top: 0.5em;
+  /*float: left;
+  clear: left;
+
+  margin: 0; padding: 0;
+  margin-right: 0.34em;*/
+  /*
+  font-size: 1em; margin: 1em 0;
+
+
+  display: run-in;
+   float: left;
+  clear: both;*/
+  /*margin: 0 0.5em 0 0;*/
+  /*border : solid;*/
+}
+/*h4 + p {display: inline-block;}*/
+/* fix markdonw extra */
+div.latex_env p {
+  display: inline;
+}
+div.latex_env {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+.errored {
+  /*border: solid 2px red !important;*/
+  /*padding: 3px !important;*/
+  /*background-color: red;*/
+}
+.duplicated-id {
+  color: red;
+}
+.href-invalid {
+  color: red;
+}
+.href-replaced {
+  background-color: yellow;
+}
+.error {
+  color: red;
+}
+span.Unit,
+span.Nat,
+span.Int,
+span.Rcomp {
+  color: #ac5600;
+}
+span.ValueExpr,
+span.IntegerFraction,
+span.NatConstant,
+span.RcompConstant {
+  color: #cc6600;
+}
+span.RcompUnit {
+  color: #cc6600;
+}
+span.MCDPKeyword,
+span.SubKeyword,
+span.CompactKeyword,
+span.AbstractKeyword,
+span.TemplateKeyword,
+span.ForKeyword,
+span.UsingKeyword,
+span.ImplementsKeyword,
+span.LoadKeyword,
+span.CodeKeyword,
+span.FromLibraryKeyword,
+span.leq,
+span.geq,
+span.OpKeyword,
+span.eq,
+span.plus,
+span.times,
+span.DPWrapToken,
+span.ImplementedbyKeyword,
+span.FromCatalogueKeyword,
+span.MCDPTypeKeywor,
+span.InstanceKeyword,
+span.CoproductWithNamesChooseKeyword,
+span.MCDPTypeKeyword,
+span.FromLibraryKeyword,
+span.CoproductWithNamesChooseKeyword,
+span.MCDPKeyword,
+span.SubKeyword,
+span.CompactKeyword,
+span.AbstractKeyword,
+span.TemplateKeyword,
+span.ForKeyword,
+span.UsingKeyword,
+span.LoadKeyword,
+span.CodeKeyword,
+span.leq,
+span.geq,
+span.OpKeyword,
+span.eq,
+span.plus,
+span.times,
+span.exponent,
+span.product,
+span.sum,
+span.OpenBraceKeyword,
+span.CloseBraceKeyword,
+span.comma,
+span.DPWrapToken,
+span.ImplementedbyKeyword,
+span.FromCatalogueKeyword,
+span.MCDPTypeKeyword,
+span.InstanceKeyword,
+span.FlattenKeyword,
+span.ApproxKeyword,
+span.TakeKeyword,
+span.SpecializeKeyword,
+span.FinitePosetKeyword,
+span.ProductKeyword,
+span.UncertainKeyword,
+span.UpperSetsKeyword,
+span.LowerSetsKeyword,
+span.EmptySetKeyword,
+span.PowerSetKeyword,
+span.IntervalKeyword,
+span.UpperSetFromCollectionKeyword,
+span.LowerSetFromCollectionKeyword,
+span.TopKeyword,
+span.BottomKeyword,
+span.SingleElementPosetKeyword,
+span.SpaceCoproductKeyword,
+span.IgnoreKeyword,
+span.SolveModelKeyword,
+span.AnyOfKeyword,
+span.MaximalsKeyword,
+span.MinimalsKeyword,
+span.IgnoreResourcesKeyword,
+span.ProcName,
+span.ApproxUpperKeyword,
+span.ApproxLowerKeyword,
+span.VarStatementKeyword,
+span.GenericOperationName,
+span.EversionKeyword,
+span.AddBottomKeyword,
+span.LBRACE,
+span.RBRACE,
+span.LBRACKET,
+span.RBRACKET,
+span.plus_or_minus,
+span.percent,
+span.LEFTRIGHTARROW,
+span.AssertEqualKeyword,
+span.AssertLEQKeyword,
+span.AssertGEQKeyword,
+span.AssertLTKeyword,
+span.AssertGTKeyword,
+span.AssertNonemptyKeyword,
+span.AssertEmptyKeyword,
+span.ConstantKeyword,
+span.BetweenKeyword,
+span.BetweenAndKeyword {
+  font-weight: bold;
+  color: #00a;
+}
+span.MAPSTO {
+  font-weight: bold;
+  color: darkred;
+}
+span.MAPSFROM {
+  font-weight: bold;
+  color: darkgreen;
+}
+span.VName {
+  color: blue;
+}
+/* constant */
+span.CName {
+  color: #333;
+}
+span.SetNameRValue > span.RName {
+  color: darkred;
+}
+span.SetNameFValue > span.FName {
+  color: darkgreen;
+}
+span.SumResources > span.RName {
+  color: darkred;
+}
+span.SumFunctions > span.FName {
+  color: darkgreen;
+}
+span.DerivFunctionName {
+  color: darkgreen;
+}
+span.DerivResourceName {
+  color: darkred;
+}
+span.ProvideKeyword,
+span.RequireKeyword {
+  font-weight: bold;
+}
+span.ProductWithLabelsLabel,
+span.IndexLabel {
+  color: #cc6600;
+}
+/* f provided by s */
+span.ProvidedByKeyword,
+span.Function > span.FName {
+  color: darkgreen;
+}
+/* f required by s */
+span.RequiredByKeyword,
+span.Resource > span.RName {
+  color: darkred;
+}
+/* required rname - this is a function inside */
+span.RequiredKeyword,
+span.NewResource > span.RName {
+  color: darkgreen;
+}
+/* provided fname - this is a resource inside */
+span.ProvidedKeyword,
+span.NewFunction > span.FName {
+  color: darkred;
+}
+/* provides f [m] */
+span.ProvideKeyword {
+  color: darkgreen;
+}
+span.FunStatement > span.FName,
+span.FunShortcut1 > span.FName,
+span.FunShortcut1m > span.FName,
+span.FunShortcut2 > span.FName,
+span.FunShortcut3 > span.FName,
+span.FunShortcut4 > span.FName,
+span.FunShortcut5 > span.FName {
+  color: darkgreen;
+}
+/* requires r [m] */
+/* requires r >= ... */
+/* requires r1, r2*/
+span.RequireKeyword {
+  color: darkred;
+}
+span.ResStatement > span.RName,
+span.ResShortcut1 > span.RName,
+span.ResShortcut1m > span.RName,
+span.ResShortcut2 > span.RName,
+span.ResShortcut3 > span.RName,
+span.ResShortcut4 > span.RName,
+span.ResShortcut5 > span.RName {
+  color: darkred;
+}
+span.SetNameRValue > span.SetNameGenericVar {
+  color: darkred;
+}
+span.SetNameFValue > span.SetNameGenericVar {
+  color: darkgreen;
+}
+/* There is a bug that prevents this from working correctly. */
+/* span.ImpName { color: #cc6600; } */
+span.FuncName {
+  color: #cc6600;
+}
+span.DPName,
+span.NDPName,
+span.PosetName,
+span.TemplateName,
+span.TemplateParamName,
+span.FinitePosetElement,
+span.SingleElementPosetTag {
+  color: #a0a;
+}
+span.DPTypeName,
+span.DPVariableRef {
+  color: #00f;
+  font-weight: bold;
+}
+span.comment {
+  color: grey;
+}
+span.line-gutter {
+  margin-right: 1em;
+  color: grey;
+}
+span.PlaceholderLabel {
+  color: grey;
+  /*font-style: italic;*/
+}
+span.CommentModel {
+  color: purple;
+  font-weight: bold;
+}
+span.CommentFun {
+  color: darkgreen;
+  font-weight: bold;
+}
+span.CommentRes {
+  color: darkred;
+  font-weight: bold;
+}
+/* Special case: ≤ does not look good in regular font Courier */
+span.leq,
+span.geq,
+span.OpenBraceKeyword,
+span.CloseBraceKeyword {
+  /*font-family: Courier, monospace;*/
+  font-weight: bold;
+}
+span.leq,
+span.geq {
+  font-family: "FreeSerif";
+  font-weight: normal !important;
+}
+span.sum {
+  font-family: "FreeSerif";
+  font-weight: bold;
+}
+span.semantic_error {
+  background-color: pink;
+}
+span.language_warning {
+  background-color: yellow !important;
+}
+span.suggestion {
+  background-color: white;
+}
+span.has_tooltip {
+  /*border: solid 1px red;*/
+}
+div.tooltip {
+  position: absolute;
+  visibility: hidden;
+}
+span.has_tooltip:hover div.tooltip {
+  visibility: visible;
+  background-color: yellow !important;
+  padding: 5px;
+}
+span.indentation {
+  border-left: solid 10px white !important;
+  margin-left: -10px !important;
+}
+@media screen {
+  /* unsupported by prince */
+  pre,
+  code {
+    tab-size: 4;
+  }
+}
+code.keyword {
+  color: #00a;
+  font-weight: bold;
+}
+/* allow for manual */
+code.FName {
+  color: darkgreen;
+}
+code.RName {
+  color: darkred;
+}
+span.ImpName {
+  color: darkorange;
+}
+code.fvalue span.ValueExpr,
+code.fvalue span.RcompUnit {
+  color: darkgreen;
+}
+code.rvalue span.ValueExpr,
+code.rvalue span.RcompUnit {
+  color: darkred;
+}
+/* for catalogue */
+.CatalogueFun span.ValueExpr,
+.CatalogueFun span.RcompUnit {
+  color: darkgreen !important;
+}
+.CatalogueRes span.ValueExpr,
+.CatalogueRes span.RcompUnit {
+  color: darkred !important;
+}
+.only-zurich,
+.only-montreal,
+.only-chicago,
+.only-taiwan {
+  margin-left: 40px !important;
+  border-left: dashed 1px red;
+  padding-left: 10px;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+.only-zurich::before,
+.only-montreal::before,
+.only-chicago::before,
+.only-taiwan::before {
+  display: block;
+  float: left;
+  margin-top: -2px;
+  margin-left: -30px;
+  margin-bottom: -10px;
+  margin-right: 10px;
+  background-size: cover;
+}
+.only-zurich::before {
+  content: "🇨🇭";
+}
+.only-montreal::before {
+  content: "🇨🇦";
+}
+.only-chicago::before {
+  content: "🇺🇸";
+}
+.only-taiwan::before {
+  content: "Taiwan";
+}
+.reveal .slide-background {
+  background-color: #ffc606;
+}
+.reveal .slides {
+  font-size: 150%;
+  text-align: left;
+  background-color: white;
+  border-radius: 10px;
+  border: solid 1px;
+  padding: 0.5em;
+  font-family: Cambria;
+}
+.reveal .slides h1 {
+  font-family: "Hobo Std", serif;
+  margin-top: 0.6em;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+.reveal .slides pre {
+  margin: 1em;
+  padding: 0.3em;
+}
+/*
+
+
+
+    -----------------
+
+
+    -----------------
+
+
+
+
+
+
+        Automatically created ---  do not modify 
+
+
+    -----------------
+
+
+    -----------------
+
+
+    -----------------
+
+
+    -----------------
+
+
+
+*/

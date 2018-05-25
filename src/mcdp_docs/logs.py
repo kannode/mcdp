@@ -1,15 +1,14 @@
+# -*- coding: utf-8 -*-
 # annoying warning from BS4
 
-from logging import Logger, StreamHandler, Formatter
 import logging
-
-import PIL  # @UnusedImport
-import chardet  # @UnusedImport
+from logging import Logger, StreamHandler, Formatter
 
 FORMAT = "%(name)15s|%(filename)15s:%(lineno)-4s - %(funcName)-15s| %(message)s"
 
-
+# noinspection PyUnresolvedReferences
 if Logger.root.handlers:  # @UndefinedVariable
+    # noinspection PyUnresolvedReferences
     for handler in Logger.root.handlers:  # @UndefinedVariable
         if isinstance(handler, StreamHandler):
             formatter = Formatter(FORMAT)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from abc import abstractmethod, ABCMeta
 import copy
 
@@ -10,11 +11,11 @@ from mcdp_utils_misc.my_yaml import yaml_dump_pretty
 from mcdp_utils_xml import note_error2, soup_find_absolutely
 
 
-class RecipeContext():
+class RecipeContext:
     def __init__(self, soup):
         self.soup = soup
 
-class Recipe():
+class Recipe:
     __metaclass__ = ABCMeta
     
     @abstractmethod
