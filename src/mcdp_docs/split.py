@@ -191,6 +191,7 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
                                        only_refs=only_refs,
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
         jobs.append(promise)
+
         if only_refs:
                 break
 

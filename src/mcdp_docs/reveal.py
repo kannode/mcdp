@@ -50,14 +50,15 @@ def create_slides(soup):
         if 'without-header-inside' in subsection.attrs['class']:
             continue
 
-        print 'extracting', subsection.attrs
+        # print 'extracting', subsection.attrs
         subsection.extract()
         div_slides.append(subsection)
+
+    div_slides.insert(0, section)
 
     sub_notes(div_slides)
     sub_markers(div_slides)
 
-    div_slides.insert(0, section)
 
     stylesheet = "v_manual_reveal"
     add_stylesheet(soup, stylesheet)
@@ -141,15 +142,27 @@ def sub_notes(soup):
         e.name = 'aside'
         add_class(e, 'notes')
 
+def get_parents_names(x):
+    names = []
+    parent = x.parent
+    while parent:
+        names.append(parent.name)
+        parent = parent.parent
+    return names
+
 
 def sub_markers(soup):
     for ns in list(soup.descendants):
         if isinstance(ns, NavigableString):
             # print('considering "%s"' % ns)
             marker = u'▶'
+            if 'code' in get_parents_names(ns):
+                # consider the char `▶`
+                continue
             if marker in ns:
                 ns2 = ns.replace(marker, '')
                 parent = ns.parent
+
 
                 if parent.parent and parent.parent.name == 'li':
                     parent = parent.parent
@@ -214,6 +227,7 @@ def create_reveal(soup, res):
             // Factor of the display size that should remain empty around the content
             margin: 0.1,
             slideNumber: true,
+            history: true, // change the url fragment
         };
         Reveal.initialize(options);
 		</script>

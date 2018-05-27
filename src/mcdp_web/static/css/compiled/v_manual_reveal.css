@@ -54,13 +54,16 @@ body[type=slides] h1::before {
   display: none;
 }
 .reveal .slides {
-  font-size: 150%;
+  font-size: 3vh;
   text-align: left;
   background-color: white;
   border-radius: 10px;
   border: solid 1px;
   padding: 0.5em;
   font-family: Cambria;
+}
+.reveal .slides code {
+  font-family: "Anka/Coder Narrow", "Lucida Console", monospace;
 }
 .reveal .slides h1 {
   font-family: "Hobo Std", serif;
