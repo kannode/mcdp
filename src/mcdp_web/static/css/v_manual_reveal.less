@@ -1,26 +1,61 @@
 @stylesheet: v_manual_reveal;
 
-@import 'reset';
-@import 'reset-fix';
-@import 'colors';
-@import 'captions';
-@import 'vimeo';
-@import 'pygments';
-@import 'toc';
-@import 'fonts';
-@import 'markdown';
-@import 'mcdp_language_highlight';
-@import 'fall2017';
+//@import 'reset';
+//@import 'reset-fix';
+//@import 'colors';
+//@import 'captions';
+//@import 'vimeo';
+//@import 'pygments';
+//@import 'toc';
+//@import 'fonts';
+//@import 'markdown';
+//@import 'mcdp_language_highlight';
+//@import 'fall2017';
 
 // TODO: rest of stuff in "manual"
 
 //@import 'manual_screen';
+
+
+body[type=slides] {
+  width: inherit;
+  padding-left: 0;
+
+  #not-toc {
+    transform: none;
+  }
+
+  h2::before {
+    display: none;
+  }
+  h2 {
+    margin-top: 0em !important;
+  }
+  h1::before {
+    display: none !important;
+
+  }
+  //h2 {
+  //  margin-top: 0em !important;
+  //}
+}
+
+// hide toc when speaker is presenting
+
+//body[data-speaker-layout] {
+html.data-section #tocdiv {
+    display: none;
+  }
+//}
 
 .reveal {
   .slide-background {
     background-color: #ffc606;
   }
 
+  div.navigation {
+    display: none;
+  }
   .slides {
     font-size: 150%;
     text-align: left;
@@ -31,7 +66,21 @@
 
     font-family: Cambria;
 
+    section[level=sec] {
+      //padding: 3em;
+    }
+
     h1 {
+      font-family: "Hobo Std", serif;
+      margin-top: 0.6em;
+      font-size: 2.4em;
+      font-weight: bold;
+      margin-top: 3em;
+      margin-bottom: 1em;
+      text-align: center;
+    }
+
+    h2 {
       font-family: "Hobo Std", serif;
       margin-top: 0.6em;
       font-size: 1.4em;
@@ -42,5 +91,24 @@
       margin: 1em;
       padding: 0.3em;
     }
+
+    p.last-modified, .like_buttons, .github-etc-links, .questions-prompt {
+      display: none;
+    }
+
+    li p {
+      display: inline;
+    }
+    section p {
+      margin-top: 0.3em;
+    }
+    li {
+      margin-top: 0.3em;
+    }
+    ul ul {
+      margin-left: 0.5em;
+    }
+
+    .stretch img { width: 100%; max-height: 100%; max-width: 100%; }
   }
 }

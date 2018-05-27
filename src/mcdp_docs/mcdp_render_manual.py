@@ -12,6 +12,10 @@ from compmake import UserError
 from compmake.utils.friendly_path_imp import friendly_path
 from contracts import contract, indent
 from contracts.utils import raise_wrapped
+from quickapp import QuickApp
+from reprep.utils import natsorted
+from system_cmd import system_cmd_result
+
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
@@ -19,17 +23,14 @@ from mcdp_docs.composing.cli import compose_go2, ComposeConfig
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_docs.location import LocalFile, HTMLIDLocation
 from mcdp_docs.prerender_math import prerender_mathjax
+from mcdp_docs.reveal import create_slides, write_slides
 from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
-    html_list_of_notes, mark_in_html
-from mcdp_utils_misc.fileutils import read_data_from_file
-from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs, br
-from quickapp import QuickApp
-from reprep.utils import natsorted
-from system_cmd import system_cmd_result
+    html_list_of_notes, mark_in_html, read_data_from_file
 
+from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs, br
 from .check_bad_input_files import check_bad_input_file_presence
 from .github_edit_links import add_edit_links2, add_last_modified_info
 from .manual_constants import MCDPManualConstants
@@ -72,6 +73,8 @@ class RenderManual(QuickApp):
         params.add_flag('no_resolve_references')
         params.add_flag('mcdp_settings')
 
+        params.add_flag('slides', help='Creates slides.')
+
     def define_jobs_context(self, context):
         options = self.get_options()
 
@@ -110,6 +113,7 @@ class RenderManual(QuickApp):
         ignore_ref_errors = options.ignore_ref_errors
         only_refs = options.only_refs
         likebtn = options.likebtn
+        slides = options.slides
         extra_crossrefs = options.extra_crossrefs
         use_mathjax = True if options.mathjax else False
 
@@ -147,6 +151,7 @@ class RenderManual(QuickApp):
                     ignore_ref_errors=ignore_ref_errors,
                     extra_crossrefs=extra_crossrefs,
                     only_refs=only_refs,
+                    slides=slides
                     )
 
 
@@ -198,7 +203,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, ignore=[]):
     ignore = [os.path.realpath(_) for _ in ignore]
     for _f in files:
         if os.path.realpath(_f) in ignore:
-            msg = 'Ignoring file %r'  % _f
+            msg = 'Ignoring file %r' % _f
             logger.info(msg)
             continue
         logger.info('cross ref file %s' % _f)
@@ -292,7 +297,8 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 wordpress_integration=False,
                 ignore_ref_errors=False,
                 likebtn=None,
-                extra_crossrefs=None):
+                extra_crossrefs=None,
+                slides=False):
     """
         src_dirs: list of sources
         symbols: a TeX preamble (or None)
@@ -354,7 +360,6 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs,
                                    ignore=[output_crossref])
 
-
     bib_files = get_bib_files(src_dirs)
 
     logger.debug('Found bib files:\n%s' % "\n".join(bib_files))
@@ -386,7 +391,6 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     #         c = (('unused', docname), contents)
     #         files_contents.append(c)
 
-
     cs = get_md5((crossrefs_aug.get_result()))[:8]
 
     joined_aug = context.comp(manual_join, template=template, files_contents=files_contents,
@@ -414,10 +418,13 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     if wordpress_integration:
         joined_aug = context.comp(add_related, joined_aug)
 
+
     if output_file is not None:
         context.comp(write, joined_aug, output_file)
 
     if out_split_dir is not None:
+
+
         joined_aug_with_html_stylesheet = context.comp(add_style, joined_aug, stylesheet)
 
         extra_panel_content = context.comp(get_extra_content, joined_aug_with_html_stylesheet)
@@ -831,11 +838,13 @@ def add_related_(soup, res):
 
         section.append(p)
 
+
 def find_user_by_name(users, name):
     for k, user in users.items():
         if user['name'] == name:
             return k
     raise KeyError(name)
+
 
 def add_person_links(soup, users, res):
     if not MCDPManualConstants.add_person_links:
@@ -851,8 +860,6 @@ def add_person_links(soup, users, res):
         except KeyError:
             msg = u'Could not find user "%s" in DB.' % name
             res.note_warning(msg.encode('utf8'), HTMLIDLocation.for_element(span))
-
-
 
 
 def get_related(res):
