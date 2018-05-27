@@ -49,15 +49,17 @@ def make_figure_from_figureid_attr(soup, res, location):
         else:
             ID = ID0
 
-        go(soup, figure, ID, res, location)
+        figure_class = figure.attrs.get('class', '')
+        go(soup, figure, ID, figure_class, res, location)
 
     for towrap in soup.select('[figure-id]'):
         ID = towrap.attrs['figure-id']
-        go(soup, towrap, ID, res, location)
+        figure_class = towrap.attrs.get('figure-class', [])
+        go(soup, towrap, ID, figure_class, res, location)
 
 
 
-def go(soup, towrap, ID, res, location):
+def go(soup, towrap, ID, figure_class, res, location):
     from mcdp_docs.highlight import add_class
     parent = towrap.parent
     fig = Tag(name='figure')
@@ -78,7 +80,7 @@ def go(soup, towrap, ID, res, location):
         res.note_error(msg, locations=HTMLIDLocation.for_element(towrap, location))
         return
 
-    if 'caption-left' in towrap.attrs.get('figure-class', ''):
+    if 'caption-left' in figure_class:
         caption_below = False
     external_caption_id = '%s:caption' % ID
     external_caption = soup.find(id=external_caption_id)
@@ -112,17 +114,20 @@ def go(soup, towrap, ID, res, location):
     outside['id'] = ID + '-wrap'
     if towrap.has_attr('figure-style'):
         outside['style'] = towrap['figure-style']
-    if towrap.has_attr('figure-class'):
-        for k in towrap['figure-class'].split(' '):
-            #                 logger.debug('figure-class: %s' % k)
-            add_class(towrap, k)
-            ## XXX but not to figure itself?
-            add_class(fig, k)
-            add_class(outside, k)
+
+    for k in figure_class:
+        #                 logger.debug('figure-class: %s' % k)
+        add_class(towrap, k)
+        ## XXX but not to figure itself?
+        add_class(fig, k)
+        add_class(outside, k)
 
     i = parent.index(towrap)
     towrap.extract()
     figcontent = Tag(name='div', attrs={'class': 'figcontent'})
+    if towrap.name == 'figure':
+        towrap.name = 'div'
+        add_class(towrap, 'figure-conv-to-div')
     figcontent.append(towrap)
 
     #         <div style='clear: both;'></div> <!-- for floating stuff-->
@@ -142,4 +147,5 @@ def go(soup, towrap, ID, res, location):
     add_class(outside, 'generated-figure-wrap')
     add_class(fig, 'generated-figure')
     outside.append(fig)
+
     parent.insert(i, outside)

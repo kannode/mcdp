@@ -149,6 +149,8 @@ def sub_markers(soup):
             if 'code' in get_parents_names(ns):
                 # consider the char `▶`
                 continue
+
+
             if marker in ns:
                 ns2 = ns.replace(marker, '')
                 parent = ns.parent
@@ -156,6 +158,10 @@ def sub_markers(soup):
 
                 if parent.parent and parent.parent.name == 'li':
                     parent = parent.parent
+                else:
+                    if 'figure-conv-to-div' in parent.attrs.get('class',''):
+                        parent = parent.parent.parent
+
 
                 add_class(parent, 'fragment')
 
