@@ -2719,6 +2719,10 @@ h1::after {
   display: none !important;
   /* already defined as inline-block */
 }
+.task {
+  display: none !important;
+  /* already defined as inline-block */
+}
 /*
 
 
