@@ -1,6 +1,14 @@
 from bs4 import Tag, NavigableString
 from contracts import check_isinstance, contract
 
+def get_parents_names(x):
+    names = []
+    parent = x.parent
+    while parent:
+        names.append(parent.name)
+        parent = parent.parent
+    return names
+
 
 def br():
     t = Tag(name='br')

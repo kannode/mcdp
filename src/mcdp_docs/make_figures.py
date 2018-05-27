@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from bs4.element import NavigableString, Tag
+from mcdp_docs.tocs import add_id_if_not_present
+
 from mcdp_docs.location import HTMLIDLocation
+from mcdp_utils_xml import get_parents_names
 
 from .logs import logger
 
@@ -30,8 +33,22 @@ def make_figure_from_figureid_attr(soup, res, location):
     """
 
 
-    for figure in soup.select('figure[id]'):
-        ID = 'fig:' + figure.attrs['id']
+    for figure in list(soup.select('figure')):
+        if not 'id' in figure.attrs:
+            add_id_if_not_present(figure)
+
+        names = get_parents_names(figure)
+        if 'figure' in names:
+            prefix = 'subfig:'
+        else:
+            prefix = 'fig:'
+
+        ID0 = figure.attrs['id']
+        if not 'fig:' in ID0:
+            ID = prefix + ID0
+        else:
+            ID = ID0
+
         go(soup, figure, ID, res, location)
 
     for towrap in soup.select('[figure-id]'):

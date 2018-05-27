@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from comptests.registrar import comptest, run_module_tests, comptest_fails
 from contracts.utils import raise_desc, indent
+from mcdp_docs.make_figures import make_figure_from_figureid_attr
+
+from mcdp_utils_xml import bs, to_html_stripping_fragment
+
 from mcdp_docs.location import LocationUnknown
 from mcdp_docs.mark.markd import render_markdown
 from mcdp_docs.mark.markdown_transform import censor_markdown_code_blocks
@@ -556,6 +560,39 @@ def codeblocks_in_quote():
     s3 = render_markdown(s, fix_blockquote_pre=True)
     assert '<p><code>' not in s3
     assert '<pre><code>' in s3
+
+
+
+@comptest
+def figures_new1():
+    s = r"""
+
+<figure>  
+    <figcaption>Main caption</figcaption>
+    <figure>
+        <figcaption>Hello</figcaption>
+        <img style='width:8em' src="duckietown-logo-transparent.png"/>
+    </figure>
+    <figure>  
+        <figcaption>second</figcaption>
+        <img style='width:8em' src="duckietown-logo-transparent.png"/>
+    </figure>
+</figure>
+
+"""
+    soup = bs(s)
+
+    res = AugmentedResult()
+    location = LocationUnknown()
+    make_figure_from_figureid_attr(soup, res, location)
+
+    # nfigs = len(list(soup.select('figure')))
+    o = to_html_stripping_fragment(soup)
+    print o
+
+    # assert_equal(o, e)
+    #
+
 
 
 if __name__ == '__main__':

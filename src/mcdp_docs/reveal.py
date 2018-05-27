@@ -2,8 +2,6 @@
 import shutil
 
 import requests
-import ssl
-import urllib2
 
 from bs4 import Tag, NavigableString
 
@@ -11,7 +9,7 @@ from mcdp_docs import logger
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_report.html import get_css_filename
 from mcdp_utils_misc import write_data_to_file, AugmentedResult
-from mcdp_utils_xml import bs, copy_contents_into, copy_contents_into_beginning, add_class
+from mcdp_utils_xml import bs, copy_contents_into, copy_contents_into_beginning, add_class, get_parents_names
 
 
 def create_slides(soup):
@@ -141,14 +139,6 @@ def sub_notes(soup):
     for e in soup.select('blockquote'):
         e.name = 'aside'
         add_class(e, 'notes')
-
-def get_parents_names(x):
-    names = []
-    parent = x.parent
-    while parent:
-        names.append(parent.name)
-        parent = parent.parent
-    return names
 
 
 def sub_markers(soup):
