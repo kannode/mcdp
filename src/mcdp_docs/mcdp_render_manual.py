@@ -73,7 +73,6 @@ class RenderManual(QuickApp):
         params.add_flag('no_resolve_references')
         params.add_flag('mcdp_settings')
 
-        params.add_flag('slides', help='Creates slides.')
 
     def define_jobs_context(self, context):
         options = self.get_options()
@@ -113,7 +112,6 @@ class RenderManual(QuickApp):
         ignore_ref_errors = options.ignore_ref_errors
         only_refs = options.only_refs
         likebtn = options.likebtn
-        slides = options.slides
         extra_crossrefs = options.extra_crossrefs
         use_mathjax = True if options.mathjax else False
 
@@ -150,8 +148,7 @@ class RenderManual(QuickApp):
                     likebtn=likebtn,
                     ignore_ref_errors=ignore_ref_errors,
                     extra_crossrefs=extra_crossrefs,
-                    only_refs=only_refs,
-                    slides=slides
+                    only_refs=only_refs
                     )
 
 
@@ -297,8 +294,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 wordpress_integration=False,
                 ignore_ref_errors=False,
                 likebtn=None,
-                extra_crossrefs=None,
-                slides=False):
+                extra_crossrefs=None):
     """
         src_dirs: list of sources
         symbols: a TeX preamble (or None)
@@ -357,8 +353,12 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                         source_info=source_info)
         files_contents.append(tuple(doc))  # compmake doesn't do namedtuples
 
+    ignore = []
+    if output_crossref:
+        ignore.append(output_crossref)
+
     crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs,
-                                   ignore=[output_crossref])
+                                   ignore=ignore)
 
     bib_files = get_bib_files(src_dirs)
 
@@ -1200,7 +1200,8 @@ def render_book(src_dirs, generate_pdf,
     librarian = get_test_librarian()
     # XXX: these might need to be changed
     if not MCDPConstants.softy_mode:
-        librarian.find_libraries('.')
+        for src_dir in src_dirs:
+            librarian.find_libraries(src_dir)
 
     load_library_hooks = [librarian.load_library]
     library_ = MCDPLibrary(load_library_hooks=load_library_hooks)
