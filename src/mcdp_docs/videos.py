@@ -103,6 +103,9 @@ def make_videos_(o, res, location, raise_on_errors):
         C.append(p)
     d.append(C)
 
+    for att in ['style']:
+        if att in o.attrs:
+            d.attrs[att] = o.attrs[att]
     o.replace_with(d)
 
 
