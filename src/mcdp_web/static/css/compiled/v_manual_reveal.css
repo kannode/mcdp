@@ -35,6 +35,9 @@
 body[type=slides] #not-toc {
   transform: none;
 }
+body[type=slides] #tocdiv {
+  display: none;
+}
 body[type=slides] h2::before {
   display: none;
 }
@@ -43,9 +46,6 @@ body[type=slides] h2 {
 }
 body[type=slides] h1::before {
   display: none !important;
-}
-html.data-section #tocdiv {
-  display: none;
 }
 .reveal .slide-background {
   background-color: #ffc606;

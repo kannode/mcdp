@@ -24,7 +24,9 @@ body[type=slides] {
   #not-toc {
     transform: none;
   }
-
+ #tocdiv {
+    display: none;
+  }
   h2::before {
     display: none;
   }
@@ -40,13 +42,6 @@ body[type=slides] {
   //}
 }
 
-// hide toc when speaker is presenting
-
-//body[data-speaker-layout] {
-html.data-section #tocdiv {
-    display: none;
-  }
-//}
 
 .reveal {
   .slide-background {
