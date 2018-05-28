@@ -6,7 +6,12 @@ import textwrap
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
+from contracts import contract
 from contracts.utils import raise_desc, raise_wrapped, indent
+from mcdp_utils_misc import AugmentedResult
+
+from mcdp_docs.location import Location, HTMLIDLocation
+
 from mcdp import logger, MCDPConstants
 from mcdp.development import mcdp_dev_warning
 from mcdp.exceptions import DPSemanticError, DPSyntaxError, DPInternalError
@@ -19,7 +24,7 @@ from mcdp_lang.syntax import Syntax
 from mcdp_library.specs_def import SPEC_TEMPLATES
 from mcdp_report.html import ast_to_html
 from mcdp_report.image_source import ImagesFromPaths
-from mcdp_utils_xml import add_class, create_img_png_base64, create_a_to_data, note_error, to_html_stripping_fragment, \
+from mcdp_utils_xml import add_class, create_img_png_base64, create_a_to_data, to_html_stripping_fragment, \
     describe_tag, project_html, br
 from mocdp.comp.context import Context
 
@@ -27,7 +32,8 @@ from .make_plots_imp import make_plots
 from .pdf_ops import crop_pdf, get_ast_as_pdf
 
 
-def html_interpret(library, soup, raise_errors=False,
+@contract(res=AugmentedResult, location=Location)
+def html_interpret(library, soup, res, location, raise_errors=False,
                    generate_pdf=False, realpath='unavailable'):
     # clone library, so that we don't pollute it
     # with our private definitions
@@ -39,17 +45,17 @@ def html_interpret(library, soup, raise_errors=False,
     library = library.clone()
     load_fragments(library, soup, realpath=realpath)
 
-    highlight_mcdp_code(library, soup,
+    highlight_mcdp_code(library, soup, res=res, location=location,
                         generate_pdf=generate_pdf,
                         raise_errors=raise_errors,
                         realpath=realpath)
 
-    make_plots(library, soup,
+    make_plots(library, soup, res=res, location=location,
                raise_errors=raise_errors,
                realpath=realpath)
     # let's do make_plots first; then make_figures will
     # check for remaining <render> elements.
-    make_figures(library, soup,
+    make_figures(library, soup, res=res, location=location,
                  generate_pdf=generate_pdf,
                  raise_error_dp=raise_errors,
                  raise_error_others=raise_errors,
@@ -212,7 +218,7 @@ def get_source_code(tag, newline_as_space_in_code=True):
     return source_code
 
 
-def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_errors=False):
+def highlight_mcdp_code(library, soup, realpath, res, location, generate_pdf=False, raise_errors=False):
     #     print(indent(frag, 'highlight_mcdp_code '))
     """ Looks for codes like:
 
@@ -267,7 +273,7 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                     if raise_errors:
                         raise
                     else:
-                        note_error(tag, e)
+                        res.note_error(str(e), HTMLIDLocation.for_element(tag))
                         continue
                 # we don't want the browser to choose different tab size
                 # source_code = source_code.replace('\t', ' ' * 4)
@@ -372,7 +378,8 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                 if raise_errors:
                     raise
                 else:
-                    note_error(tag, e)
+                    res.note_error(str(e), HTMLIDLocation.for_element(tag))
+                    # note_error(tag, e)
                     if tag.string is None:
                         tag.string = "`%s" % tag['id']
                     continue
@@ -381,7 +388,8 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                 if raise_errors:
                     raise
                 else:
-                    note_error(tag, e)
+                    res.note_error(str(e), HTMLIDLocation.for_element(tag))
+                    # note_error(tag, e)
                     if tag.string is None:
                         tag.string = "`%s" % tag['id']
                     continue
@@ -483,7 +491,7 @@ def max_len_of_pre_html(html):
     return max_len
 
 
-def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, generate_pdf):
+def make_figures(library, soup, res, location, raise_error_dp, raise_error_others, realpath, generate_pdf):
     """ Looks for codes like:
 
     <pre><code class="mcdp_ndp_graph_templatized">mcdp {
@@ -505,13 +513,13 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
                     if raise_error_dp:
                         raise
                     else:
-                        note_error(tag, e)
+                        res.note_error(str(e), HTMLIDLocation.for_element(tag))
                         continue
                 except Exception as e:
                     if raise_error_others:
                         raise
                     else:
-                        note_error(tag, e)
+                        res.note_error(str(e), HTMLIDLocation.for_element(tag))
                         continue
 
     def make_tag(tag0, klass, data, ndp=None, template=None, poset=None):
@@ -641,12 +649,13 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
 
     unsure = list(soup.select('render'))
     unsure = [_ for _ in unsure if 'errored' not in _.attrs.get('class', '')]
-    if unsure:
-        msg = 'Invalid "render" elements.'
-        msg += '\n\n' + '\n\n'.join(str(_) for _ in unsure)
+    for _ in unsure:
+        msg = 'Invalid "render" element.'
+        # msg += '\n\n' + '\n\n'.join(str(_) for _ in unsure)
 
         msg += '\n\n' + " Available for NDPs: %s." % ", ".join(sorted(available_ndp))
         msg += '\n\n' + " Available for templates: %s." % ", ".join(sorted(available_template))
         msg += '\n\n' + " Available for posets: %s." % ", ".join(sorted(available_poset))
-        raise ValueError(msg)
+        # raise ValueError(msg)
+        res.note_error(msg, HTMLIDLocation.for_element(_))
     return to_html_stripping_fragment(soup)

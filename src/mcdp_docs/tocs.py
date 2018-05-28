@@ -72,7 +72,8 @@ def get_things_to_index(soup):
         nothing with attribute "notoc"
 
         h1, h2, h3, h4, h5
-        figure  with id= "fig:*" or "tab:*" or "subfig:*" or code
+        div  with id= "fig:*" or "tab:*" or "subfig:*" or "code:*"
+        or div with ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm']
     """
     formatter = None
     THINGS_TO_INDEX = MCDPManualConstants.HEADERS_TO_INDEX + MCDPManualConstants.OTHER_THINGS_TO_INDEX
@@ -123,7 +124,8 @@ def get_things_to_index(soup):
             name = h.decode_contents(formatter=formatter)
             yield h, depth, name
 
-        elif h.name in ['figure']:
+        # elif h.name in ['figure']:
+        if h.name in ['div']: # now figures are converted to div
             if not element_has_one_of_prefixes(h, MCDPManualConstants.figure_prefixes):
                 continue
 
@@ -135,7 +137,7 @@ def get_things_to_index(soup):
                 name = figcaption.decode_contents(formatter=formatter)
             yield h, 100, name
 
-        elif h.name in ['div']:
+        if h.name in ['div']:
             if not element_has_one_of_prefixes(h, MCDPManualConstants.div_latex_prefixes):
                 continue
             label = h.find(class_='latex_env_label')
@@ -144,9 +146,8 @@ def get_things_to_index(soup):
             else:
                 name = label.decode_contents(formatter=formatter)
             yield h, 100, name
-        else:
-            # XXX: what about cit
-            pass
+
+
 
 
 def generate_toc(soup, max_depth=None, max_levels=2, res=AugmentedResult()):
@@ -533,7 +534,7 @@ def sub_link(a, element_id, element, res):
         if (not LABEL_WHAT_NUMBER in element.attrs) or \
                 (not LABEL_NAME in element.attrs):
             msg = ('substituting_empty_links: Could not find attributes %s or %s in %s' %
-                   (LABEL_NAME, LABEL_WHAT_NUMBER, element))
+                   (LABEL_NAME, LABEL_WHAT_NUMBER, compact_desc_tag(element)))
 
             res.note_error(msg, {'original': HTMLIDLocation(element_id),
                                  'reference': HTMLIDLocation.for_element(a)})
@@ -623,6 +624,12 @@ def sub_link(a, element_id, element, res):
         if 'base_url' in element.attrs:
             a['href'] = element.attrs['base_url'] + a['href']
 
+
+def compact_desc_tag(element):
+    t = Tag(name=element.name)
+    t.attrs.update(element.attrs)
+    t.append(' ... ')
+    return str(t)
 
 def string_starts_with(prefixes, s):
     return any([s.startswith(_) for _ in prefixes])
