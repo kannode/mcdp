@@ -76,6 +76,8 @@ def get_things_to_index(soup):
         or div with ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm']
     """
     formatter = None
+
+
     THINGS_TO_INDEX = MCDPManualConstants.HEADERS_TO_INDEX + MCDPManualConstants.OTHER_THINGS_TO_INDEX
     for h in soup.findAll(THINGS_TO_INDEX):
 
@@ -126,26 +128,24 @@ def get_things_to_index(soup):
 
         # elif h.name in ['figure']:
         if h.name in ['div', 'figure']: # now figures are converted to div
-            if not element_has_one_of_prefixes(h, MCDPManualConstants.figure_prefixes):
-                continue
+            if element_has_one_of_prefixes(h, MCDPManualConstants.figure_prefixes):
 
-            # XXX: bug because it gets confused with children
-            figcaption = h.find('figcaption')
-            if figcaption is None:
-                name = None
-            else:
-                name = figcaption.decode_contents(formatter=formatter)
-            yield h, 100, name
+                # XXX: bug because it gets confused with children
+                figcaption = h.find('figcaption')
+                if figcaption is None:
+                    name = None
+                else:
+                    name = figcaption.decode_contents(formatter=formatter)
+                yield h, 100, name
 
         if h.name in ['div']:
-            if not element_has_one_of_prefixes(h, MCDPManualConstants.div_latex_prefixes):
-                continue
-            label = h.find(class_='latex_env_label')
-            if label is None:
-                name = None
-            else:
-                name = label.decode_contents(formatter=formatter)
-            yield h, 100, name
+            if element_has_one_of_prefixes(h, MCDPManualConstants.div_latex_prefixes):
+                label = h.find(class_='latex_env_label')
+                if label is None:
+                    name = None
+                else:
+                    name = label.decode_contents(formatter=formatter)
+                yield h, 100, name
 
 
 def generate_toc(soup, max_depth=None, max_levels=2, res=AugmentedResult()):
