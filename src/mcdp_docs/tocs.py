@@ -125,7 +125,7 @@ def get_things_to_index(soup):
             yield h, depth, name
 
         # elif h.name in ['figure']:
-        if h.name in ['div']: # now figures are converted to div
+        if h.name in ['div', 'figure']: # now figures are converted to div
             if not element_has_one_of_prefixes(h, MCDPManualConstants.figure_prefixes):
                 continue
 
@@ -146,8 +146,6 @@ def get_things_to_index(soup):
             else:
                 name = label.decode_contents(formatter=formatter)
             yield h, 100, name
-
-
 
 
 def generate_toc(soup, max_depth=None, max_levels=2, res=AugmentedResult()):
