@@ -46,20 +46,31 @@ def todoist_sync(data, user, secret, prefix):
     tasks = data.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_TASK)
     n = 0
     for task in tasks:
+        responsible_uid = get_task_person_uid(task, collaborators)
 
         ID = get_md5(str(task.msg))[-8:]
+
         if ID in found:
             msg = 'Task %s already in DB' % ID
             logger.info(msg)
 
+            todoist_id = found[ID]['id']
             item = found[ID]
+
             if item['checked']:
                 logger.debug('Setting the item to not done.')
-                api.items.uncomplete([item])
+                api.items.uncomplete([todoist_id])
+
+
+            if found[ID]['responsible_uid'] != responsible_uid:
+                print('need to update responsible id - to %s' % responsible_uid)
+
+                # print found[ID]
+                api.items.update(todoist_id, responsible_uid=responsible_uid)
 
             continue
 
-        responsible_uid = get_task_person_uid(task, collaborators)
+
 
         html = task.as_html()
         for img in list(html.select('img')):
@@ -89,14 +100,14 @@ def todoist_sync(data, user, secret, prefix):
         api.notes.add(item['id'], res)
 
         n += 1
-        print content
+
         if n > 45:
             break
 
         time.sleep(0.2)
 
-    print api.commit()
-    print api.sync()
+    api.commit()
+    api.sync()
 
 def get_task_person_uid(task, collaborators):
     name = get_task_person(task)
@@ -104,7 +115,10 @@ def get_task_person_uid(task, collaborators):
         name = 'Liam'
     if name == 'Kirsten Bowser':
         name = 'Anne Kirsten Bowser'
-    # name = 'Andrea Censi'
+
+    if name == 'Jacopo Tani':
+        name = 'Jacopo'
+
     try:
         return get_uid(name, collaborators)
     except KeyError:
