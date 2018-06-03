@@ -1,0 +1,6 @@
+out
+out*
+_cached
+node_modules
+attic
+.git

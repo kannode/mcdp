@@ -148,7 +148,7 @@ def add_last_modified_info(soup, location):
             when = compact_when(l.last_modified)
             p.append('Modified %s by ' % (when))
 
-            p.append(format_name(author))
+            p.append(format_name(author.name))
             p.append(' (')
             a = Tag(name='a')
             a.attrs['href'] = l.commit_url

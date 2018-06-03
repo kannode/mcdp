@@ -78,6 +78,7 @@ setup(name=name,
         'pillow',
         'ruamel.yaml',
         'pygments_markdown_lexer',
+        'circleclient',
       ],
       # This avoids creating the egg file, which is a zip file, which makes our data
       # inaccessible by dir_from_package_name()

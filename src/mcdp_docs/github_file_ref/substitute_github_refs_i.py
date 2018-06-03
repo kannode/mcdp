@@ -188,7 +188,7 @@ def checkout_repository(tmpdir, org, repo, branch):
         branch = 'master'
     path = os.path.join(tmpdir, org, repo, branch)
     url = 'git@github.com:%s/%s.git' % (org, repo)
-
+    url = 'https://github.com/%s/%s.git' % (org, repo)
     try:
         if not os.path.exists(path):
             checkout(path, url, branch)

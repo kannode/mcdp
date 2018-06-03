@@ -38,6 +38,7 @@ networkx==1.11
 chardet
 pillow
 
+circleclient==0.1.6
 
 
 # ignore

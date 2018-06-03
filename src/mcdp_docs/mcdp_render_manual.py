@@ -226,8 +226,9 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, ignore=[]):
             if r.status_code == 404:
                 msg = 'Could not read external cross refs: %s' % r.status_code
                 msg += '\n url: ' + extra_crossrefs
-                res.note_error(msg)
-                logger.error(msg)
+                msg += '\n This is normal if you have not pushed this branch yet.'
+                res.note_warning(msg)
+                # logger.error(msg)
             s = bs(r.text)
             add_from_soup(s, extra_crossrefs, ignore_alread_present=True, ignore_if_conflict=True)
 
