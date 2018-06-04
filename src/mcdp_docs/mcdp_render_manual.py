@@ -12,6 +12,10 @@ from compmake import UserError
 from compmake.utils.friendly_path_imp import friendly_path
 from contracts import contract, indent
 from contracts.utils import raise_wrapped
+from quickapp import QuickApp
+from reprep.utils import natsorted
+from system_cmd import system_cmd_result
+
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
@@ -19,17 +23,14 @@ from mcdp_docs.composing.cli import compose_go2, ComposeConfig
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_docs.location import LocalFile, HTMLIDLocation
 from mcdp_docs.prerender_math import prerender_mathjax
+from mcdp_docs.reveal import create_slides, write_slides
 from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
-    html_list_of_notes, mark_in_html
-from mcdp_utils_misc.fileutils import read_data_from_file
-from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs, br
-from quickapp import QuickApp
-from reprep.utils import natsorted
-from system_cmd import system_cmd_result
+    html_list_of_notes, mark_in_html, read_data_from_file
 
+from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs, br
 from .check_bad_input_files import check_bad_input_file_presence
 from .github_edit_links import add_edit_links2, add_last_modified_info
 from .manual_constants import MCDPManualConstants
@@ -71,6 +72,7 @@ class RenderManual(QuickApp):
                           default=None)
         params.add_flag('no_resolve_references')
         params.add_flag('mcdp_settings')
+
 
     def define_jobs_context(self, context):
         options = self.get_options()
@@ -146,7 +148,7 @@ class RenderManual(QuickApp):
                     likebtn=likebtn,
                     ignore_ref_errors=ignore_ref_errors,
                     extra_crossrefs=extra_crossrefs,
-                    only_refs=only_refs,
+                    only_refs=only_refs
                     )
 
 
@@ -159,7 +161,7 @@ def get_bib_files(src_dirs):
 import requests
 
 
-def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs):
+def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, ignore=[]):
     res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
     id2file = {}
@@ -195,7 +197,12 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs):
                 soup.append(e2)
                 soup.append('\n')
 
+    ignore = [os.path.realpath(_) for _ in ignore]
     for _f in files:
+        if os.path.realpath(_f) in ignore:
+            msg = 'Ignoring file %r' % _f
+            logger.info(msg)
+            continue
         logger.info('cross ref file %s' % _f)
         data = open(_f).read()
         if permalink_prefix in data:
@@ -219,8 +226,9 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs):
             if r.status_code == 404:
                 msg = 'Could not read external cross refs: %s' % r.status_code
                 msg += '\n url: ' + extra_crossrefs
-                res.note_error(msg)
-                logger.error(msg)
+                msg += '\n This is normal if you have not pushed this branch yet.'
+                res.note_warning(msg)
+                # logger.error(msg)
             s = bs(r.text)
             add_from_soup(s, extra_crossrefs, ignore_alread_present=True, ignore_if_conflict=True)
 
@@ -244,7 +252,8 @@ def look_for_files(srcdirs, pattern):
     for d0 in srcdirs:
         d = expand_all(d0)
         if not os.path.exists(d):
-            msg = 'Expected directory %s' % d
+            msg = 'Could not find directory %r' % d
+            msg += '\nSearching from directory %r' % os.getcwd()
             raise Exception(msg)
 
         filenames = locate_files(d, pattern,
@@ -346,10 +355,12 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                         source_info=source_info)
         files_contents.append(tuple(doc))  # compmake doesn't do namedtuples
 
-    crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs)
+    ignore = []
+    if output_crossref:
+        ignore.append(output_crossref)
 
-    # out_collected_crossrefs = os.path.join(out_split_dir, '..', 'collected_crossref.html')
-    # write_data_to_file(str(crossrefs), out_collected_crossrefs)
+    crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs,
+                                   ignore=ignore)
 
     bib_files = get_bib_files(src_dirs)
 
@@ -382,7 +393,6 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     #         c = (('unused', docname), contents)
     #         files_contents.append(c)
 
-    # crossrefs = str(crossrefs)
     cs = get_md5((crossrefs_aug.get_result()))[:8]
 
     joined_aug = context.comp(manual_join, template=template, files_contents=files_contents,
@@ -410,10 +420,13 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     if wordpress_integration:
         joined_aug = context.comp(add_related, joined_aug)
 
+
     if output_file is not None:
         context.comp(write, joined_aug, output_file)
 
     if out_split_dir is not None:
+
+
         joined_aug_with_html_stylesheet = context.comp(add_style, joined_aug, stylesheet)
 
         extra_panel_content = context.comp(get_extra_content, joined_aug_with_html_stylesheet)
@@ -827,11 +840,13 @@ def add_related_(soup, res):
 
         section.append(p)
 
+
 def find_user_by_name(users, name):
     for k, user in users.items():
         if user['name'] == name:
             return k
     raise KeyError(name)
+
 
 def add_person_links(soup, users, res):
     if not MCDPManualConstants.add_person_links:
@@ -847,8 +862,6 @@ def add_person_links(soup, users, res):
         except KeyError:
             msg = u'Could not find user "%s" in DB.' % name
             res.note_warning(msg.encode('utf8'), HTMLIDLocation.for_element(span))
-
-
 
 
 def get_related(res):
@@ -1189,7 +1202,8 @@ def render_book(src_dirs, generate_pdf,
     librarian = get_test_librarian()
     # XXX: these might need to be changed
     if not MCDPConstants.softy_mode:
-        librarian.find_libraries('.')
+        for src_dir in src_dirs:
+            librarian.find_libraries(src_dir)
 
     load_library_hooks = [librarian.load_library]
     library_ = MCDPLibrary(load_library_hooks=load_library_hooks)

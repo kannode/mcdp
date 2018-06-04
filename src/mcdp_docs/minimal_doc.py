@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from bs4.element import NavigableString, Tag
-
 from contracts import contract
+
 from mcdp_report.html import get_css_filename
 from mcdp_utils_xml import bs, \
     check_html_fragment, to_html_stripping_fragment_document
@@ -29,7 +29,7 @@ def get_minimal_document(body_contents, title=None,
     head = Tag(name='head')
     body = Tag(name='body')
     head.append('\n')
-    head.append(Tag(name='meta', attrs={'http-equiv':"Content-Type",
+    head.append(Tag(name='meta', attrs={'http-equiv': "Content-Type",
                                         'content': "application/xhtml+xml; charset=utf-8"}))
     head.append('\n')
     if stylesheet is None:
@@ -64,22 +64,21 @@ def get_minimal_document(body_contents, title=None,
 
     # print parsed
 
-
     if extra_css is not None:
         add_extra_css(soup, extra_css)
 
     s = to_html_stripping_fragment_document(soup)
     assert not 'DOCTYPE' in s
-#     s = html.prettify() # no: it removes empty text nodes
+    #     s = html.prettify() # no: it removes empty text nodes
 
-#     ns="""<?xml version="1.0" encoding="utf-8" ?>"""
+    #     ns="""<?xml version="1.0" encoding="utf-8" ?>"""
     ns = """<!DOCTYPE html PUBLIC
     "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN"
     "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">"""
     res = ns + '\n' + s
 
-#     if add_manual_css and MCDPConstants.manual_link_css_instead_of_including:
-#         assert 'manual.css' in res, res
+    #     if add_manual_css and MCDPConstants.manual_link_css_instead_of_including:
+    #         assert 'manual.css' in res, res
 
     res = res.replace('<div><!DOCTYPE html>', '<div>')
 
@@ -92,7 +91,7 @@ def add_extra_css(soup, css):
         msg = 'Could not find head element.'
         raise Exception(msg)
 
-    style = Tag(name='style', attrs={'type':'text/css'})
+    style = Tag(name='style', attrs={'type': 'text/css'})
     style.string = css
     head.append('\n')
     head.append(style)

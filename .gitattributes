@@ -1,2 +1,6 @@
 src/mcdp_web/static/css/compiled/v_*css merge=ours
 src/mcdp/branch_info.py merge=ours
+*.ttf filter=lfs diff=lfs merge=lfs -text
+*.woff filter=lfs diff=lfs merge=lfs -text
+*.otf filter=lfs diff=lfs merge=lfs -text
+*.woff2 filter=lfs diff=lfs merge=lfs -text

@@ -51,6 +51,12 @@ def add_edit_links2(soup, location):
         delta = datetime.now() - l.last_modified
         days = delta.days
 
+        if days < 0:
+            # msg = 'Days = %s for %s' % (days, h)
+            # msg += ' delta: %s' % str(delta)
+            # logger.warning(msg)
+            days = 0
+
         h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR] = l.author.name
         h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = str(days)
         if l.has_local_modifications:
@@ -142,7 +148,7 @@ def add_last_modified_info(soup, location):
             when = compact_when(l.last_modified)
             p.append('Modified %s by ' % (when))
 
-            p.append(format_name(author))
+            p.append(format_name(author.name))
             p.append(' (')
             a = Tag(name='a')
             a.attrs['href'] = l.commit_url

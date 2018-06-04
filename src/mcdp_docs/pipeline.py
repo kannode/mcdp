@@ -190,7 +190,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
 
     from .highlight import html_interpret
     html_interpret(library, soup, generate_pdf=generate_pdf,
-                   raise_errors=raise_errors, realpath=realpath)
+                   raise_errors=raise_errors, realpath=realpath, res=res, location=location)
     if filter_soup is not None:
         filter_soup(library=library, soup=soup)
 

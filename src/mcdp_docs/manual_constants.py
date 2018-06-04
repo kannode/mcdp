@@ -208,7 +208,8 @@ class MCDPManualConstants(object):
     allowed_statuses['deprecated'] = 'This is deprecated and will be eventually deleted.'
 
     add_person_links = getpass.getuser() == 'andrea'
-    
+
+
 Label = namedtuple('Label', 'what number label_self')
 
 Style = namedtuple('Style', 'resets labels')

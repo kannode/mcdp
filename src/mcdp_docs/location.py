@@ -404,7 +404,7 @@ def get_github_location(filename):
         repo_root = get_repo_root(filename_r)
     except NoRootRepo as e:
         # not in Git
-        print('file %s not in Git: %s' % (filename, e))
+        # print('file %s not in Git: %s' % (filename, e))
         return None
 
     repo_info = get_repo_information(repo_root)
@@ -433,7 +433,7 @@ def get_github_location(filename):
     try:
         source_info = get_source_info(filename)
     except NoSourceInfo as e:
-        logger.error(e)
+        # logger.error(e)
         return None  # XX
 
     author = source_info.author

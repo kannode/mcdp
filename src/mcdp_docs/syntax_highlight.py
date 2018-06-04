@@ -47,6 +47,7 @@ def syntax_highlighting(soup, use_heuristics=False):
             ('yaml', is_yaml, get_lexer_by_name('yaml', stripall=True)),
             ('cmake', is_cmake, get_lexer_by_name('cmake', stripall=True)),
             ('bash', is_bash, get_lexer_by_name('bash', stripall=True)),
+            ('html', is_bash, get_lexer_by_name('html', stripall=True)),
             ('latex', is_latex, get_lexer_by_name('latex', stripall=True)),
             ('c++', is_cpp, get_lexer_by_name('c++', stripall=True)),
         ]
