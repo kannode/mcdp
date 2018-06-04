@@ -54,3 +54,4 @@ geckodriver.log
 config
 circleci
 all_removed.html
+.idea
