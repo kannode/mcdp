@@ -18,7 +18,7 @@ pint==0.7.2
 PyContracts==1.8.3
 PyGithub
 pygments==2.2.0
-pygments_markdown_lexer==0.1.0
+pygments_markdown_lexer==0.1.0.dev39
 pyramid==1.8.1
 pyramid_debugtoolbar==3.0.5
 pyramid_jinja2==2.7
