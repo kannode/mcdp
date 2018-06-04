@@ -252,7 +252,8 @@ def look_for_files(srcdirs, pattern):
     for d0 in srcdirs:
         d = expand_all(d0)
         if not os.path.exists(d):
-            msg = 'Expected directory %s' % d
+            msg = 'Could not find directory %r' % d
+            msg += '\nSearching from directory %r' % os.getcwd()
             raise Exception(msg)
 
         filenames = locate_files(d, pattern,

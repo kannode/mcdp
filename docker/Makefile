@@ -13,14 +13,12 @@ all:
 tag=1
 
 docker-build:
-	sudo docker build -t andreacensi/mcdp:$(tag) \
-		-f mcdp/Dockerfile ..
-	sudo docker build -t andreacensi/mcdp_manual:$(tag) \
-		mcdp_manual
+	sudo docker build -t andreacensi/mcdp:$(tag)        -f mcdp.Dockerfile ..
+	sudo docker build -t andreacensi/mcdp_server:$(tag) -f mcdp_server.Dockerfile ..
 
 docker-upload:
 	sudo docker push andreacensi/mcdp:$(tag)
-	sudo docker push andreacensi/mcdp_manual:$(tag)
+	sudo docker push andreacensi/mcdp_server:$(tag)
 
 docker-clean:
 	# Kill all running containers:
