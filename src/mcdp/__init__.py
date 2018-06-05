@@ -7,4 +7,3 @@ from .development import *
 
 from .branch_info import __version__
 
-

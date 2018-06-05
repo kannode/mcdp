@@ -15,6 +15,7 @@ def get_version(filename):
         raise ValueError(filename)
     return version
 
+
 version = get_version(filename='src/mcdp/branch_info.py')
 
 name = 'PyMCDP'
@@ -44,9 +45,10 @@ setup(name=name,
         'pint',
         'watchdog',
         'decorator',
-        'networkx',
+        'networkx>=1.11',
+
         'pygments',
-          'pyramid',
+        'pyramid',
         'pyramid_jinja2',
         #'pyramid_chameleon',
         'pyramid_debugtoolbar',
@@ -59,7 +61,7 @@ setup(name=name,
         'RepRep>=2.9.3,<3',
         'DecentLogs>=1.1.2,<2',
         'QuickApp>=1.3.10,<2',
-        'compmake>=3.5.20,<4',
+        'compmake>=3.5.23,<4',
         'networkx>=1.11,<2',
         'psutil',
         'setproctitle',
@@ -77,14 +79,15 @@ setup(name=name,
         'pillow',
         'ruamel.yaml',
         'pygments_markdown_lexer',
+        'circleclient',
       ],
       # This avoids creating the egg file, which is a zip file, which makes our data
       # inaccessible by dir_from_package_name()
-      zip_safe = False,
-        # without this, the stuff is included but not installed
-        include_package_data=True,
+      zip_safe=False,
+    # without this, the stuff is included but not installed
+    include_package_data=True,
 
-      dependency_links  = [
+      dependency_links=[
           # 'https://github.com/AndreaCensi/contracts/archive/env_mcdp.zip#egg=PyContracts',
           # 'https://github.com/AndreaCensi/conf_tools/archive/env_fault.zip#egg=ConfTools',
           # 'https://github.com/AndreaCensi/quickapp/archive/env_fault.zip#egg=QuickApp',
@@ -112,6 +115,7 @@ setup(name=name,
             'mcdp-load-all = mcdp_hdb_mcdp:mcdp_load_all_main',
             'mcdp-split = mcdp_docs.split:split_main',
             'mcdp-docs-compose = mcdp_docs.composing:compose_main',
+            'mcdp-prerender = mcdp_docs.prerender_math:prerender_main',
         ]
       }
 )

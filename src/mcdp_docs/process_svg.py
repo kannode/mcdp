@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os
 import shutil
@@ -33,11 +34,13 @@ def process_svg_files(root, out, preamble):
     logger.info('Looking for *.svg files...')
     svgs = locate_files(root, '*.svg')
     logger.info('%d found in %s' % (len(svgs), friendly_path(root)))
-    
-    for f in svgs:    
+
+    errors = []
+    for f in svgs:
+        dirname = os.path.dirname(f)
         basename, _ = os.path.splitext(os.path.basename(f))
-        target = join(out, basename + '.pdf')
-        
+        target = os.path.join(out, basename + '.pdf')
+        target = os.path.join(dirname, basename + '.pdf')
         if not needs_remake(f, target): 
             msg = 'The target %r is up to date.' % target
             logger.info(msg)
@@ -46,8 +49,14 @@ def process_svg_files(root, out, preamble):
             msg = 'Will build target %r.' % target
             logger.info(msg)
             tmpdir = create_tmpdir('svg-%s' % basename)
-            
-            process_svg_file(f, target, preamble, tmpdir)
+
+            try:
+                process_svg_file(f, target, preamble, tmpdir)
+            except Exception as e:
+                logger.error(e)
+                errors.append(e)
+
+
 
 def needs_remake(src, target):
     if not os.path.exists(target):

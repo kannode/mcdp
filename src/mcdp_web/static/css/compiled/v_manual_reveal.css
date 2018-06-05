@@ -1,0 +1,141 @@
+/*
+
+
+
+    -----------------
+
+
+    -----------------
+
+
+
+
+
+
+        Automatically created ---  do not modify 
+
+
+    -----------------
+
+
+    -----------------
+
+
+    -----------------
+
+
+    -----------------
+
+
+
+*/body[type=slides] {
+  width: inherit;
+  padding-left: 0;
+}
+body[type=slides] #not-toc {
+  transform: none;
+}
+body[type=slides] #tocdiv {
+  display: none;
+}
+body[type=slides] h2::before {
+  display: none;
+}
+body[type=slides] h2 {
+  margin-top: 0em !important;
+}
+body[type=slides] h1::before {
+  display: none !important;
+}
+.reveal .slide-background {
+  background-color: #ffc606;
+}
+.reveal div.navigation {
+  display: none;
+}
+.reveal .slides {
+  font-size: 3vh;
+  text-align: left;
+  background-color: white;
+  border-radius: 10px;
+  border: solid 1px;
+  padding: 0.5em;
+  font-family: Cambria;
+}
+.reveal .slides code {
+  font-family: "Anka/Coder Narrow", "Lucida Console", monospace;
+  font-size: 100%;
+}
+.reveal .slides h1 {
+  font-family: "Hobo Std", serif;
+  margin-top: 0.6em;
+  font-size: 2.4em;
+  font-weight: bold;
+  margin-top: 3em;
+  margin-bottom: 1em;
+  text-align: center;
+}
+.reveal .slides h2 {
+  font-family: "Hobo Std", serif;
+  margin-top: 0.6em;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+.reveal .slides pre {
+  margin: 1em;
+  padding: 0.3em;
+}
+.reveal .slides p.last-modified,
+.reveal .slides .like_buttons,
+.reveal .slides .github-etc-links,
+.reveal .slides .questions-prompt {
+  display: none;
+}
+.reveal .slides li p {
+  display: inline;
+}
+.reveal .slides section p {
+  margin-top: 0.3em;
+}
+.reveal .slides li {
+  margin-top: 0.3em;
+}
+.reveal .slides ul ul {
+  margin-left: 0.5em;
+}
+.reveal .slides .stretch img {
+  width: 100%;
+  max-height: 100%;
+  max-width: 100%;
+}
+/*
+
+
+
+    -----------------
+
+
+    -----------------
+
+
+
+
+
+
+        Automatically created ---  do not modify 
+
+
+    -----------------
+
+
+    -----------------
+
+
+    -----------------
+
+
+    -----------------
+
+
+
+*/

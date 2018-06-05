@@ -47,7 +47,7 @@ def dp_graph_flow(dp0, imp=None, direction='LR'):
         n = gg.newItem(label)
 
         gg.styleApply("simple", n)
-        return (n, n)
+        return n, n
 
     def go_series(dp, imp):
         assert isinstance(dp, Series0)
@@ -68,7 +68,7 @@ def dp_graph_flow(dp0, imp=None, direction='LR'):
         l = gg.newLink(n1o, n2i, label=label)
         gg.propertyAppend(l, 'arrowhead', 'none')
         
-        return (n1i, n2o)
+        return n1i, n2o
 
     def go_parallel(dp, imp):
         if imp is not None:
@@ -92,7 +92,7 @@ def dp_graph_flow(dp0, imp=None, direction='LR'):
         for _ in [l1, l2, l3, l4]:
             gg.propertyAppend(_, 'arrowhead', 'none')
             
-        return (i, o)
+        return i, o
 
     def go_parallel_n(dp, imp):
         assert isinstance(dp, ParallelN)
@@ -113,7 +113,7 @@ def dp_graph_flow(dp0, imp=None, direction='LR'):
             for _ in [l1,  l3]:
                 gg.propertyAppend(_, 'arrowhead', 'none')
                 
-        return (i, o)
+        return i, o
 
 
     def go_loop(dp, imp):
@@ -147,7 +147,7 @@ def dp_graph_flow(dp0, imp=None, direction='LR'):
         for _ in [l0, l1, l]:
             gg.propertyAppend(_, 'arrowhead', 'none')
 
-        return (i, o)
+        return i, o
 
     def go_loop2(dp, imp):
         if do_imp:
@@ -182,7 +182,7 @@ def dp_graph_flow(dp0, imp=None, direction='LR'):
         
         gg.propertyAppend(l, 'arrowhead', 'none')
 
-        return (i, o)
+        return i, o
 
 
     import my_gvgen as gvgen

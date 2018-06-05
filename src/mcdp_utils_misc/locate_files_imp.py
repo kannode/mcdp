@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict
 import fnmatch
 import os
+import time
+from collections import defaultdict
 
 from contracts import contract
-from mcdp import MCDPConstants, logger
-import time
 from contracts.utils import check_isinstance
-
+from mcdp import MCDPConstants, logger
 
 __all__ = [
     'locate_files',
 ]
-
 
 
 @contract(returns='list(str)', directory='str',
@@ -25,55 +23,56 @@ def locate_files(directory, pattern, followlinks=True,
     """
         pattern is either a string or a sequence of strings
         ignore_patterns = ['*.bak']
-        
+
         normalize = uses realpath
     """
     t0 = time.time()
     if ignore_patterns is None:
-        ignore_patterns = MCDPConstants.locate_files_ignore_patterns 
-    
+        ignore_patterns = MCDPConstants.locate_files_ignore_patterns
+
     if isinstance(pattern, str):
         patterns = [pattern]
     else:
         patterns = list(pattern)
         for p in patterns:
             check_isinstance(p, str)
-            
+
     # directories visited
     visited = set()
     # print('locate_files %r %r' % (directory, pattern))
     filenames = []
-    
-    def matches_pattern(x):
-        return any(fnmatch.fnmatch(x, p) for p in patterns)
-    
-    def should_ignore_resource(x):
-        return any(fnmatch.fnmatch(x, ip) for ip in ignore_patterns) 
 
-    def accept_dirname_to_go_inside(root, d):
-        if should_ignore_resource(d):
+    def matches_pattern(x):
+        return any(fnmatch.fnmatch(x, _) or (x == _) for _ in patterns)
+
+    def should_ignore_resource(x):
+        return any(fnmatch.fnmatch(x, _) or (x == _) for _ in ignore_patterns)
+
+    def accept_dirname_to_go_inside(root_, d_):
+        if should_ignore_resource(d_):
             return False
-        dd = os.path.realpath(os.path.join(root, d))
+        dd = os.path.realpath(os.path.join(root_, d_))
         if dd in visited:
             return False
         visited.add(dd)
         return True
-    
-    def accept_dirname_as_match(d):
+
+    def accept_dirname_as_match(_):
         return include_directories and \
-               not should_ignore_resource(d) and \
-               matches_pattern(d)
-    
-    def accept_filename_as_match(fn):
+               not should_ignore_resource(_) and \
+               matches_pattern(_)
+
+    def accept_filename_as_match(_):
         return include_files and \
-               not should_ignore_resource(fn) and \
-               matches_pattern(fn)
-    
+               not should_ignore_resource(_) and \
+               matches_pattern(_)
+
     ntraversed = 0
     for root, dirnames, files in os.walk(directory, followlinks=followlinks):
         ntraversed += 1
-        dirnames[:]  = [_ for _ in dirnames if accept_dirname_to_go_inside(root, _)]
+        dirnames[:] = [_ for _ in dirnames if accept_dirname_to_go_inside(root, _)]
         for f in files:
+            # logger.info('look ' + root + '/' + f)
             if accept_filename_as_match(f):
                 filename = os.path.join(root, f)
                 filenames.append(filename)
@@ -92,12 +91,12 @@ def locate_files(directory, pattern, followlinks=True,
         for k, v in real2norm.items():
             if len(v) > 1:
                 msg = 'In directory:\n\t%s\n' % directory
-                msg += 'I found %d paths that refer to the same file:\n'
+                msg += 'I found %d paths that refer to the same file:\n' % len(v)
                 for n in v:
                     msg += '\t%s\n' % n
                 msg += 'refer to the same file:\n\t%s\n' % k
                 msg += 'I will silently eliminate redundancies.'
-                logger.warning(v)
+                # logger.warning(msg) # XXX
 
         filenames = list(real2norm.keys())
 
@@ -105,6 +104,6 @@ def locate_files(directory, pattern, followlinks=True,
     if seconds > 5:
         n = len(filenames)
         nuniques = len(set(filenames))
-        logger.debug('%.4f s for locate_files(%s,%s): %d traversed, found %d filenames (%d uniques)' % 
-              (seconds, directory, pattern, ntraversed, n, nuniques))
+        logger.debug('%.4f s for locate_files(%s,%s): %d traversed, found %d filenames (%d uniques)' %
+                     (seconds, directory, pattern, ntraversed, n, nuniques))
     return filenames

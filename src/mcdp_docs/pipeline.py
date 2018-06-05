@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
-from getpass import getuser
 import itertools
+from getpass import getuser
 
-from contracts import contract
-from contracts.utils import raise_desc, indent
+from contracts import contract, indent
+from contracts.utils import raise_desc
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPInternalError
 from mcdp_library import MCDPLibrary
 from mcdp_report.gg_utils import embed_images_from_library2
-from mcdp_utils_misc import get_md5
+from mcdp_utils_misc import get_md5, AugmentedResult
 from mcdp_utils_xml import to_html_stripping_fragment, bs, describe_tag
 
 from .check_missing_links import check_if_any_href_is_invalid, fix_subfig_references
-from .elements_abbrevs import check_good_use_of_special_paragraphs
-from .elements_abbrevs import other_abbrevs
+from .elements_abbrevs import check_good_use_of_special_paragraphs, other_abbrevs, substitute_special_paragraphs
 from .github_file_ref.display_file_imp import display_files
-from .github_file_ref.substitute_github_refs_i import substitute_github_refs
 from .lessc import run_lessc
+from .location import LocationUnknown
 from .macros import replace_macros
 from .make_console_pre import mark_console_pres
 from .make_figures import make_figure_from_figureid_attr
@@ -25,8 +24,8 @@ from .manual_constants import MCDPManualConstants
 from .prerender_math import escape_for_mathjax_back, escape_for_mathjax
 from .status import check_status_codes, check_lang_codes
 from .syntax_highlight import syntax_highlighting, strip_pre
-from .tocs import check_no_patently_wrong_links
-from .tocs import fix_ids_and_add_missing
+from .task_markers import create_notes_from_elements
+from .tocs import check_no_patently_wrong_links, fix_ids_and_add_missing
 from .videos import make_videos
 
 __all__ = [
@@ -37,7 +36,8 @@ __all__ = [
 @contract(returns='str', s=str, library=MCDPLibrary, raise_errors=bool)
 def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
                     check_refs=False, use_mathjax=True, filter_soup=None,
-                    symbols=None):
+                    symbols=None, res=None, location=None,
+                    ignore_ref_errors=False):
     """
         Transforms markdown into html and then renders the mcdp snippets inside.
 
@@ -47,8 +47,15 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
 
         filter_soup(library, soup)
     """
+    if res is None:
+        res = AugmentedResult()
+    if location is None:
+        location = LocationUnknown()
+    from mcdp_report.gg_utils import resolve_references_to_images
     s0 = s
-    check_good_use_of_special_paragraphs(s0, realpath)
+
+    unique = get_md5(realpath)[:8]
+    check_good_use_of_special_paragraphs(s0, res, location)
     raise_missing_image_errors = raise_errors
 
     # Imports here because of circular dependencies
@@ -68,7 +75,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # because of & char
     s, tabulars = extract_tabular(s)
 
-    s = do_preliminary_checks_and_fixes(s)
+    s = do_preliminary_checks_and_fixes(s, res, location)
     # put back tabular, because extract_maths needs to grab them
     for k, v in tabulars.items():
         assert k in s
@@ -79,14 +86,14 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     #  between various limiters etc.
     # returns a dict(string, substitution)
     s, maths = extract_maths(s)
-#     print('maths = %s' % maths)
-    for k, v in maths.items():
+    #     print('maths = %s' % maths)
+    for k, v in list(maths.items()):
         if v[0] == '$' and v[1] != '$$':
             if '\n\n' in v:
-                msg = 'Suspicious math fragment %r = %r' % (k, v)
-                logger.error(maths)
-                logger.error(msg)
-                raise ValueError(msg)
+                msg = 'The Markdown pre-processor got confused by this math fragment:'
+                msg += '\n\n' + indent(v, '  > ')
+                res.note_error(msg, location)
+                maths[k] = 'ERROR'
 
     s = latex_preprocessing(s)
     s = '<div style="display:none">Because of mathjax bug</div>\n\n\n' + s
@@ -97,24 +104,27 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     s = s.replace('*}', '\*}')
 
     s, mcdpenvs = protect_my_envs(s)
-#     print('mcdpenvs = %s' % maths)
+    #     print('mcdpenvs = %s' % maths)
 
     s = col_macros_prepare_before_markdown(s)
 
-#     print(indent(s, 'before markdown | '))
+    #     print(indent(s, 'before markdown | '))
     s = render_markdown(s)
-#     print(indent(s, 'after  markdown | '))
+    #     print(indent(s, 'after  markdown | '))
 
     for k, v in maths.items():
         if not k in s:
-            msg = 'Cannot find %r (= %r)' % (k, v)
-            raise_desc(DPInternalError, msg, s=s)
+            msg = 'Internal error while dealing with Latex math.'
+            msg += '\nCannot find %r (= %r)' % (k, v)
+            res.note_error(msg, location)
+            # raise_desc(DPInternalError, msg, s=s)
+            continue
 
         def preprocess_equations(x):
             # this gets mathjax confused
             x = x.replace('>', '\\gt{}')  # need brace; think a<b -> a\lt{}b
             x = x.replace('<', '\\lt{}')
-#             print('replaced equation %r by %r ' % (x0, x))
+            #             print('replaced equation %r by %r ' % (x0, x))
             return x
 
         v = preprocess_equations(v)
@@ -126,24 +136,27 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     # this parses the XML
     soup = bs(s)
 
-    other_abbrevs(soup)
+    other_abbrevs(soup, res, location)
+
+    substitute_special_paragraphs(soup, res, location)
+    create_notes_from_elements(soup, res, location, unique)
 
     # need to process tabular before mathjax
     escape_for_mathjax(soup)
 
-#     print(indent(s, 'before prerender_mathjax | '))
+    #     print(indent(s, 'before prerender_mathjax | '))
     # mathjax must be after markdown because of code blocks using "$"
 
     s = to_html_stripping_fragment(soup)
 
     if use_mathjax:
-        s = prerender_mathjax(s, symbols)
+        s = prerender_mathjax(s, symbols, res)
 
     soup = bs(s)
     escape_for_mathjax_back(soup)
     s = to_html_stripping_fragment(soup)
 
-#     print(indent(s, 'after prerender_mathjax | '))
+    #     print(indent(s, 'after prerender_mathjax | '))
     for k, v in mcdpenvs.items():
         # there is this case:
         # ~~~
@@ -156,43 +169,53 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     s = s.replace('<p>/DRAFT</p>', '</div>')
 
     soup = bs(s)
-    mark_console_pres(soup)
+    mark_console_pres(soup, res, location)
 
-    try:
-        substitute_github_refs(soup, defaults={})
-    except Exception as e:
-        msg = 'I got an error while substituting github: references.'
-        msg += '\nI will ignore this error because it might not be the fault of the writer.'
-        msg += '\n\n' + indent(str(e), '|', ' error: |')
-        logger.warn(msg)
+    # try:
+
+    # except Exception as e:
+    #     msg = 'I got an error while substituting github: references.'
+    #     msg += '\nI will ignore this error because it might not be the fault of the writer.'
+    #     msg += '\n\n' + indent(str(e), '|', ' error: |')
+    #
 
     # must be before make_figure_from_figureid_attr()
-    display_files(soup, defaults={}, raise_errors=raise_errors)
+    display_files(soup, defaults={}, res=res, location=location, raise_errors=raise_errors)
 
-    make_figure_from_figureid_attr(soup)
+    make_figure_from_figureid_attr(soup, res, location)
     col_macros(soup)
     fix_subfig_references(soup)
 
     library = get_library_from_document(soup, default_library=library)
-    from mcdp_docs.highlight import html_interpret
+
+    from .highlight import html_interpret
     html_interpret(library, soup, generate_pdf=generate_pdf,
-                   raise_errors=raise_errors, realpath=realpath)
+                   raise_errors=raise_errors, realpath=realpath, res=res, location=location)
     if filter_soup is not None:
         filter_soup(library=library, soup=soup)
 
-    embed_images_from_library2(soup=soup, library=library,
-                               raise_errors=raise_missing_image_errors)
-    make_videos(soup=soup)
+    if False:
+        embed_images_from_library2(soup=soup, library=library,
+                                   raise_errors=raise_missing_image_errors,
+                                   res=res, location=location)
+    else:
+        resolve_references_to_images(soup=soup, library=library,
+                                     raise_errors=raise_missing_image_errors,
+                                     res=res, location=location)
+
+    make_videos(soup, res, location, raise_on_errors=False)
 
     if check_refs:
-        check_if_any_href_is_invalid(soup)
+        check_if_any_href_is_invalid(soup, res, location, ignore_ref_errors=ignore_ref_errors)
 
-    if getuser() == 'andrea':
-        if MCDPConstants.preprocess_style_using_less:
-            run_lessc(soup)
-        else:
-            logger.warning(
-                'preprocess_style_using_less=False might break the manual')
+    if False:
+        if getuser() == 'andrea':
+            if MCDPConstants.preprocess_style_using_less:
+                run_lessc(soup)
+            else:
+                logger.warning(
+                        'preprocess_style_using_less=False might break the manual')
+
     fix_validation_problems(soup)
 
     strip_pre(soup)
@@ -200,16 +223,17 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     if MCDPManualConstants.enable_syntax_higlighting:
         syntax_highlighting(soup)
 
-    if MCDPManualConstants.enforce_status_attribute:
-        check_status_codes(soup, realpath)
     if MCDPManualConstants.enforce_lang_attribute:
-        check_lang_codes(soup)
+        check_lang_codes(soup, res, location)
 
     # Fixes the IDs (adding 'sec:'); add IDs to missing ones
-    globally_unique_id_part = 'autoid-DO-NOT-USE-THIS-VERY-UNSTABLE-LINK-' + get_md5(s0)[:5]
-    fix_ids_and_add_missing(soup, globally_unique_id_part)
+    globally_unique_id_part = 'autoid-DO-NOT-USE-THIS-VERY-UNSTABLE-LINK-' + get_md5(realpath)[:8]
+    fix_ids_and_add_missing(soup, globally_unique_id_part, res, location)
 
-    check_no_patently_wrong_links(soup)
+    check_no_patently_wrong_links(soup, res, location)
+
+    if MCDPManualConstants.enforce_status_attribute:
+        check_status_codes(soup, realpath, res, location)
 
     s = to_html_stripping_fragment(soup)
     s = replace_macros(s)
@@ -243,7 +267,7 @@ def get_library_from_document(soup, default_library):
     KEY_MCDP_LIBRARY = 'mcdp-library'
     if KEY_MCDP_LIBRARY in properties:
         use = properties[KEY_MCDP_LIBRARY]
-        #print('using library %r ' % use)
+        # print('using library %r ' % use)
         library = default_library.load_library(use)
         return library
 
@@ -271,33 +295,12 @@ def fix_validation_problems(soup):
         if not 'type' in e.attrs:
             e.attrs['type'] = 'text/css'
 
-    if False:
-        for e in soup.select('span.MathJax_SVG'):
-            style = e.attrs['style']
-            style = style.replace('display: inline-block;',
-                                  '/* decided-to-ignore-inline-block: 0;*/')
-            e.attrs['style'] = style
-
-    # remove useless <defs id="MathJax_SVG_glyphs"></defs>
-#     for e in list(soup.select('defs')):
-#         if e.attrs.get('id',None) == "MathJax_SVG_glyphs" and not e.string:
-#             e.extract()
-
-#     for e in soup.select('svg'):
-#         xmlns = "http://www.w3.org/2000/svg"
-#         if not 'xmlns' in e.attrs:
-#             e.attrs['xmlns'] = xmlns
-
-# def get_mathjax_preamble():
-#     symbols = '/Users/andrea/env_mcdp/src/mcdp/libraries/manual.mcdplib/symbols.tex'
-#     tex = open(symbols).read()
-#
-#     lines = tex.split('\n')
-#     lines = ['$%s$' % l for l in filter(lambda x: len(x.strip())>0, lines)]
-#     tex = "\n".join(lines)
-# #     frag = '<div class="mathjax-symbols">%s</div>\n' % tex
-#     frag = tex
-#     return frag
+    # if False:
+    #     for e in soup.select('span.MathJax_SVG'):
+    #         style = e.attrs['style']
+    #         style = style.replace('display: inline-block;',
+    #                               '/* decided-to-ignore-inline-block: 0;*/')
+    #         e.attrs['style'] = style
 
 
 def protect_my_envs(s):

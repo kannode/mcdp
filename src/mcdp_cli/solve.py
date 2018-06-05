@@ -27,13 +27,13 @@ class SolveDP(QuickAppBase):
                         default=None)
         params.accept_extra()
         params.add_flag('cache')
-        params.add_flag('plot', 
+        params.add_flag('plot',
                         help='Show iterations graphically')
-        params.add_flag('movie', 
+        params.add_flag('movie',
                         help='Create animation.')
-        params.add_flag('imp', 
+        params.add_flag('imp',
                         help='Compute and show implementations.')
-        params.add_flag('make', 
+        params.add_flag('make',
                         help='Runs the make procedure on the implementations.')
 
         params.add_string('config_dirs', default='.', short='-D',
@@ -50,21 +50,20 @@ class SolveDP(QuickAppBase):
                        help='Use lower bound approx')
         params.add_int('upper', default=None,
                        help='Use upper bound approx')
-        
-        params.add_flag('contracts', 
+
+        params.add_flag('contracts',
                         help='Activate contracts.')
 
-
     def go(self):
-        
+
         logger.setLevel(logging.DEBUG)
 
         options = self.get_options()
-        
+
         if not options.contracts:
             logger.debug('Disabling PyContrats. Use --contracts to enable.')
             disable_all()
-            
+
         if options.expect_nimp is not None:
             options.imp = True
 
@@ -113,5 +112,6 @@ class SolveDP(QuickAppBase):
                    intervals, _exp_advanced, expect_nres, imp, expect_nimp, plot, do_movie,
                    expect_res,
                    make)
+
 
 mcdp_solve_main = SolveDP.get_sys_main()

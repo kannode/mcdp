@@ -13,7 +13,8 @@ def test_bibliography1():
  address = {Secaucus, NJ, USA},
 }
     """
-    result = run_bibtex2html(contents)
+    result_aug = run_bibtex2html(contents)
+    result = result_aug.get_result()
     print(result)
     assert '<cite id="bib:siciliano07handbook">' in result
     # We should have removed the link

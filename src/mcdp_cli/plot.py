@@ -15,7 +15,7 @@ from mcdp_lang.syntax import Syntax
 from mcdp_library import Librarian
 from mcdp_report.dp_graph_tree_imp import dp_graph_tree
 from mcdp_report.gg_utils import gg_get_formats
-from mcdp_web.editor_fancy.app_editor_fancy_generic import html_mark
+
 from mocdp.comp.recursive_name_labeling import get_labelled_version
 from quickapp import QuickAppBase
 from system_cmd import CmdException, system_cmd_result
@@ -198,6 +198,8 @@ def syntax_doc(data, mark_warnings=True):
                     parse_expr=Syntax.ndpt_dp_rvalue,
                     postprocess=postprocess)
 
+    from mcdp_web.editor_fancy.app_editor_fancy_generic import html_mark
+
     if mark_warnings:
         for w in context.warnings:
             if w.where is not None:
@@ -314,6 +316,7 @@ def do_plots(logger, model_name, plots, outdir, extra_params,
     else:
         msg = 'Cannot find anything corresponding to %r.' % model_name
         raise_desc(ValueError, msg)
+        return
             
     write_results(results, model_name, outdir)
     
@@ -373,6 +376,7 @@ def do_plots_ndp(model_name, library, plots, extra_params):
             else:
                 msg = 'Unknown plot.'
                 raise_desc(ValueError, msg, plot=p, available=sorted(d.keys()))
+                return # XXX
         except CmdException as e:
             mcdp_dev_warning('Add better checks of error.')
             logger.error(e)

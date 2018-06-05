@@ -6,7 +6,11 @@ import textwrap
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
+from contracts import contract
 from contracts.utils import raise_desc, raise_wrapped, indent
+from mcdp_utils_misc import AugmentedResult
+
+from mcdp_docs.location import Location, HTMLIDLocation
 
 from mcdp import logger, MCDPConstants
 from mcdp.development import mcdp_dev_warning
@@ -20,57 +24,62 @@ from mcdp_lang.syntax import Syntax
 from mcdp_library.specs_def import SPEC_TEMPLATES
 from mcdp_report.html import ast_to_html
 from mcdp_report.image_source import ImagesFromPaths
-from mcdp_utils_xml import add_class, create_img_png_base64, create_a_to_data, note_error, to_html_stripping_fragment, describe_tag, project_html
+from mcdp_utils_xml import add_class, create_img_png_base64, create_a_to_data, to_html_stripping_fragment, \
+    describe_tag, project_html, br
 from mocdp.comp.context import Context
 
 from .make_plots_imp import make_plots
 from .pdf_ops import crop_pdf, get_ast_as_pdf
 
 
-def html_interpret(library, soup, raise_errors=False,
+@contract(res=AugmentedResult, location=Location)
+def html_interpret(library, soup, res, location, raise_errors=False,
                    generate_pdf=False, realpath='unavailable'):
     # clone library, so that we don't pollute it
     # with our private definitions
 
-#     
-#     if not raise_errors:
-#         logger.error('raise_errors is False: we add errors in the document')
+    #
+    #     if not raise_errors:
+    #         logger.error('raise_errors is False: we add errors in the document')
 
     library = library.clone()
     load_fragments(library, soup, realpath=realpath)
 
-    highlight_mcdp_code(library, soup,
-                               generate_pdf=generate_pdf,
-                               raise_errors=raise_errors,
-                               realpath=realpath)
+    highlight_mcdp_code(library, soup, res=res, location=location,
+                        generate_pdf=generate_pdf,
+                        raise_errors=raise_errors,
+                        realpath=realpath)
 
-    make_plots(library, soup,
-                      raise_errors=raise_errors,
-                      realpath=realpath)
+    make_plots(library, soup, res=res, location=location,
+               raise_errors=raise_errors,
+               realpath=realpath)
     # let's do make_plots first; then make_figures will
     # check for remaining <render> elements.
-    make_figures(library, soup,
-                        generate_pdf=generate_pdf,
-                        raise_error_dp=raise_errors,
-                        raise_error_others=raise_errors,
-                        realpath=realpath)
+    make_figures(library, soup, res=res, location=location,
+                 generate_pdf=generate_pdf,
+                 raise_error_dp=raise_errors,
+                 raise_error_others=raise_errors,
+                 realpath=realpath)
 
 
 def make_image_tag_from_png(f):
     def ff(*args, **kwargs):
         png = f(*args, **kwargs)
-        rendered = create_img_png_base64( png)
+        rendered = create_img_png_base64(png)
         return rendered
+
     return ff
+
 
 def make_pre(f):
     def ff(*args, **kwargs):
         res = f(*args, **kwargs)
-        pre = Tag(name='pre')  #  **{'class': 'print_value'})
+        pre = Tag(name='pre')  # **{'class': 'print_value'})
         code = Tag(name='code')
         code.string = res
         pre.append(code)
         return pre
+
     return ff
 
 
@@ -88,7 +97,7 @@ def load_or_parse_from_tag(tag, load, parse):
         or
             <tag  class=...>my code </tag
     """
-    if tag.string is None: # or not tag.string.strip():
+    if tag.string is None:  # or not tag.string.strip():
         if not tag.has_attr('id'):
             msg = "If <img> is empty then it needs to have an id."
             raise_desc(ValueError, msg, tag=str(tag))
@@ -99,6 +108,7 @@ def load_or_parse_from_tag(tag, load, parse):
         source_code = get_source_code(tag)
         vu = parse(source_code)
     return vu
+
 
 def load_fragments(library, soup, realpath):
     """
@@ -129,7 +139,7 @@ def load_fragments(library, soup, realpath):
             library.file_to_contents[basename] = res
 
     for tag in soup.select('pre.mcdp_poset'):
-        if tag.string is None:# or not tag.string.strip():
+        if tag.string is None:  # or not tag.string.strip():
             continue
 
         if tag.has_attr('id'):
@@ -147,7 +157,7 @@ def load_fragments(library, soup, realpath):
             library.file_to_contents[basename] = res
 
     for tag in soup.select('pre.mcdp_template'):
-        if tag.string is None:# or not tag.string.strip():
+        if tag.string is None:  # or not tag.string.strip():
             continue
 
         if tag.has_attr('id'):
@@ -165,9 +175,7 @@ def load_fragments(library, soup, realpath):
             library.file_to_contents[basename] = res
 
 
-
-
-def get_source_code(tag):
+def get_source_code(tag, newline_as_space_in_code=True):
     """ Gets the string attribute.
 
         encodes as utf-8
@@ -184,10 +192,10 @@ def get_source_code(tag):
     from HTMLParser import HTMLParser
     h = HTMLParser()
     s1 = h.unescape(s0)
-#     if False:
-#         if s1 != s0:
-# #             print('decoded %r -> %r' % (s0, s1))
-#             pass
+    #     if False:
+    #         if s1 != s0:
+    # #             print('decoded %r -> %r' % (s0, s1))
+    #             pass
 
     source_code = s1.encode('utf-8')
 
@@ -195,22 +203,23 @@ def get_source_code(tag):
     while source_code and source_code[0] == '\n':
         source_code = source_code[1:]
 
-#     print(indent(source_code, 'bef|'))
+    #     print(indent(source_code, 'bef|'))
     # remove common whitespace (so that we can indent html elements)
     source_code = textwrap.dedent(source_code)
-#     print(indent(source_code, 'aft|'))
-    #source_code = source_code.replace('\t', ' ' * 4)
+    #     print(indent(source_code, 'aft|'))
+    # source_code = source_code.replace('\t', ' ' * 4)
 
-    if tag.name == 'code':
-        if '\n' in source_code:
-            logger.debug('Treating newline in %r as space' % source_code)
-            source_code = source_code.replace('\n', ' ')
+    if newline_as_space_in_code:
+        if tag.name == 'code':
+            if '\n' in source_code:
+                logger.debug('Treating newline in %r as space' % source_code)
+                source_code = source_code.replace('\n', ' ')
 
     return source_code
 
 
-def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_errors=False):
-#     print(indent(frag, 'highlight_mcdp_code '))
+def highlight_mcdp_code(library, soup, realpath, res, location, generate_pdf=False, raise_errors=False):
+    #     print(indent(frag, 'highlight_mcdp_code '))
     """ Looks for codes like:
 
     <pre class="mcdp">mcdp {
@@ -225,8 +234,9 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
 
     def go(selector, parse_expr, extension, use_pre=True, refine=None):
         for tag in soup.select(selector):
+            source_code = '<unset>'  # XXX
             try:
-                if tag.string is None: # or not tag.string.strip():
+                if tag.string is None:  # or not tag.string.strip():
                     if not tag.has_attr('id'):
                         msg = "If <pre> is empty then it needs to have an id."
                         raise_desc(ValueError, msg, tag=describe_tag(tag))
@@ -235,11 +245,11 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                     tag_id = tag['id'].encode('utf-8')
                     if '.' in tag_id:
                         i = tag_id.index('.')
-                        libname, name = tag_id[:i], tag_id[i+1:]
+                        libname, name = tag_id[:i], tag_id[i + 1:]
                         use_library = library.load_library(libname)
                     else:
                         name = tag_id
-                        use_library= library
+                        use_library = library
                     basename = '%s.%s' % (name, extension)
                     data = use_library._get_file_data(basename)
                     source_code = data['data']
@@ -263,23 +273,25 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                     if raise_errors:
                         raise
                     else:
-                        note_error(tag, e)
+                        res.note_error(str(e), HTMLIDLocation.for_element(tag))
                         continue
                 # we don't want the browser to choose different tab size
-                #source_code = source_code.replace('\t', ' ' * 4)
+                # source_code = source_code.replace('\t', ' ' * 4)
 
                 # we are not using it
                 _realpath = realpath
                 context = Context()
+
                 def postprocess(x):
                     if refine is not None:
                         return refine(x, context=context)
                     else:
                         return x
-#                 print('rendering source code %r' % source_code)
+
+                #                 print('rendering source code %r' % source_code)
                 html = ast_to_html(source_code, parse_expr=parse_expr,
-                                                add_line_gutter=False,
-                                                postprocess=postprocess)
+                                   add_line_gutter=False,
+                                   postprocess=postprocess)
 
                 for w in context.warnings:
                     if w.where is not None:
@@ -289,7 +301,7 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                 frag2 = BeautifulSoup(html, 'lxml', from_encoding='utf-8')
 
                 if use_pre:
-                    rendered = Tag(name='div', attrs={'class':'rendered'})
+                    rendered = Tag(name='div', attrs={'class': 'rendered'})
                     pre = frag2.pre
                     pre.extract()
                     rendered.append(pre)
@@ -319,7 +331,7 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                     style = ''
                 else:
                     # using <code>
-                    rendered =  frag2.pre.code
+                    rendered = frag2.pre.code
                     rendered.extract()
                     if not rendered.has_attr('class'):
                         rendered['class'] = ""
@@ -345,7 +357,7 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                             basename = tag['id']
                         else:
                             hashcode = hashlib.sha224(source_code).hexdigest()[-8:]
-                            basename = 'code-%s' % (hashcode)
+                            basename = 'code-%s' % hashcode
 
                         docname = os.path.splitext(os.path.basename(realpath))[0]
                         download = docname + '.' + basename + '.source_code.pdf'
@@ -366,7 +378,8 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                 if raise_errors:
                     raise
                 else:
-                    note_error(tag, e)
+                    res.note_error(str(e), HTMLIDLocation.for_element(tag))
+                    # note_error(tag, e)
                     if tag.string is None:
                         tag.string = "`%s" % tag['id']
                     continue
@@ -375,16 +388,16 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
                 if raise_errors:
                     raise
                 else:
-                    note_error(tag, e)
+                    res.note_error(str(e), HTMLIDLocation.for_element(tag))
+                    # note_error(tag, e)
                     if tag.string is None:
                         tag.string = "`%s" % tag['id']
                     continue
 
-            except DPInternalError as e:
+            except DPInternalError as ex:
                 msg = 'Error while interpreting the code:\n\n'
                 msg += indent(source_code, '  | ')
-                raise_wrapped(DPInternalError, e,msg, exc=sys.exc_info())
-
+                raise_wrapped(DPInternalError, ex, msg, exc=sys.exc_info())
 
     abbrevs = {
         # tag name:  (new name, classes to add)
@@ -420,7 +433,7 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
         mistakes = list(soup.select('.%s' % erroring))
         if mistakes:
             msg = 'You cannot use %r as a class; use lowercase.' % erroring
-            tags = "\n\n".join(indent(describe_tag(_),' | ') for _ in mistakes)
+            tags = "\n\n".join(indent(describe_tag(_), ' | ') for _ in mistakes)
             raise_desc(ValueError, msg, tags=tags)
 
     for x in special_classes:
@@ -428,8 +441,8 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
         corresponding = x.replace('_', '-')
 
         for e in soup.select(corresponding):
-#             e2 = Tag(name='code')
-#             copy_string_and_attrs(e, e2)
+            #             e2 = Tag(name='code')
+            #             copy_string_and_attrs(e, e2)
             e.name = 'code'
             # THEN add class
             add_class(e, x)
@@ -441,18 +454,16 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
             x1 = get_suggested_identifier(x0)
             e.text = unicode(x1, 'utf-8')
 
-
-    mcdp_dev_warning('lets try if this goes away') # XXX
+    mcdp_dev_warning('lets try if this goes away')  # XXX
     # this is a bug with bs4. The replace_with above only adds an escaped
     # text rather than the actual tag (!).
-    #soup = bs(to_html_stripping_fragment(soup))
-    #assert soup.name == 'fragment'
+    # soup = bs(to_html_stripping_fragment(soup))
+    # assert soup.name == 'fragment'
 
-
-    go('pre.mcdp', Syntax.ndpt_dp_rvalue,  "mcdp", use_pre=True, refine=parse_ndp_refine)
+    go('pre.mcdp', Syntax.ndpt_dp_rvalue, "mcdp", use_pre=True, refine=parse_ndp_refine)
     go('pre.mcdp_poset', Syntax.space, "mcdp_poset", use_pre=True, refine=parse_poset_refine)
     go('pre.mcdp_template', Syntax.template, "mcdp_template", use_pre=True,
-        refine=parse_template_refine)
+       refine=parse_template_refine)
 
     go('pre.mcdp_statements', Syntax.dp_model_statements, "mcdp_statements", use_pre=True)
     go('pre.mcdp_fvalue', Syntax.fvalue, "mcdp_fvalue", use_pre=True)
@@ -465,13 +476,12 @@ def highlight_mcdp_code(library, soup, realpath, generate_pdf=False, raise_error
     go('code.mcdp_value', Syntax.rvalue, "mcdp_value", use_pre=False)
     go('code.mcdp_template', Syntax.template, "mcdp_template", use_pre=False)
 
-
     # this is a bug with bs4...
     for pre in soup.select('pre + pre'):
-#         print('adding br between PREs')
-        br = Tag(name='br')
-        br['class'] = 'pre_after_pre'
-        pre.parent.insert(pre.parent.index(pre), br)
+        #         print('adding br between PREs')
+        br_ = br()
+        br_['class'] = 'pre_after_pre'
+        pre.parent.insert(pre.parent.index(pre), br_)
 
 
 def max_len_of_pre_html(html):
@@ -480,7 +490,8 @@ def max_len_of_pre_html(html):
     max_len = max(map(line_len, source2.split('\n')))
     return max_len
 
-def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, generate_pdf):
+
+def make_figures(library, soup, res, location, raise_error_dp, raise_error_others, realpath, generate_pdf):
     """ Looks for codes like:
 
     <pre><code class="mcdp_ndp_graph_templatized">mcdp {
@@ -493,8 +504,8 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
 
     def go(s0, func):
         selectors = s0.split(',')
-        for selector in selectors:
-            for tag in soup.select(selector):
+        for selector_ in selectors:
+            for tag in soup.select(selector_):
                 try:
                     r = func(tag)
                     tag.replaceWith(r)
@@ -502,13 +513,13 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
                     if raise_error_dp:
                         raise
                     else:
-                        note_error(tag, e)
+                        res.note_error(str(e), HTMLIDLocation.for_element(tag))
                         continue
                 except Exception as e:
                     if raise_error_others:
                         raise
                     else:
-                        note_error(tag, e)
+                        res.note_error(str(e), HTMLIDLocation.for_element(tag))
                         continue
 
     def make_tag(tag0, klass, data, ndp=None, template=None, poset=None):
@@ -521,8 +532,8 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
             ws = tag_svg['width']
             hs = tag_svg['height']
             assert 'pt' in ws
-            w = float(ws.replace('pt',''))
-            h = float(hs.replace('pt',''))
+            w = float(ws.replace('pt', ''))
+            h = float(hs.replace('pt', ''))
             scale = MCDPConstants.scale_svg
 
             w2 = w * scale
@@ -557,7 +568,7 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
                 basename = getattr(poset, att)
             else:
                 hashcode = hashlib.sha224(tag0.string).hexdigest()[-8:]
-                basename = 'code-%s' % (hashcode)
+                basename = 'code-%s' % hashcode
 
             docname = os.path.splitext(os.path.basename(realpath))[0]
             download = docname + "." + basename + "." + klass + '.pdf'
@@ -569,12 +580,13 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
             return div
         else:
             return tag_svg
-    
+
     image_source = ImagesFromPaths(library.get_images_paths())
 
-    mf = MakeFiguresNDP(None, None, None)
-    available_ndp = set(mf.available()) | set(mf.aliases)
+    mf0 = MakeFiguresNDP(None, None, None)
+    available_ndp = set(mf0.available()) | set(mf0.aliases)
     for which in available_ndp:
+
         def callback(tag0):
             assert tag0.parent is not None
             context = Context()
@@ -582,41 +594,42 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
             parse = lambda x: library.parse_ndp(x, realpath=realpath, context=context)
             ndp = load_or_parse_from_tag(tag0, load, parse)
 
-            mf = MakeFiguresNDP(ndp=ndp, image_source=image_source, yourname=None) # XXX
+            mf = MakeFiguresNDP(ndp=ndp, image_source=image_source, yourname=None)  # XXX
             formats = ['svg']
             if generate_pdf:
                 formats.append('pdf')
-            data = mf.get_figure(which,formats)
+            data = mf.get_figure(which, formats)
             tag = make_tag(tag0, which, data, ndp=ndp, template=None)
             return tag
+
         selector = 'render.%s,pre.%s,img.%s' % (which, which, which)
         go(selector, callback)
 
-
-    mf = MakeFiguresTemplate(None,None,None)
-    available_template = set(mf.available()) | set(mf.aliases)
+    mf0 = MakeFiguresTemplate(None, None, None)
+    available_template = set(mf0.available()) | set(mf0.aliases)
     for which in available_template:
+
         def callback(tag0):
             context = Context()
             load = lambda x: library.load_spec(SPEC_TEMPLATES, x, context=context)
             parse = lambda x: library.parse_template(x, realpath=realpath, context=context)
             template = load_or_parse_from_tag(tag0, load, parse)
 
-            mf = MakeFiguresTemplate(template=template, library=library, yourname=None) # XXX
+            mf = MakeFiguresTemplate(template=template, library=library, yourname=None)  # XXX
             formats = ['svg']
             if generate_pdf:
                 formats.append('pdf')
-            data = mf.get_figure(which,formats)
+            data = mf.get_figure(which, formats)
             tag = make_tag(tag0, which, data, ndp=None, template=template)
             return tag
 
         selector = 'render.%s,pre.%s,img.%s' % (which, which, which)
         go(selector, callback)
 
-
-    mf = MakeFiguresPoset(None, None)
-    available_poset = set(mf.available()) | set(mf.aliases)
+    mf0 = MakeFiguresPoset(None, None)
+    available_poset = set(mf0.available()) | set(mf0.aliases)
     for which in available_poset:
+
         def callback(tag0):
             context = Context()
             load = lambda x: library.load_poset(x, context=context)
@@ -630,29 +643,19 @@ def make_figures(library, soup, raise_error_dp, raise_error_others, realpath, ge
             data = mf.get_figure(which, formats)
             tag = make_tag(tag0, which, data, ndp=None, template=None, poset=poset)
             return tag
+
         selector = 'render.%s,pre.%s,img.%s' % (which, which, which)
         go(selector, callback)
 
     unsure = list(soup.select('render'))
-    unsure = [_ for _ in unsure if not 'errored' in _.attrs.get('class','')]
-    if unsure:
-        msg = 'Invalid "render" elements.'
-        msg += '\n\n' + '\n\n'.join(str(_) for _ in unsure)
+    unsure = [_ for _ in unsure if 'errored' not in _.attrs.get('class', '')]
+    for _ in unsure:
+        msg = 'Invalid "render" element.'
+        # msg += '\n\n' + '\n\n'.join(str(_) for _ in unsure)
 
         msg += '\n\n' + " Available for NDPs: %s." % ", ".join(sorted(available_ndp))
         msg += '\n\n' + " Available for templates: %s." % ", ".join(sorted(available_template))
         msg += '\n\n' + " Available for posets: %s." % ", ".join(sorted(available_poset))
-        raise ValueError(msg)
+        # raise ValueError(msg)
+        res.note_error(msg, HTMLIDLocation.for_element(_))
     return to_html_stripping_fragment(soup)
-
-
-#
-# def bool_from_string(b):
-#     yes = ['True', 'true', '1', 'yes']
-#     no = ['False', 'false', '0', 'no']
-#     if b in yes:
-#         return True
-#     if b in no:
-#         return False
-#     msg = 'Cannot interpret string as boolean.'
-#     raise_desc(ValueError, msg, b=b)

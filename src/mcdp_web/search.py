@@ -40,6 +40,7 @@ class AppSearch():
         for username, user_struct in db_view.user_db.users.items():
             name = 'User %s (%s)' % (username, user_struct.info.name)
             url = '/users/%s/' % username
+            # language=html
             icon = '''
             <img id='gravatar2' src='/users/%s/small.jpg'/>
     <style>

@@ -1,9 +1,18 @@
 # -*- coding: utf-8 -*-
+import datetime
+import os
+import sys
+import time
+import traceback
+import urlparse
 from ConfigParser import RawConfigParser
 from collections import OrderedDict
-import datetime
-from mcdp import MCDPConstants
-from mcdp import logger
+from wsgiref.simple_server import make_server
+
+import git.cmd  # @UnusedImport
+from contracts import contract
+from contracts.utils import indent, check_isinstance
+from mcdp import MCDPConstants, logger
 from mcdp.exceptions import DPSemanticError, DPSyntaxError
 from mcdp_docs import render_complete
 from mcdp_hdb.schema import SchemaContext, SchemaHash
@@ -13,16 +22,6 @@ from mcdp_library import MCDPLibrary
 from mcdp_utils_misc import duration_compact, dir_from_package_name, format_list, yaml_load
 from mcdp_utils_misc.fileutils import create_tmpdir
 from mcdp_utils_misc.memoize_simple_imp import memoize_simple
-import os
-import sys
-import time
-import traceback
-import urlparse
-from wsgiref.simple_server import make_server
-
-from contracts import contract
-from contracts.utils import indent, check_isinstance
-import git.cmd  # @UnusedImport
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
@@ -33,23 +32,27 @@ from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.session import SignedCookieSessionFactory
 from quickapp import QuickAppBase
 
-from .auhtomatic_auth import get_authomatic_config_, view_authomatic_, view_confirm_bind_,\
-    view_confirm_creation_similar_, view_confirm_creation_,\
+from .auhtomatic_auth import get_authomatic_config_, view_authomatic_, view_confirm_bind_, \
+    view_confirm_creation_similar_, view_confirm_creation_, \
     view_confirm_creation_create_, view_confirm_bind_bind_
 from .confi import describe_mcdpweb_params, parse_mcdpweb_params_from_dict
 from .context_from_env import library_from_env
 from .editor_fancy import AppEditorFancyGeneric
-from .environment import Environment
-from .environment import cr2e
+from .environment import Environment, cr2e
 from .images.images import WebAppImages, get_mime_for_format
 from .interactive.app_interactive import AppInteractive
 from .qr.app_qr import AppQR
-from .resource_tree import MCDPResourceRoot, ResourceLibraries, ResourceLibrary,  ResourceLibraryRefresh, ResourceRefresh, ResourceExit, ResourceLibraryDocRender, ResourceLibraryAsset, ResourceRobots, ResourceShelves, ResourceShelvesShelfUnsubscribe, ResourceShelvesShelfSubscribe, ResourceExceptionsFormatted, ResourceExceptionsJSON, ResourceShelf, ResourceLibrariesNewLibname, Resource, context_display_in_detail, ResourceShelfInactive, ResourceThingDelete, ResourceChanges, ResourceTree, ResourceThing, ResourceRepos, ResourceRepo, ResourceThings, ResourceLibraryInteractive, ResourceThingRename, ResourceAllShelves, ResourceShelfForbidden,\
-    ResourceShelfNotFound, ResourceRepoNotFound, ResourceLibraryAssetNotFound,\
-    ResourceLibraryDocNotFound, ResourceNotFoundGeneric, ResourceAbout, ResourceAuthomaticProvider, ResourceListUsers,\
-    ResourceListUsersUser, ResourceUserPicture,  ResourceConfirmBind,\
-    ResourceConfirmCreationSimilar, ResourceConfirmCreation,\
-    ResourceConfirmCreationCreate, ResourceConfirmBindBind, ResourceUserImpersonate, ResourceDBView, ResourceSearchPage,\
+from .resource_tree import MCDPResourceRoot, ResourceLibraries, ResourceLibrary, ResourceLibraryRefresh, \
+    ResourceRefresh, ResourceExit, ResourceLibraryDocRender, ResourceLibraryAsset, ResourceRobots, ResourceShelves, \
+    ResourceShelvesShelfUnsubscribe, ResourceShelvesShelfSubscribe, ResourceExceptionsFormatted, ResourceExceptionsJSON, \
+    ResourceShelf, ResourceLibrariesNewLibname, Resource, context_display_in_detail, ResourceShelfInactive, \
+    ResourceThingDelete, ResourceChanges, ResourceTree, ResourceThing, ResourceRepos, ResourceRepo, ResourceThings, \
+    ResourceLibraryInteractive, ResourceThingRename, ResourceAllShelves, ResourceShelfForbidden, \
+    ResourceShelfNotFound, ResourceRepoNotFound, ResourceLibraryAssetNotFound, \
+    ResourceLibraryDocNotFound, ResourceNotFoundGeneric, ResourceAbout, ResourceAuthomaticProvider, ResourceListUsers, \
+    ResourceListUsersUser, ResourceUserPicture, ResourceConfirmBind, \
+    ResourceConfirmCreationSimilar, ResourceConfirmCreation, \
+    ResourceConfirmCreationCreate, ResourceConfirmBindBind, ResourceUserImpersonate, ResourceDBView, ResourceSearchPage, \
     ResourceSearchPageQuery
 from .search import AppSearch
 from .security import AppLogin, groupfinder
@@ -59,10 +62,8 @@ from .solver2.app_solver2 import AppSolver2
 from .status import AppStatus
 from .utils.image_error_catch_imp import response_image
 from .utils.response import response_data
-from .utils0 import add_other_fields, add_std_vars_context
-from .utils0 import add_std_vars_context_no_redir
+from .utils0 import add_other_fields, add_std_vars_context, add_std_vars_context_no_redir
 from .visualization.app_visualization import AppVisualization
-
 
 Privileges = MCDPConstants.Privileges
 
@@ -71,7 +72,6 @@ __all__ = [
     'app_factory',
 ]
 
-
 git.cmd.log.disabled = True
 
 
@@ -79,7 +79,6 @@ class WebApp(AppVisualization, AppStatus,
              AppQR, AppSolver, AppInteractive,
              AppSolver2, AppEditorFancyGeneric, WebAppImages,
              AppLogin, AppSearch):
-
     singleton = None
 
     def __init__(self, options, settings):
@@ -138,7 +137,7 @@ class WebApp(AppVisualization, AppStatus,
         logger.info('Config:\n' + indent(self.options.repos_yaml, '>'))
         logger.info(config_repos)
         instance = self.options.instance
-        #root= 'out/root'
+        # root= 'out/root'
         root = create_tmpdir('HostInstance_root')
         logger.debug('Tmp dir: %s' % root)
 
@@ -149,7 +148,7 @@ class WebApp(AppVisualization, AppStatus,
 
         # add the bundled repository
         bundled_repo_dir = os.path.join(
-            dir_from_package_name('mcdp_data'), 'bundled.mcdp_repo')
+                dir_from_package_name('mcdp_data'), 'bundled.mcdp_repo')
         config_repos['local']['bundled'] = bundled_repo_dir
 
         self.hi = HostInstance(instance=instance,
@@ -160,7 +159,7 @@ class WebApp(AppVisualization, AppStatus,
 
         if self.options.allow_anonymous_write:
             logger.warning(
-                'Note: because allow_anonymous_write anonymous users can admin the repos.')
+                    'Note: because allow_anonymous_write anonymous users can admin the repos.')
             self.hi.set_local_permission_mode()
             from pyramid.security import Allow, Everyone, ALL_PERMISSIONS
             MCDPResourceRoot.__acl__.append((Allow, Everyone, ALL_PERMISSIONS))
@@ -234,8 +233,8 @@ class WebApp(AppVisualization, AppStatus,
         else:
             library = MCDPLibrary()
             desc_long = render_complete(
-                library=library, s=desc_long_md, raise_errors=True, 
-                realpath=e.shelf_name, use_mathjax=False)
+                    library=library, s=desc_long_md, raise_errors=True,
+                    realpath=e.shelf_name, use_mathjax=False)
         res = {
             'shelf': e.shelf,
             'sname': e.shelf_name,
@@ -294,7 +293,7 @@ class WebApp(AppVisualization, AppStatus,
     def view_refresh_library(self, e):  # @UnusedVariable
         """ Refreshes the current library (if external files have changed) 
             then reloads the current url. """
-#         self._refresh_library(request)
+        #         self._refresh_library(request)
         # Note this currently is equivalent to global refresh
         return self.view_refresh(e.context, e.request)
 
@@ -316,9 +315,9 @@ class WebApp(AppVisualization, AppStatus,
         e.request.response.status = 404
         url = e.request.url
         referrer = e.request.referrer
-        #print('context: %s' % e.context)
+        # print('context: %s' % e.context)
         self.exceptions.append(
-            'Path not found.\n url: %s\n referrer: %s' % (url, referrer))
+                'Path not found.\n url: %s\n referrer: %s' % (url, referrer))
         res = {
             'url': url,
             'referrer': referrer,
@@ -451,15 +450,15 @@ class WebApp(AppVisualization, AppStatus,
         # f['data'] not utf-8
         # reopen as utf-8
         document = e.context.name
-#         filename = '%s.%s' % (document, MCDPConstants.ext_doc_md)
-#         if not e.library.file_exists(filename):
-#             res = {}
-#             add_other_fields(self, res, e.request, context=e.context)
-#             response = e.request.response
-#             response.status = 404 # not found
-#             template = 'library_doc_not_found.jinja2'
-# return render_to_response(template, res, request=e.request,
-# response=response)
+        #         filename = '%s.%s' % (document, MCDPConstants.ext_doc_md)
+        #         if not e.library.file_exists(filename):
+        #             res = {}
+        #             add_other_fields(self, res, e.request, context=e.context)
+        #             response = e.request.response
+        #             response.status = 404 # not found
+        #             template = 'library_doc_not_found.jinja2'
+        # return render_to_response(template, res, request=e.request,
+        # response=response)
 
         try:
             html = self._render_library_doc(e, document)
@@ -481,17 +480,17 @@ class WebApp(AppVisualization, AppStatus,
     @contract(e=Environment, document=str)
     def _render_library_doc(self, e, document):
         strict = int(e.request.params.get('strict', '0'))
-#         filename = '%s.%s' % (document, MCDPConstants.ext_doc_md)
-#
+        #         filename = '%s.%s' % (document, MCDPConstants.ext_doc_md)
+        #
         data_str = e.library.documents[document]
         realpath = 'Document "%s"' % document
-#         f = e.library._get_file_data(filename)
+        #         f = e.library._get_file_data(filename)
 
-#         realpath = f['realpath']
+        #         realpath = f['realpath']
         # read unicode
-#         import codecs
-#         data_unicode = codecs.open(realpath, encoding='utf-8').read()
-#         data_str = data_unicode.encode('utf-8')
+        #         import codecs
+        #         data_unicode = codecs.open(realpath, encoding='utf-8').read()
+        #         data_str = data_unicode.encode('utf-8')
         raise_errors = bool(strict)
         library = library_from_env(e)
         html = render_complete(library=library, s=data_str,
@@ -542,13 +541,13 @@ class WebApp(AppVisualization, AppStatus,
         self.my_session_factory = SignedCookieSessionFactory(secret + 'sign')
         self.root_factory = MCDPResourceRoot
         config = Configurator(
-            root_factory=self.root_factory, settings=self.settings)
+                root_factory=self.root_factory, settings=self.settings)
         config.set_session_factory(self.my_session_factory)
 
         # config.include('pyramid_debugtoolbar')
 
         authn_policy = AuthTktAuthenticationPolicy(
-            secret + 'authn', hashalg='sha512', callback=groupfinder)
+                secret + 'authn', hashalg='sha512', callback=groupfinder)
         authz_policy = ACLAuthorizationPolicy()
         config.set_authentication_policy(authn_policy)
         config.set_authorization_policy(authz_policy)
@@ -557,7 +556,7 @@ class WebApp(AppVisualization, AppStatus,
         config.add_renderer('jsonp', JSONP(param_name='callback'))
 
         config.add_static_view(
-            name='static', path='static', cache_max_age=3600)
+                name='static', path='static', cache_max_age=3600)
         config.include('pyramid_jinja2')
 
         AppStatus.config(self, config)
@@ -571,15 +570,15 @@ class WebApp(AppVisualization, AppStatus,
         AppSolver2.config(self, config)
 
         config.add_view(
-            self.view_dummy, context=ResourceAbout, renderer='about.jinja2')
+                self.view_dummy, context=ResourceAbout, renderer='about.jinja2')
         config.add_view(
-            self.view_index, context=MCDPResourceRoot, renderer='index.jinja2')
+                self.view_index, context=MCDPResourceRoot, renderer='index.jinja2')
         config.add_view(
-            self.view_dummy, context=ResourceLibraries, renderer='list_libraries.jinja2')
+                self.view_dummy, context=ResourceLibraries, renderer='list_libraries.jinja2')
         config.add_view(
-            self.view_dummy, context=ResourceRepos, renderer='repos.jinja2')
+                self.view_dummy, context=ResourceRepos, renderer='repos.jinja2')
         config.add_view(
-            self.view_dummy, context=ResourceLibraryInteractive, renderer='empty.jinja2')
+                self.view_dummy, context=ResourceLibraryInteractive, renderer='empty.jinja2')
 
         config.add_view(self.view_dummy, context=ResourceLibrary,
                         renderer='library_index.jinja2', permission=Privileges.READ)
@@ -587,15 +586,15 @@ class WebApp(AppVisualization, AppStatus,
                         renderer='library_index.jinja2', permission=Privileges.READ)  # same as above
 
         config.add_view(
-            self.view_dummy, context=ResourceRepo, renderer='shelves_index.jinja2')
+                self.view_dummy, context=ResourceRepo, renderer='shelves_index.jinja2')
         config.add_view(self.view_dummy, context=ResourceShelves,
                         renderer='shelves_index.jinja2')  # same as above
         config.add_view(self.view_dummy, context=ResourceAllShelves,
                         renderer='shelves_index.jinja2')  # same as above
         config.add_view(
-            self.view_changes, context=ResourceChanges, renderer='changes.jinja2')
+                self.view_changes, context=ResourceChanges, renderer='changes.jinja2')
         config.add_view(
-            self.view_tree, context=ResourceTree, renderer='tree.jinja2')
+                self.view_tree, context=ResourceTree, renderer='tree.jinja2')
         config.add_view(self.view_not_found_generic, context=ResourceNotFoundGeneric,
                         renderer='not_found_generic.jinja2', permission=NO_PERMISSION_REQUIRED)
         config.add_view(self.view_shelf_library_new,
@@ -613,7 +612,7 @@ class WebApp(AppVisualization, AppStatus,
         config.add_view(self.view_library_asset_not_found, context=ResourceLibraryAssetNotFound,
                         renderer='asset_not_found.jinja2', permission=Privileges.READ)
         config.add_view(
-            self.view_library_asset, context=ResourceLibraryAsset, permission=Privileges.READ)
+                self.view_library_asset, context=ResourceLibraryAsset, permission=Privileges.READ)
         config.add_view(self.view_refresh_library,
                         context=ResourceLibraryRefresh, permission=Privileges.READ)
         config.add_view(self.view_refresh, context=ResourceRefresh)
@@ -626,7 +625,7 @@ class WebApp(AppVisualization, AppStatus,
                         permission=Privileges.IMPERSONATE_USER)
 
         config.add_view(
-            self.view_exception, context=Exception, renderer='exception.jinja2')
+                self.view_exception, context=Exception, renderer='exception.jinja2')
         config.add_view(self.exit, context=ResourceExit,
                         renderer='json', permission=NO_PERMISSION_REQUIRED)
 
@@ -636,11 +635,11 @@ class WebApp(AppVisualization, AppStatus,
                         renderer='exceptions_formatted.jinja2', permission=NO_PERMISSION_REQUIRED)
 
         config.add_view(
-            self.view_dummy, context=ResourceShelfNotFound, renderer='shelf_not_found.jinja2')
+                self.view_dummy, context=ResourceShelfNotFound, renderer='shelf_not_found.jinja2')
         config.add_view(
-            self.view_dummy, context=ResourceShelfForbidden, renderer='shelf_forbidden.jinja2')
+                self.view_dummy, context=ResourceShelfForbidden, renderer='shelf_forbidden.jinja2')
         config.add_view(
-            self.view_dummy, context=ResourceShelfInactive, renderer='shelf_inactive.jinja2')
+                self.view_dummy, context=ResourceShelfInactive, renderer='shelf_inactive.jinja2')
         config.add_view(self.view_resource_not_found,
                         context=ResourceRepoNotFound, renderer='repo_not_found.jinja2')
         config.add_view(self.view_thing_delete, context=ResourceThingDelete)
@@ -667,12 +666,12 @@ class WebApp(AppVisualization, AppStatus,
                         context=ResourceDBView, renderer='db_view.jinja2')
 
         config.add_view(
-            serve_robots, context=ResourceRobots, permission=NO_PERMISSION_REQUIRED)
+                serve_robots, context=ResourceRobots, permission=NO_PERMISSION_REQUIRED)
         config.add_notfound_view(self.view_not_found, renderer='404.jinja2')
         config.scan()
 
         config.add_view(
-            self.view_authomatic, context=ResourceAuthomaticProvider, permission=NO_PERMISSION_REQUIRED)
+                self.view_authomatic, context=ResourceAuthomaticProvider, permission=NO_PERMISSION_REQUIRED)
         self.get_authomatic_config()
         app = config.make_wsgi_app()
         return app
@@ -743,8 +742,8 @@ class WebApp(AppVisualization, AppStatus,
         if picture_data is None:
             mime = 'image/jpeg'
             data = get_nopicture_jpg()
-#             url = e.root + '/static/nopicture.jpg'
-#             raise HTTPFound(url)
+        #             url = e.root + '/static/nopicture.jpg'
+        #             raise HTTPFound(url)
         else:
             mime = get_mime_for_format(data_format)
             data = picture_data
@@ -843,23 +842,23 @@ class WebApp(AppVisualization, AppStatus,
                     if a in user_db:
                         u = user_db[a]
                     else:
-                        #logger.debug('Cannot find user %r' % a )
+                        # logger.debug('Cannot find user %r' % a )
                         u = user_db.get_unknown_user_struct(a).info
 
                     change['user'] = u
                     p = '{root}/repos/{repo_name}/shelves/{shelf_name}/libraries/{library_name}/{spec_name}/{thing_name}/views/syntax/'
 
                     subscribed = shelf_subscribed(
-                        id_repo, change['shelf_name'])
+                            id_repo, change['shelf_name'])
 
                     if change['exists'] and subscribed:
                         change['url'] = p.format(root=e.root, **change)
                     else:
                         change['url'] = None
 
-                    #print('change: %s url = %s' % (change, change['url']))
+                    # print('change: %s url = %s' % (change, change['url']))
                     change['date_human'] = datetime.datetime.fromtimestamp(
-                        change['date']).strftime('%b %d, %H:%M')
+                            change['date']).strftime('%b %d, %H:%M')
                     changes.append(change)
 
         return changes
@@ -894,11 +893,11 @@ class WebApp(AppVisualization, AppStatus,
     @cr2e
     def view_thing_delete(self, e):
         name = e.thing_name
-#         basename = "%s.%s" % (name, e.spec.extension)
+        #         basename = "%s.%s" % (name, e.spec.extension)
         logger.error('Deleting %s' % name)
         del e.things[name]
-#         filename = e.library.delete_file(basename)
-#         e.session.notify_deleted_file(e.shelf_name, e.library_name, filename)
+        #         filename = e.library.delete_file(basename)
+        #         e.session.notify_deleted_file(e.shelf_name, e.library_name, filename)
         raise HTTPFound(e.request.referrer)
 
     @add_std_vars_context
@@ -909,13 +908,13 @@ class WebApp(AppVisualization, AppStatus,
         logger.error('Renaming %r to %r' % (name, new_name))
         e.things.rename(name, new_name)
         raise HTTPFound(e.request.referrer)
-    
+
     def redirect_to_page(self, e, page):
         if self.options.url_base_public:
             url = self.options.url_base_public + page
         else:
             url = e.root + page
-        logger.info('redirecting to page %s\nurl: %s' % (page, url)) 
+        logger.info('redirecting to page %s\nurl: %s' % (page, url))
         raise HTTPFound(location=url)
 
 
@@ -957,12 +956,12 @@ class MCDPWeb(QuickAppBase):
 
             prefix = 'mcdp_web.'
             mcdp_web_settings = get_only_prefixed(
-                settings, prefix, delete=True)
-#             mcdp_web_settings = {}
-#             for k,v in list(settings.items()):
-#                 if k.startswith(prefix):
-#                     mcdp_web_settings[k[len(prefix):]] = v
-#                     del settings[k]
+                    settings, prefix, delete=True)
+            #             mcdp_web_settings = {}
+            #             for k,v in list(settings.items()):
+            #                 if k.startswith(prefix):
+            #                     mcdp_web_settings[k[len(prefix):]] = v
+            #                     del settings[k]
             options = parse_mcdpweb_params_from_dict(mcdp_web_settings)
 
             logger.debug('Using these options: %s' % options)
@@ -985,8 +984,8 @@ Use Chrome, Firefox, or Opera - Internet Explorer is not supported.
 
         if options.delete_cache:
             pass  # XXX: warning deprecated
-#             logger.info('Deleting cache...')
-            # wa._refresh_library(None)
+        #             logger.info('Deleting cache...')
+        # wa._refresh_library(None)
 
         wa.serve(port=options.port)
 
@@ -1004,11 +1003,12 @@ def get_only_prefixed(settings, prefix, delete=False):
 
 def app_factory(global_config, **settings0):  # @UnusedVariable
     settings = get_only_prefixed(settings0, 'mcdp_web.', delete=True)
-    #print('app_factory settings %s' % settings)
+    # print('app_factory settings %s' % settings)
     options = parse_mcdpweb_params_from_dict(settings)
     wa = WebApp(options, settings=settings0)
     app = wa.get_app()
     return app
+
 
 mcdp_web_main = MCDPWeb.get_sys_main()
 

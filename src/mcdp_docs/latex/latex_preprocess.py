@@ -14,7 +14,7 @@ from mcdp_utils_misc import get_md5
 from .latex_inside_equation_abbrevs import replace_inside_equations
 
 
-class LatexProcessingConstants():
+class LatexProcessingConstants:
     justignore = [
         'vfill', 'pagebreak', 'leavevmode', 'clearpage', 'hline',
         'hfill', 'quad', 'qquad', 'noindent',
@@ -44,7 +44,7 @@ class LatexProcessingConstants():
          ('eg', 'e.g.'),
          ('etal', '<em>et al.</em>'),
     ]
-    
+
 
 def assert_not_inside(substring, s):
     if substring in s:
@@ -52,6 +52,7 @@ def assert_not_inside(substring, s):
         w = Where(s, i, i + len(substring))
         msg = 'I found the forbidden substring %r in string.' % substring
         raise DPSyntaxError(msg, where=w)
+
 
 UNICODE_NBSP = u"\u00A0".encode('utf-8')
 
@@ -65,17 +66,22 @@ def latex_process_ignores(s):
         s = substitute_command_ext(s, cmd, f, nargs=1, nopt=0)
     return s
 
+
 def latex_process_simple_wraps(s):
+
     def wrap(tag, extra_attrs, s):
-        return '<%s %s>%s</%s>' % (tag, extra_attrs, s,tag) 
+        return '<%s %s>%s</%s>' % (tag, extra_attrs, s, tag)
+
     def justwrap(tag, extra_attrs=''):
         return lambda args, _opts: wrap(tag, extra_attrs, args[0])
-    
-    for cmd, tag, tagattrs in LatexProcessingConstants.simplewraps:    
+
+    for cmd, tag, tagattrs in LatexProcessingConstants.simplewraps:
         s = substitute_command_ext(s, cmd, justwrap(tag, tagattrs), nargs=1, nopt=0)
     return s
 
+
 def latex_process_title(s):
+
     class Tmp:
         title = None
         author = None
@@ -83,11 +89,13 @@ def latex_process_title(s):
     def find_title(args, opts):  # @UnusedVariable
         Tmp.title = args[0]
         return ''
+
     s = substitute_command_ext(s, "title", find_title, nargs=1, nopt=0)
 
     def find_author(args, opts):  # @UnusedVariable
         Tmp.author = args[0]
         return ''
+
     s = substitute_command_ext(s, "author", find_author, nargs=1, nopt=0)
 
     title = ""
@@ -100,6 +108,7 @@ def latex_process_title(s):
 
     return s
 
+
 def latex_process_tilde_nbsp_and_protect_fenced(s):
     group = 'TILDETILDETILDE'
     s = s.replace('~~~', group)
@@ -108,7 +117,9 @@ def latex_process_tilde_nbsp_and_protect_fenced(s):
     s = s.replace(group, '~~~')
     return s
 
+
 def latex_process_references(s):
+
     # no! let mathjax do it
     def ref_subit(m):
         x = m.group(1)
@@ -116,6 +127,7 @@ def latex_process_references(s):
             return '\\ref{%s}' % x
         else:
             return '<a href="#%s" class="only-number"></a>' % x
+
     s = re.sub(r'\\ref{(.*?)}', ref_subit, s)
 
     s = substitute_command(s, 'prettyref', lambda name, inside:  # @UnusedVariable
@@ -139,8 +151,9 @@ def latex_process_references(s):
     s = re.sub(r'\\coderef{(.*?)}', r'<a href="#code:\1"></a>', s)
     return s
 
+
 def latex_process_citations(s):
-    
+
     def sub_cite(args, opts):
         cits = args[0].split(',')
         inside = opts[0]
@@ -153,17 +166,19 @@ def latex_process_citations(s):
         return res
 
     s = substitute_command_ext(s, 'cite', sub_cite, nargs=1, nopt=1)
-    
+
     return s
+
 
 def latex_process_mcdp_words(s):
     for a, b in LatexProcessingConstants.simples_xspace:
         s = substitute_simple(s, a, b, xspace=True)
     return s
 
+
 def latex_preprocessing(s):
     s = s.replace('\n%\n', '\n')
-    s = s.replace('%\n', '\n') # inside minipage
+    s = s.replace('%\n', '\n')  # inside minipage
 
     s = substitute_simple(s, 'textendash', '&ndash;')
     s = substitute_simple(s, 'textemdash', '&mdash;')
@@ -177,9 +192,6 @@ def latex_preprocessing(s):
 
 # {[}m{]}}, and we need to choose the \R{endurance~$T$~{[}s{]}}
     s = re.sub(r'{(\[|\])}', r'\1', s)
-
-
-
 
     def sub_multicolumn(args, opts):  # @UnusedVariable
         ncols, align, contents = args[:3]
@@ -197,7 +209,7 @@ def latex_preprocessing(s):
 
 #     s = substitute_simple(s, 'etal', 'et. al.')
 
-    s = replace_includegraphics(s) 
+    s = replace_includegraphics(s)
     s = latex_process_mcdp_words(s)
 
     s = substitute_simple(s, '$', '&#36;')
@@ -211,12 +223,11 @@ def latex_preprocessing(s):
     s = substitute_simple(s, 'bigskip', '<span class="bigskip"/>')
     s = substitute_simple(s, 'medskip', '<span class="medskip"/>')
     s = substitute_simple(s, 'smallskip', '<span class="medskip"/>')
-    s = substitute_simple(s, 'par', '<br class="from_latex_par"/>') 
+    s = substitute_simple(s, 'par', '<br class="from_latex_par"/>')
 
-         
 #     \IEEEPARstart{O}{ne}
     s = substitute_command_ext(s, 'IEEEPARstart', lambda args, opts: args[0] + args[1],  # @UnusedVariable
-                               nargs=2, nopt=0) 
+                               nargs=2, nopt=0)
 
     s = substitute_command_ext(s, 'url', lambda args, _: '<a href="%s">%s</a>' % (
         args[0], args[0]), nargs=1, nopt=0)  # @UnusedVariable
@@ -226,27 +237,27 @@ def latex_preprocessing(s):
     s = substitute_command_ext(
         s, 'adjustbox', lambda args, opts: args[1], nargs=2, nopt=0)  # @UnusedVariable
 
-    s = replace_captionsideleft(s) 
+    s = replace_captionsideleft(s)
     for x in ['footnotesize', 'small', 'normalsize']:
         s = substitute_simple(s, x,
                               '<span class="apply-parent %s"></span>' % x)  # @UnusedVariable
 #         assert_not_inside('\\' + x, s)
 
-    s = replace_environment(s, "defn", "definition", "def:")
-    s = replace_environment(s, "definition", "definition", "def:")
-    s = replace_environment(s, "lem", "lemma", "lem:")
-    s = replace_environment(s, "lemma", "lemma", "lem:")
-    s = replace_environment(s, "rem", "remark", "rem:")
-    s = replace_environment(s, "remark", "remark", "rem:")
-    s = replace_environment(s, "thm", "theorem", "thm:")
-    s = replace_environment(s, "theorem", "theorem", "thm:")
-    s = replace_environment(s, "prop", "proposition", ("pro:", "prop:"))
-    s = replace_environment(s, "proposition", "proposition", ("pro:", "prop:"))
-    s = replace_environment(s, "example", "example", "exa:")
-    s = replace_environment(s, "proof", "proof", "proof:")
-    s = replace_environment(s, "IEEEproof", "proof", "proof:")
-    s = replace_environment(s, "problem", "problem", "prob:")
-    s = replace_environment(s, "proposition", "proposition", "prop:")
+    s = replace_environment(s, "defn", "definition", "def:", make_label_if_missing=True)
+    s = replace_environment(s, "definition", "definition", "def:", make_label_if_missing=True)
+    s = replace_environment(s, "lem", "lemma", "lem:", make_label_if_missing=True)
+    s = replace_environment(s, "lemma", "lemma", "lem:", make_label_if_missing=True)
+    s = replace_environment(s, "rem", "remark", "rem:", make_label_if_missing=True)
+    s = replace_environment(s, "remark", "remark", "rem:", make_label_if_missing=True)
+    s = replace_environment(s, "thm", "theorem", "thm:", make_label_if_missing=True)
+    s = replace_environment(s, "theorem", "theorem", "thm:", make_label_if_missing=True)
+    s = replace_environment(s, "prop", "proposition", ("pro:", "prop:"), make_label_if_missing=True)
+    s = replace_environment(s, "proposition", "proposition", ("pro:", "prop:"), make_label_if_missing=True)
+    s = replace_environment(s, "example", "example", "exa:", make_label_if_missing=True)
+    s = replace_environment(s, "proof", "proof", "proof:", make_label_if_missing=True)
+    s = replace_environment(s, "IEEEproof", "proof", "proof:", make_label_if_missing=True)
+    s = replace_environment(s, "problem", "problem", "prob:", make_label_if_missing=True)
+    s = replace_environment(s, "proposition", "proposition", "prop:", make_label_if_missing=True)
     s = replace_environment(s, "abstract", "abstract", 'don-t-steal-label')
     s = replace_environment(s, "centering", "centering", 'don-t-steal-label')
 
@@ -254,13 +265,13 @@ def latex_preprocessing(s):
     s = replace_environment(s, "center", "center", 'don-t-steal-label')
 
     s = replace_environment_ext(s, "verbatim", lambda s, _: s)
-    
+
     def lyxcode_unescape(x, opt):  # @UnusedVariable
         x = x.replace('\{', '{')
         x = x.replace('\}', '}')
         return x
-        
-    s = replace_environment_ext(s, "lyxcode", lyxcode_unescape) # TODO: replace ~ by ' ' 
+
+    s = replace_environment_ext(s, "lyxcode", lyxcode_unescape)  # TODO: replace ~ by ' '
     s = replace_environment_ext(s, "lstlisting", lambda s, _: s)
     s = replace_environment_ext(s, "quote", lambda inside, opt:  # @UnusedVariable
                                 '<blockquote>' + inside + '</blockquote>')
@@ -280,7 +291,7 @@ def latex_preprocessing(s):
         s, "table*", lambda inside, opt: maketable(inside, opt, True))
 
     s = s.replace('pro:', 'prop:')
- 
+
     s = s.replace('{}', '')
     s = replace_quotes(s)
     return s
@@ -416,7 +427,7 @@ def makeminipage(inside, opt):
 
 
 def makefigure(inside, opt, asterisk):  # @UnusedVariable
-    align = opt  # @UnusedVariable
+    # align = opt  # @UnusedVariable
 #     print('makefigure inside = %r' % inside)
 
     def subfloat_replace(args, opts):
@@ -435,7 +446,7 @@ def makefigure(inside, opt, asterisk):  # @UnusedVariable
                 msg = 'Subfigure labels should start with "subfig:"; found %r.' % (
                     label)
                 label = 'sub' + label
-                msg += 'I will change to %r.' % label
+                msg += ' I will change to %r.' % label
                 logger.debug(msg)
 
         # we need to make up an ID
@@ -470,7 +481,9 @@ def makefigure(inside, opt, asterisk):  # @UnusedVariable
         inside, 'caption', sub_caption, nargs=1, nopt=0)
 
 #     print('makefigure inside without caption = %r'  % inside)
-    assert not '\\caption' in inside
+    if '\\caption' in inside:
+        msg = 'Whoops: %r' % inside
+        logger.warning(msg)
 
     if Tmp.label is None:
         Tmp.label = 'fig:' + get_md5(inside)
@@ -485,7 +498,9 @@ def makefigure(inside, opt, asterisk):  # @UnusedVariable
 
 
 def latex_process_headers(s):
+
     def sub_header(ss, cmd, hname, number=True):
+
         def replace(name, inside):  # @UnusedVariable
             options = ""
             options += ' nonumber=""' if number is False else ''
@@ -494,6 +509,7 @@ def latex_process_headers(s):
             template = '<{hname}{options}>{inside}</{hname}>'
             r = template.format(hname=hname, inside=inside, options=options)
             return r
+
         return substitute_command(ss, cmd, replace)
 
     # note that we need to do the * version before the others
@@ -573,7 +589,7 @@ class Malformed(Exception):
 
 def substitute_command_ext(s, name, f, nargs, nopt):
     """
-        Subsitute \name[x]{y}{z} with 
+        Subsitute \name[x]{y}{z} with
         f : args=(x, y), opts=None -> s
         if nargs=1 and nopt = 0:
             f : x -> s
@@ -662,7 +678,7 @@ def consume_whitespace(s):
 
 def substitute_command(s, name, sub):
     """
-        Subsitute \name{<inside>} with 
+        Subsitute \name{<inside>} with
         sub : name, inside -> s
     """
 
@@ -674,7 +690,7 @@ def substitute_command(s, name, sub):
     istart = s.index(start)
     i = istart + len(start) - 1  # minus brace
     after = s[i:]
-# 
+#
     try:
         assert after[0] == '{'
         inside_plus_brace, after = get_balanced_brace(after)
@@ -682,6 +698,7 @@ def substitute_command(s, name, sub):
         bit = after[:max(len(after), 15)]
         msg = 'Could not find completion for "%s".' % bit
         raise_wrapped(Malformed, e, msg)
+        raise
     inside = inside_plus_brace[1:-1]
     replace = sub(name=name, inside=inside)
     before = s[:istart]
@@ -691,8 +708,8 @@ def substitute_command(s, name, sub):
 
 
 def get_balanced_brace(s):
-    """ s is a string that starts with '{'. 
-        returns pair a, b, with a + b = s and 
+    """ s is a string that starts with '{'.
+        returns pair a, b, with a + b = s and
         a starting and ending with braces
      """
     assert s[0] in ['{', '[']
@@ -796,14 +813,27 @@ def replace_environment_ext(s, envname, f):
     return s
 
 
-def replace_environment(s, envname, classname, labelprefix):
+def replace_environment(s, envname, classname, labelprefix, make_label_if_missing=False):
+
     def replace_m(inside, opt):
         #         print('replacing environment %r inside %r opt %r' % (envname, inside, opt))
         thm_label = opt
         contents, label = get_s_without_label(inside, labelprefix=labelprefix)
         if label is not None and isinstance(labelprefix, str):
             assert label.startswith(labelprefix), (s, labelprefix, label)
-        id_part = "id='%s' " % label if label is not None else ""
+        if label is not None:
+            id_part = "id='%s' " % label
+        else:
+            if make_label_if_missing:
+                if isinstance(labelprefix, tuple):
+                    usel = labelprefix[0]
+                else:
+                    usel = labelprefix
+
+                makeup_id = usel + get_md5(inside)[:5]
+                id_part = "id='%s'" % makeup_id
+            else:
+                id_part = ''
 
 #         print('using label %r for env %r (labelprefix %r)' % (label, envname, labelprefix))
         l = "<span class='%s_label latex_env_label'>%s</span>" % (
@@ -827,7 +857,7 @@ def replace_captionsideleft(s):
         else:
             idpart = ""
         res = ('<figure class="captionsideleft caption_left"%s>' % idpart)
-        res += ('%s<figcaption></figcaption></figure>') % second
+        res += '%s<figcaption></figcaption></figure>' % second
 
         return res
 
@@ -858,7 +888,7 @@ def replace_includegraphics(s):
 
 
 def get_s_without_label(contents, labelprefix=None):
-    """ Returns a pair s', label 
+    """ Returns a pair s', label
         where label could be None """
     check_isinstance(contents, str)
 
@@ -898,6 +928,7 @@ def get_s_without_label(contents, labelprefix=None):
 
 
 def replace_equations(s):
+
     class Tmp:
         count = 0
         format = None
@@ -1050,6 +1081,7 @@ def extract_delimited(s, d1, d2, subs, domain, acceptance=None):
                 def acceptance2(string, index):  # @UnusedVariable
                     #                     assert string == sb, (string, sb)
                     return acceptance(s, index + start_from)
+
                 sb2 = extract_delimited(
                     sb, d1, d2, subs, domain, acceptance=acceptance2)
                 # now we have done
@@ -1108,6 +1140,7 @@ def extract_maths(s):
 
     def acceptance(s0, i):
         inside = is_inside_markdown_quoted_block(s0, i)
+        # print('accepted %r')
         return not inside
 
     subs = {}
@@ -1137,6 +1170,8 @@ def extract_tabular(s):
 
 
 if __name__ == '__main__':
+
+
     s = """
 For example, the expression <mcpd-value>&lt;2 J, 1 A&gt;</mcdp-value>
 denotes a tuple with two elements, equal to <mcdp-value>2 J</mcpd-value>

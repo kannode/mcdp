@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 
-from decent_params.utils import UserError
-from reprep import Report
-
 from contracts.utils import raise_desc, raise_wrapped
+from decent_params.utils import UserError
 from mcdp_dp.dp_transformations import get_dp_bounds
 from mcdp_dp.tracer import Tracer
 from mcdp_library import Librarian
@@ -14,6 +12,7 @@ from mcdp_posets import LowerSets
 from mcdp_report.image_source import ImagesFromPaths
 from mocdp.comp.recursive_name_labeling import (get_imp_as_recursive_dict,
                                                 get_labelled_version, ndp_make)
+from reprep import Report
 
 from .utils_mkdir import mkdirs_thread_safe
 
@@ -21,6 +20,7 @@ from .utils_mkdir import mkdirs_thread_safe
 # from mcdp_dp.solver_iterative import solver_iterative
 class ExpectationsNotMet(Exception):
     pass
+
 
 def solve_main(logger, config_dirs, maindir, cache_dir, model_name, lower, upper, out_dir,
                max_steps, query_strings,
@@ -58,7 +58,6 @@ def solve_main(logger, config_dirs, maindir, cache_dir, model_name, lower, upper
 
     basename, dp = solve_get_dp_from_ndp(basename=basename, ndp=ndp_labelled,
                                          lower=lower, upper=upper)
-
 
     F = dp.get_fun_space()
     R = dp.get_res_space()
@@ -108,7 +107,6 @@ def solve_main(logger, config_dirs, maindir, cache_dir, model_name, lower, upper
 
             tracer.log(s)
 
-
         if expect_nimp is not None:
             if expect_nimp != nimplementations:
                 msg = 'Found wrong number of implementations'
@@ -125,16 +123,16 @@ def solve_main(logger, config_dirs, maindir, cache_dir, model_name, lower, upper
 #         if isinstance(value.unit, PosetProduct):
 #             subs = value.unit.subs
 #             assert len(subs) == 2, subs
-# 
+#
 #             lower_UR_expected, upper_UR_expected = subs
 #             lower_res_expected, upper_res_expected = value.value
-#             
+#
 #             lower_bound = tu.get_embedding(lower_UR_expected, UR)[0](lower_res_expected)
 #             upper_bound = tu.get_embedding(upper_UR_expected, UR)[0](upper_res_expected)
-# 
+#
 #             tracer.log('lower: %s <= %s' % (UR.format(lower_bound), UR.format(res)))
 #             tracer.log('upper: %s <= %s' % (UR.format(upper_bound), UR.format(res)))
-# 
+#
 #             UR.check_leq(lower_bound, res)
 #             UR.check_leq(res, upper_bound)
 #         else:
@@ -142,14 +140,13 @@ def solve_main(logger, config_dirs, maindir, cache_dir, model_name, lower, upper
 #             UR_expected = value.unit
 #             tu.check_leq(UR_expected, UR)
 #             A_to_B, _B_to_A = tu.get_embedding(UR_expected, UR)
-# 
+#
 #             res_expected_f = A_to_B(res_expected)
 #             try:
 #                 UR.check_equal(res, res_expected_f)
 #             except NotEqual as e:
 #                 raise_wrapped(ExpectationsNotMet, e, 'res is different',
 #                               res=res, res_expected=res_expected, compact=True)
-
 
     if plot:
         r = Report()
@@ -186,7 +183,7 @@ def solve_main(logger, config_dirs, maindir, cache_dir, model_name, lower, upper
                 gv = GetValues(ndp=ndp, imp_dict=imp_dict, nu=upper, nl=1)
 
                 setattr(ndp, '_hack_force_enclose', True)
-                
+
                 with report_solutions.subsection('sol-%s-%s' % (i, j)) as rr:
                     # Left right
                     gg = gvgen_from_ndp(ndp=ndp, style=STYLE_GREENREDSYM,
@@ -220,6 +217,7 @@ def solve_meat_solve_rtof(trace, ndp, dp, r, intervals, max_steps, exp_advanced)
     trace.log('Maximal functionality possible: %s = %s' % (x, LF.format(res)))
 
     return res, trace
+
 
 def solve_meat_solve_ftor(trace, ndp, dp, fg, intervals, max_steps, exp_advanced):
     R = dp.get_res_space()
@@ -257,6 +255,7 @@ def solve_meat_solve_ftor(trace, ndp, dp, fg, intervals, max_steps, exp_advanced
 #                 raise
     return res, trace
 
+
 def solve_get_dp_from_ndp(basename, ndp, lower, upper, flatten=True):
     if flatten:
         ndp = ndp.flatten()
@@ -275,6 +274,7 @@ def solve_get_dp_from_ndp(basename, ndp, lower, upper, flatten=True):
 
     return basename, dp
 
+
 def solve_get_output_dir(prefix):
     last = prefix + '-last'
     for i in range(1000):
@@ -287,5 +287,4 @@ def solve_get_output_dir(prefix):
             os.symlink(candidate, last)
             return candidate
     assert False
-
 

@@ -19,6 +19,7 @@ def isnamedtuplewhere(x):
     d = x._asdict()
     return 'where' in d
 
+
 def namedtuplewhere(a, b):
     check_isinstance(b, (list, str))
     if isinstance(b, list):
@@ -28,7 +29,7 @@ def namedtuplewhere(a, b):
     assert not 'where' in fields
     fields.append('where')
     base = namedtuple(a, fields)
-    base.__new__.__defaults__ = (None, )
+    base.__new__.__defaults__ = (None,)
     F = base
     # make the name available
     g = globals()
@@ -66,16 +67,18 @@ def remove_where_info(x):
     x1 = T(**d)
     return x1
 
+
 def clean_print(x):
     y = remove_where_info(x)
     s = str(y)
     s = s.replace(', where=None', '')
     return s
 
+
 def recursive_print(x):
     if not isnamedtupleinstance(x):
         return x.__repr__()
-#         return x.__str__()
+    #         return x.__str__()
     s = type(x).__name__
     s += ':\n'
     for k, v in x._asdict().items():
@@ -87,10 +90,9 @@ def recursive_print(x):
         r = recursive_print(v).strip()
         s += indent(r, prefix, first=first)
         s += '\n'
-        
+
     if hasattr(s, 'warning'):
         msg = getattr(s, 'warning')
         s += '\n' + indent(msg, '  W ')
-        
+
     return s
-        

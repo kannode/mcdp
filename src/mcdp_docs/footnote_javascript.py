@@ -1,69 +1,16 @@
+# -*- coding: utf-8 -*-
 from mcdp_utils_xml import bs, copy_contents_into
 
 
 def add_footnote_polyfill(soup):
-    body = soup.find('body')
-    if body is None:
-        raise ValueError(str(soup))
+    head = soup.find('head')
+    if head is None:
+        raise ValueError()
     x = bs(footnote_javascript)
-    copy_contents_into(x, body)
-    
-footnote_javascript_old = r'''
-<style>
-.footnote-simulation {
-    font-size: smaller;
-    padding-left: 2em;
-    border-left: solid 2px grey;
-    /*position: absolute;
-    right: -20em;
-    width: 20em;*/
-    background-color: white;
-    padding: 4px;
+    copy_contents_into(x, head)
 
-    display: none;
-}
-.footnote-marker {
-    margin-left: 2px;
-    color: blue !important;
-    text-decoration: underline !important;
-}
-</style>
-<script>
-try {
-    prince = Prince;
-} catch (e) {
-    console.log("Not running in Prince");
-    prince = null;
-}
-if(prince==null) {
-    var elements = document.getElementsByTagName('footnote');
-    for (var i=0; i<elements.length; i++) {
-        e = elements[i];
-        var d = document.createElement('div');
-        d.innerHTML = e.innerHTML;
-        d.classList.add('footnote-simulation');
 
-        var a = document.createElement('a');
-        a.classList.add('footnote-marker');
-        a.innerHTML = '&dagger;';
-        a.href = "javascript:";
-        a.onclick=function(){
-            // console.log('click');
-            current = d.style.display;
-            if (current == 'block') {
-                d.style.display = 'none';
-            } else {
-                d.style.display = 'block';
-            }
-        }
-        e.parentNode.insertBefore( a, e);
-        e.parentNode.insertBefore( d, e);
-        e.parentNode.removeChild(e);
-    }
-}
-</script>
-
-'''
+# language=javascript
 footnote_javascript = r'''
 <style>
 .footnote-simulation {
@@ -85,17 +32,8 @@ footnote_javascript = r'''
 }
 </style>
 <script>
-try {
-    prince = Prince;
-} catch (e) {
-    console.log("Not running in Prince");
-    prince = null;
-}
 
-function click_marker(that_id) {
-    // e = e || window.event;
-    // var src = e.target || e.srcElement;
-
+function click_marker(that_id) { 
     console.log('click ' + that_id);
     panel = document.getElementById(that_id);
     current = panel.style.display;
@@ -106,7 +44,8 @@ function click_marker(that_id) {
     }
 }
 
-if(prince==null) {
+
+function initialize_footnotes() {
     // Do one at a time
     var i = 0;
     while(true) {
@@ -144,5 +83,79 @@ if(prince==null) {
         e.parentNode.removeChild(e);
     }
 }
+
+document.addEventListener("DOMContentLoaded", function(event) {
+    // Your code to run since DOM is loaded and ready
+    try {
+        prince = Prince;
+    } catch (e) {
+        console.log("Not running in Prince");
+        prince = null;
+    }
+    if (prince == null) {
+        initialize_footnotes();
+    }
+
+});
+
+
 </script>
 '''
+
+
+# footnote_javascript_old = r'''
+# <style>
+# .footnote-simulation {
+#     font-size: smaller;
+#     padding-left: 2em;
+#     border-left: solid 2px grey;
+#     /*position: absolute;
+#     right: -20em;
+#     width: 20em;*/
+#     background-color: white;
+#     padding: 4px;
+#
+#     display: none;
+# }
+# .footnote-marker {
+#     margin-left: 2px;
+#     color: blue !important;
+#     text-decoration: underline !important;
+# }
+# </style>
+# <script>
+# try {
+#     prince = Prince;
+# } catch (e) {
+#     console.log("Not running in Prince");
+#     prince = null;
+# }
+# if(prince==null) {
+#     var elements = document.getElementsByTagName('footnote');
+#     for (var i=0; i<elements.length; i++) {
+#         e = elements[i];
+#         var d = document.createElement('div');
+#         d.innerHTML = e.innerHTML;
+#         d.classList.add('footnote-simulation');
+#
+#         var a = document.createElement('a');
+#         a.classList.add('footnote-marker');
+#         a.innerHTML = '&dagger;';
+#         a.href = "javascript:";
+#         a.onclick=function(){
+#             // console.log('click');
+#             current = d.style.display;
+#             if (current == 'block') {
+#                 d.style.display = 'none';
+#             } else {
+#                 d.style.display = 'block';
+#             }
+#         }
+#         e.parentNode.insertBefore( a, e);
+#         e.parentNode.insertBefore( d, e);
+#         e.parentNode.removeChild(e);
+#     }
+# }
+# </script>
+#
+# '''
