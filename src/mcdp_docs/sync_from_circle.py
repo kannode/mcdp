@@ -124,7 +124,7 @@ def read_build(client, username, project, token, r, d0):
     d_build = os.path.join(out_build_dir, str(build_num))
 
     if os.path.exists(d_build):
-        #            print('Already existing %s' % d)
+        print('Already existing %s' % d_build)
         pass
     else:
         if r['outcome'] is not None:
@@ -134,7 +134,7 @@ def read_build(client, username, project, token, r, d0):
                 artifacts = client.build.artifacts(username, project, build_num)
 
                 path2url = collect(artifacts, token)
-
+                print('found %d downloads ' % len(path2url))
                 PACK = 'out/package.tgz'
                 if PACK in path2url:
                     f = os.path.join(d_build, 'dest.tgz')
@@ -142,12 +142,16 @@ def read_build(client, username, project, token, r, d0):
 
                     tf = tarfile.open(f, 'r:gz')
                     tf.extractall(d_build)
-                    os.unlink(f)
-
+                    print('extracting files')
+                    #os.unlink(f)
+                else:
+                    print('could not find %r  ' % PACK)
+        else:
+            print('outcome is None')
     # if artefacts:
     #     print(artefacts)
     artifacts = get_artefacts(d0, d_build)
-    print('Collected %s artifacts for %s' % (len(artifacts),  build_num))
+    print('Collected %s good artifacts for %s' % (len(artifacts),  build_num))
     return Build(r=r, artefacts=artifacts)
 
 
@@ -676,9 +680,11 @@ def download_to(path, url):
     dn = os.path.dirname(path)
     if not os.path.exists(dn):
         os.makedirs(dn)
-    print('Downloading %s' % path)
+    print('Downloading %s\nto %s ' % (url, path))
+    data = r.content
     with open(path, 'w') as f:
-        f.write(r.content)
+        f.write(data)
+    print('written %d bytes to %s' % (len(data), path))
 
 
 def duration_compact(seconds):
