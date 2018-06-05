@@ -51,6 +51,12 @@ def add_edit_links2(soup, location):
         delta = datetime.now() - l.last_modified
         days = delta.days
 
+        if days < 0:
+            # msg = 'Days = %s for %s' % (days, h)
+            # msg += ' delta: %s' % str(delta)
+            # logger.warning(msg)
+            days = 0
+
         h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR] = l.author.name
         h.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = str(days)
         if l.has_local_modifications:
@@ -104,6 +110,9 @@ def add_last_modified_info(soup, location):
             msg = ('Could not match text %s ' % header_ident.text)
             raise NoIdent(msg)
 
+
+    from mcdp_docs.elements_abbrevs import format_name
+
     if l.header2sourceinfo is not None:
         for ident, source_info in l.header2sourceinfo.items():
             try:
@@ -125,7 +134,9 @@ def add_last_modified_info(soup, location):
             commit_url = l.repo_base + '/commit/' + source_info.commit
             a.attrs['href'] = commit_url
             p.append(a)
-            p.append(' by %s' % source_info.author.name)
+            p.append(' by ')
+
+            p.append(format_name(source_info.author.name))
             element.insert_after(p)
     else:
 
@@ -135,7 +146,10 @@ def add_last_modified_info(soup, location):
             p.attrs['class'] = 'last-modified'
             author = l.author
             when = compact_when(l.last_modified)
-            p.append('Modified %s by %s (' % (when, author))
+            p.append('Modified %s by ' % (when))
+
+            p.append(format_name(author.name))
+            p.append(' (')
             a = Tag(name='a')
             a.attrs['href'] = l.commit_url
             a.append('commit %s' % l.commit[-8:])
@@ -196,11 +210,6 @@ def get_repo_information(repo_root):
                 committed_date=committed_date,
                 author_name=author_name,
                 author_email=author_email)
-
-
-#
-# def get_file_information(repo_root, path):
-#     commit = repo.iter_commits(paths=blob.path, max_count=1).next()
 
 
 def org_repo_from_url(url):

@@ -7,6 +7,8 @@ from multiprocessing import cpu_count
 
 from bs4.element import Tag
 from contracts import contract
+from mcdp_docs.reveal import create_slides, download_reveal
+
 from mcdp import logger
 from mcdp_docs.check_missing_links import get_id2element
 from mcdp_docs.embed_css import embed_css_files
@@ -116,6 +118,10 @@ def only_second_part(mathjax, preamble, html, id2filename, filename):
     with timeit('update_refs_'):
         update_refs_(filename, html, id2filename)
 
+    create_slides(html)
+        # context.comp(write_slides, slides_aug, out_split_dir)
+
+
     with timeit('serialize'):
         result = str(html)
 
@@ -185,8 +191,11 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
                                        only_refs=only_refs,
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
         jobs.append(promise)
+
         if only_refs:
                 break
+
+    jobs.append(context.comp(download_reveal, output_dir))
 
     return context.comp(notification, res, jobs, output_dir)
 
@@ -196,7 +205,7 @@ def notification(aug, jobs_aug, output_dir):
     res.merge(aug)
     for job_aug in jobs_aug:
         res.merge(job_aug)
-        res.set_result(job_aug.get_result())
+        # res.set_result(job_aug.get_result())
     main = os.path.join(output_dir, 'index.html')
     msg = '\n \n      The HTML version is ready at %s ' % main
     msg += '\n \n \nPlease wait a few more seconds for the PDF version.'
@@ -220,7 +229,8 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
             if add_toc_if_not_existing:
                 # logger.info('Generating TOC because it is not there')
 
-                main_toc = bs(generate_toc(soup)).ul
+                tocg = generate_toc(soup)
+                main_toc = bs(tocg).ul
                 main_toc.attrs['class'] = 'toc'  # XXX: see XXX13
                 assert main_toc is not None
                 substituting_empty_links(main_toc, raise_errors=False, res=res,

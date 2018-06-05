@@ -1,6 +1,14 @@
 from bs4 import Tag, NavigableString
 from contracts import check_isinstance, contract
 
+def get_parents_names(x):
+    names = []
+    parent = x.parent
+    while parent:
+        names.append(parent.name)
+        parent = parent.parent
+    return names
+
 
 def br():
     t = Tag(name='br')
@@ -21,6 +29,11 @@ def copy_contents_into(a, b):
     """ Copy the contents of a into b """
     for e in a.children:
         b.append(e.__copy__())
+
+def copy_contents_into_beginning(a, b):
+    """ Copy the contents of a into b """
+    for i, e in enumerate(a.children):
+        b.insert(i, e.__copy__())
 
 
 

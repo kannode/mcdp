@@ -488,7 +488,7 @@ def get_links(build, branch=None):
             summary.append(' ')
 
     summary.append('%d\xc2\xa0artefacts' % (len(build.artefacts)))
-    
+
     s = Tag(name='details')
     s.append(summary)
     s.append(get_links_(build, branch))

@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
+from mcdp_docs.location import HTMLIDLocation
+
 from mcdp.exceptions import DPSemanticError, DPSyntaxError
 from mcdp_report.generic_report_utils import (
     NotPlottable, enlarge, get_plotters)
 from mcdp_report.plotters.get_plotters_imp import get_all_available_plotters
-from mcdp_utils_xml import note_error
 from mocdp.comp.context import Context
 
 from contracts.utils import raise_wrapped
 from reprep import Report
 
 
-def make_plots(library, soup, raise_errors, realpath):
+def make_plots(library, soup, res, location, raise_errors, realpath):
     """
         Looks for things like:
         
@@ -51,12 +52,15 @@ def make_plots(library, soup, raise_errors, realpath):
                 if raise_errors:
                     raise
                 else:
-                    note_error(tag, e)
+                    msg = str(e)
+                    res.note_error(msg, HTMLIDLocation.for_element(tag, location))
+                    # note_error(tag, e)
             except Exception as e:
                 if raise_errors:
                     raise
                 else:
-                    note_error(tag, e)
+                    msg = str(e)
+                    res.note_error(msg, HTMLIDLocation.for_element(tag, location))
     
     from .highlight import make_image_tag_from_png, make_pre
     

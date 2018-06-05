@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import getpass
 from collections import namedtuple, OrderedDict
 
 import mcdp
@@ -141,6 +142,8 @@ class MCDPManualConstants(object):
         'TOWRITE: ': 'special-par-towrite',
     }
 
+    ASSIGNMENTS_PREFIXES = ["Assigned to:", 'Maintainer:']
+
     # For these classes we will create a <details> environment
     special_paragraphs_foldable = [
         'comment',
@@ -203,6 +206,8 @@ class MCDPManualConstants(object):
     allowed_statuses['ready'] = 'This is ready to be published.'
     allowed_statuses['outdated'] = 'This is out-of-date and needs a refresh.'
     allowed_statuses['deprecated'] = 'This is deprecated and will be eventually deleted.'
+
+    add_person_links = getpass.getuser() == 'andrea'
 
 
 Label = namedtuple('Label', 'what number label_self')

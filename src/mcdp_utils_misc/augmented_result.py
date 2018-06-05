@@ -9,6 +9,8 @@ from contracts.utils import indent, check_isinstance
 from mcdp import logger
 
 
+
+
 from mcdp_utils_xml import insert_inset
 
 from .pretty_printing import pretty_print_dict
@@ -23,7 +25,7 @@ class Note(object):
             # frag = bs(str(msg))
             # frag.name = 'div'
             self.msg = msg
-        elif isinstance(msg, str):
+        elif isinstance(msg, (str)):
             self.msg = msg
         else:
             raise TypeError(msg)
@@ -336,6 +338,7 @@ def get_html_style():
 
 
 def html_list_of_notes(aug, tag, how_to_call_them, klass, header=None):
+    from mcdp_docs.elements_abbrevs import format_name
     notes = aug.get_notes_by_tag(tag)
     # print('%d notes for tag %s' % (len(notes), tag))
     html = Tag(name='html')
@@ -383,8 +386,10 @@ def html_list_of_notes(aug, tag, how_to_call_them, klass, header=None):
                 else:
                     a = Tag(name='a')
                     a.attrs['href'] = '#for:%s' % who
-                    a.append(who)
+                    a.append("Tasks assigned to")
                     td.append(a)
+                    td.append(' ')
+                    td.append(format_name(who))
                 tr.append(td)
 
                 td = Tag(name='td')
