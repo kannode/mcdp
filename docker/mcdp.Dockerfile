@@ -123,7 +123,7 @@ RUN apt-get install -y nodejs
 RUN mkdir /project
 
 WORKDIR /project
-RUN npm install MathJax-node jsdom@9.3 less
+RUN npm install MathJax-node@0.3.1 jsdom@9.3 less@3.0.4
 
 ARG mcdp_commit
 RUN echo "mcdp commit: $mcdp_commit"
