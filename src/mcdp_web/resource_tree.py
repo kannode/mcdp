@@ -1,13 +1,13 @@
-from contracts.utils import indent
-from mcdp import MCDPConstants
-from mcdp.logs import logger as logger_main
-from mcdp.logs import logger_web_resource_tree as logger
 import os
 
+from contracts.utils import indent
 from pyramid.security import Allow, Authenticated, Everyone
 
+from mcdp import MCDPConstants
+from mcdp.logs import logger as logger_main, logger_web_resource_tree as logger
 
 Privileges = MCDPConstants.Privileges
+
 
 class Resource(object):
 
@@ -17,7 +17,7 @@ class Resource(object):
         self.name = name
 
     def get_subs(self):
-        #print('iter not implemented for %s' % type(self).__name__)
+        # print('iter not implemented for %s' % type(self).__name__)
         return None
 
     def getitem(self, key):  # @UnusedVariable
@@ -41,8 +41,8 @@ class Resource(object):
     def __getitem__(self, key):
         if isinstance(key, unicode):
             key = key.encode('utf8')
-#         if key in ['login']:
-#             return None
+        #         if key in ['login']:
+        #             return None
         r = self.getitem(key)
         if r is None:
             logger.debug('asked for %r - not found' % key)
@@ -73,8 +73,10 @@ class Resource(object):
         session = app.get_session(request)
         return session
 
+
 class ResourceEndOfTheLine(Resource):
     ''' Always returns a copy of itself '''
+
     def __init__(self, name, orig_key_not_found=None, relative=None):
         '''
             name: name of last leaf
@@ -86,21 +88,23 @@ class ResourceEndOfTheLine(Resource):
         self.relative = relative or ()
         self.orig_key_not_found = orig_key_not_found
         self.name = name
-        
+
     def getitem(self, key):  # @UnusedVariable
         orig_key_not_found = self.orig_key_not_found
         relative = self.relative + (self.name,)
         return type(self)(name=key, relative=relative, orig_key_not_found=orig_key_not_found)
- 
+
     def get_url_relative_to_not_found(self):
         return "/".join(self.relative[1:])
-    
+
     def __repr__(self):
         url = self.get_url_relative_to_not_found()
         return '%s(%s, %s)' % (type(self).__name__, self.orig_key_not_found, url)
 
+
 class ResourceNotFoundGeneric(ResourceEndOfTheLine):
     pass
+
 
 def context_display_in_detail(context):
     ''' Returns a string that displays in detail the context tree and acls. '''
@@ -119,22 +123,23 @@ class MCDPResourceRoot(Resource):
         (Allow, Authenticated, Privileges.VIEW_USER_LIST),
         (Allow, Authenticated, Privileges.VIEW_USER_PROFILE_PUBLIC),
     ]
+
     def __init__(self, request):  # @UnusedVariable
         self.name = 'root'
         self.request = request
         from mcdp_web.main import WebApp
-        options = WebApp.singleton.options    # @UndefinedVariable
-        
+        options = WebApp.singleton.options  # @UndefinedVariable
+
         if options.allow_anonymous:
             x = (Allow, Everyone, Privileges.ACCESS)
-            if not x in MCDPResourceRoot.__acl__: 
+            if not x in MCDPResourceRoot.__acl__:
                 MCDPResourceRoot.__acl__.append(x)
-            #logger.info('Allowing everyone to access')
+            # logger.info('Allowing everyone to access')
         else:
             x = (Allow, Authenticated, Privileges.ACCESS)
-            if not x in MCDPResourceRoot.__acl__: 
+            if not x in MCDPResourceRoot.__acl__:
                 MCDPResourceRoot.__acl__.append(x)
-            #logger.info('Allowing authenticated to access')
+            # logger.info('Allowing authenticated to access')
 
     def get_subs(self):
         return {
@@ -161,30 +166,46 @@ class MCDPResourceRoot(Resource):
             'search': ResourceSearchPage(),
         }
 
+
 class ResourceConfirmBind(Resource): pass
+
+
 class ResourceConfirmBindBind(Resource): pass
+
+
 class ResourceConfirmCreationSimilar(Resource): pass
+
+
 class ResourceConfirmCreation(Resource): pass
+
+
 class ResourceConfirmCreationCreate(Resource): pass
+
 
 class ResourceDBView(Resource):
     pass
+
 
 class ResourceSearchPage(Resource):
     def get_subs(self):
         r = {}
         r[':query'] = ResourceSearchPageQuery()
-        return r  
+        return r
+
 
 class ResourceSearchPageQuery(Resource): pass
-        
-         
+
+
 class ResourceAbout(Resource): pass
+
+
 class ResourceTree(Resource): pass
+
 
 class ResourceListUsers(Resource):
     def getitem(self, key):
         return ResourceListUsersUser(key)
+
 
 class ResourceListUsersUser(Resource):
     def __init__(self, name):
@@ -199,7 +220,7 @@ class ResourceListUsersUser(Resource):
         ]
 
     def getitem(self, key):
-        #print('key : %s' % key)
+        # print('key : %s' % key)
         if key == 'large.jpg':
             return ResourceUserPicture(self.name, 'large', 'jpg')
         if key == 'small.jpg':
@@ -207,11 +228,11 @@ class ResourceListUsersUser(Resource):
         if key == ':impersonate':
             return ResourceUserImpersonate(self.name)
 
+
 class ResourceUserImpersonate(Resource):
     ''' Impersonate this user '''
-    
 
-    
+
 class ResourceUserPicture(Resource):
     def __init__(self, name, size, data_format):
         self.name = name
@@ -220,10 +241,19 @@ class ResourceUserPicture(Resource):
 
 
 class ResourceExit(Resource): pass
+
+
 class ResourceLogin(Resource): pass
+
+
 class ResourceLogout(Resource): pass
+
+
 class ResourceChanges(Resource): pass
+
+
 class ResourceAllShelves(Resource): pass
+
 
 class ResourceShelves(Resource):
 
@@ -233,15 +263,14 @@ class ResourceShelves(Resource):
         repo_name = self.__parent__.name
         repo = repos[repo_name]
         return repo
-    
+
     def getitem(self, key):
         session = self.get_session()
         ui = session.get_user_struct().info
         repo = self.get_repo()
         shelves = repo.shelves
-        
+
         if not key in shelves:
-            
             msg = 'Not found shelf %r in %s' % (key, sorted(shelves))
             logger_main.info(msg)
             return ResourceShelfNotFound(key)
@@ -261,24 +290,45 @@ class ResourceShelves(Resource):
             if shelf.get_acl().allowed2(Privileges.READ, ui):
                 yield id_shelf
 
+
 class ResourceShelfForbidden(ResourceEndOfTheLine): pass
+
+
 class ResourceShelfNotFound(ResourceEndOfTheLine): pass
+
+
 class ResourceThingNotFound(ResourceEndOfTheLine): pass
+
+
 class ResourceLibraryDocNotFound(ResourceEndOfTheLine): pass
+
+
 class ResourceLibraryAssetNotFound(ResourceEndOfTheLine): pass
 
+
 class ResourceShelvesShelfSubscribe(Resource): pass
+
+
 class ResourceShelvesShelfUnsubscribe(Resource): pass
+
+
 class ResourceExceptionsFormatted(Resource): pass
+
+
 class ResourceExceptionsJSON(Resource): pass
+
+
 class ResourceRefresh(Resource): pass
 
+
 class ResourceLibrariesNew(Resource):
-    
+
     def getitem(self, key):
         return ResourceLibrariesNewLibname(key)
 
+
 class ResourceLibrariesNewLibname(Resource): pass
+
 
 class ResourceLibraries(Resource):
 
@@ -312,7 +362,7 @@ class ResourceShelf(Resource):
         return ['libraries'].__iter__()
 
     def getitem(self, key):
-        subs =  {
+        subs = {
             ':subscribe': ResourceShelvesShelfSubscribe(self.name),
             ':unsubscribe': ResourceShelvesShelfUnsubscribe(self.name),
         }
@@ -339,7 +389,7 @@ class ResourceRepos(Resource):
         session = self.get_session()
         repos = session.app.hi.db_view.repos
         if not key in repos:
-            #msg = 'Could not find repository "%s".' % key
+            # msg = 'Could not find repository "%s".' % key
             return ResourceRepoNotFound(key)
         return ResourceRepo(key)
 
@@ -348,15 +398,19 @@ class ResourceRepos(Resource):
         repos = session.app.hi.db_view.repos
         return list(repos).__iter__()
 
+
 class ResourceRepoNotFound(ResourceEndOfTheLine):
     pass
 
+
 class ResourceRepo(Resource):
     def get_subs(self):
-        return {'shelves':ResourceShelves()}
+        return {'shelves': ResourceShelves()}
+
 
 class ResourceLibraryNotFound(ResourceEndOfTheLine):
     pass
+
 
 class ResourceLibrary(Resource):
 
@@ -376,7 +430,7 @@ class ResourceLibrary(Resource):
 
         if key.endswith('.html'):
             docname = os.path.splitext(key)[0]
-#             filename = '%s.%s' % (docname, MCDPConstants.ext_doc_md)
+            #             filename = '%s.%s' % (docname, MCDPConstants.ext_doc_md)
             if not docname in library.documents:
                 return ResourceLibraryDocNotFound(docname)
 
@@ -388,13 +442,18 @@ class ResourceLibrary(Resource):
             return ResourceLibraryAsset(key)
         return ResourceThings(key)
 
+
 class ResourceLibraryDocRender(Resource): pass
+
+
 class ResourceLibraryAsset(Resource): pass
+
 
 class ResourceLibraryInteractive(Resource):
     def getitem(self, key):
         if key == 'mcdp_value':
             return ResourceLibraryInteractiveValue()
+
 
 class ResourceLibraryInteractiveValue(Resource):
     def getitem(self, key):
@@ -404,10 +463,12 @@ class ResourceLibraryInteractiveValue(Resource):
 
 class ResourceLibraryInteractiveValueParse(Resource): pass
 
+
 class ResourceLibraryRefresh(Resource): pass
 
+
 class ResourceThings(Resource):
-    
+
     def __init__(self, specname):
         Resource.__init__(self, specname)
         self.specname = self.name
@@ -419,7 +480,7 @@ class ResourceThings(Resource):
 
     def getitem(self, key):
         if key == 'new': return ResourceThingsNewBase()
-        
+
         things = context_get_things(self)
         if not key in things:
             try:
@@ -444,7 +505,9 @@ class ResourceThingsNewBase(Resource):
     def getitem(self, key):
         return ResourceThingsNew(key)
 
+
 class ResourceThingsNew(Resource): pass
+
 
 class ResourceThing(Resource):
 
@@ -452,18 +515,21 @@ class ResourceThing(Resource):
         return ['views'].__iter__()
 
     def getitem(self, key):
-        subs =  {
+        subs = {
             'views': ResourceThingViews(),
             ':delete': ResourceThingDelete(),
             ':rename': ResourceThingRename(),
         }
         return subs.get(key, None)
 
+
 class ResourceThingDelete(Resource):
     pass
 
+
 class ResourceThingRename(Resource):
     pass
+
 
 class ResourceThingViews(Resource):
 
@@ -474,7 +540,7 @@ class ResourceThingViews(Resource):
         return options.__iter__()
 
     def getitem(self, key):
-        subs =  {
+        subs = {
             'syntax': ResourceThingViewSyntax(),
             'edit_fancy': ResourceThingViewEditor(),
         }
@@ -492,20 +558,34 @@ class ResourceThingViews(Resource):
 
         return subs.get(key, None)
 
+
 class ResourceThingViewImages(Resource):
     def getitem(self, key):
         which, data_format = key.split('.')
         return ResourceThingViewImagesOne(which.encode('utf8'), data_format.encode('utf8'))
 
+
 class ResourceThingView(Resource): pass
+
+
 class ResourceThingViewSyntax(ResourceThingView): pass
+
+
 class ResourceThingViewDPGraph(ResourceThingView): pass
+
+
 class ResourceThingViewDPTree(ResourceThingView): pass
+
+
 class ResourceThingViewNDPGraph(ResourceThingView): pass
+
+
 class ResourceThingViewNDPRepr(ResourceThingView): pass
+
+
 class ResourceThingViewSolver(ResourceThingView):
     def getitem(self, key):
-        subs =  {
+        subs = {
             'submit': ResourceThingViewSolver_submit(),
             'display.png': ResourceThingViewSolver_display_png(),
             'display1u': ResourceThingViewSolver_display1u(),
@@ -513,24 +593,35 @@ class ResourceThingViewSolver(ResourceThingView):
         }
         return subs.get(key, None)
 
+
 class ResourceThingViewSolver_submit(Resource): pass
+
+
 class ResourceThingViewSolver_display_png(Resource): pass
+
+
 class ResourceThingViewSolver_display1u(Resource): pass
+
+
 class ResourceThingViewSolver_display1u_png(Resource): pass
+
 
 class ResourceThingViewSolver0(ResourceThingView):
     def getitem(self, key):
-        return ResourceThingViewSolver0Axis( key)
+        return ResourceThingViewSolver0Axis(key)
+
 
 class ResourceThingViewSolver0Axis(ResourceThingView):
     def getitem(self, key):
         return ResourceThingViewSolver0AxisAxis(self.name, key)
+
 
 class ResourceThingViewSolver0AxisAxis(ResourceThingView):
     def __init__(self, fun_axes, res_axes):
         self.fun_axes = fun_axes
         self.res_axes = res_axes
         self.name = '%s-%s' % (fun_axes, res_axes)
+
     def getitem(self, key):
         subs = {
             'addpoint': ResourceThingViewSolver0AxisAxis_addpoint(),
@@ -539,13 +630,19 @@ class ResourceThingViewSolver0AxisAxis(ResourceThingView):
         }
         return subs.get(key, None)
 
+
 class ResourceThingViewSolver0AxisAxis_addpoint(Resource): pass
+
+
 class ResourceThingViewSolver0AxisAxis_getdatasets(Resource): pass
+
+
 class ResourceThingViewSolver0AxisAxis_reset(Resource): pass
+
 
 class ResourceThingViewEditor(ResourceThingView):
     def getitem(self, key):
-        subs =  {
+        subs = {
             'ajax_parse': ResourceThingViewEditorParse(),
             'save': ResourceThingViewEditorSave(),
         }
@@ -558,7 +655,10 @@ class ResourceThingViewEditor(ResourceThingView):
 
 
 class ResourceThingViewEditorParse(Resource): pass
+
+
 class ResourceThingViewEditorSave(Resource): pass
+
 
 class ResourceThingViewEditorGraph(Resource):
     def __init__(self, text_hash, data_format):
@@ -566,18 +666,22 @@ class ResourceThingViewEditorGraph(Resource):
         self.data_format = data_format
         self.name = 'graph.%s.%s' % (text_hash, data_format)
 
+
 class ResourceThingViewImagesOne(Resource):
     def __init__(self, which, data_format):
         self.which = which
         self.data_format = data_format
         self.name = '%s.%s' % (which, data_format)
 
+
 class ResourceRobots(Resource): pass
+
+
 class ResourceAuthomatic(Resource):
     def get_subs(self):
         session = self.get_session()
         config = session.app.get_authomatic_config()
-        subs =  {
+        subs = {
             'github': ResourceAuthomaticProvider('github'),
             'facebook': ResourceAuthomaticProvider('facebook'),
             'google': ResourceAuthomaticProvider('google'),
@@ -587,16 +691,19 @@ class ResourceAuthomatic(Resource):
         for k in list(subs):
             if not k in config:
                 del subs[k]
-            
+
         return subs
 
+
 class ResourceAuthomaticProvider(Resource): pass
+
 
 def get_all_contexts(context):
     if hasattr(context, '__parent__'):
         return get_all_contexts(context.__parent__) + (context,)
     else:
         return (context,)
+
 
 def get_from_context(rclass, context):
     a = get_all_contexts(context)
@@ -605,14 +712,18 @@ def get_from_context(rclass, context):
             return _
     return None
 
+
 def is_in_context(rclass, context):
     return get_from_context(rclass, context) is not None
+
 
 def context_get_shelf_name(context):
     return get_from_context(ResourceShelf, context).name
 
+
 def context_get_repo_name(context):
     return get_from_context(ResourceRepo, context).name
+
 
 def context_get_repo(context):
     session = context.get_session()
@@ -621,11 +732,13 @@ def context_get_repo(context):
     repo = repos[repo_name]
     return repo
 
+
 def context_get_shelf(context):
     repo = context_get_repo(context)
     shelf_name = context_get_shelf_name(context)
     shelf = repo.shelves[shelf_name]
     return shelf
+
 
 def context_get_library(context):
     library_name = context_get_library_name(context)
@@ -633,15 +746,18 @@ def context_get_library(context):
     library = shelf.libraries[library_name]
     return library
 
+
 def context_get_things(context):
     library = context_get_library(context)
     specname = get_from_context(ResourceThings, context).specname
-    things  = library.things.child(specname)
+    things = library.things.child(specname)
     return things
+
 
 def context_get_library_name(context):
     library_name = get_from_context(ResourceLibrary, context).name
     return library_name
+
 
 def context_get_spec(context):
     from mcdp_web.editor_fancy.app_editor_fancy_generic import specs

@@ -10,6 +10,7 @@ from mcdp_report.plotters.get_plotters_imp import get_all_available_plotters, \
 from mcdp_report.plotters.interface import NotPlottable
 from mcdp import logger
 from mcdp.exceptions import DPInternalError
+
 from reprep.config import RepRepDefaults
 from reprep.plot_utils.styles import ieee_spines, ieee_fonts
 

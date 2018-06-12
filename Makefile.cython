@@ -1,0 +1,64 @@
+PYTHONLIB := /usr/include/python2.7
+src := src
+CFLAGS := -shared -pthread -fPIC -fwrapv -O2 -Wall -fno-strict-aliasing -I${PYTHONLIB}
+PYTHON_FILES := $(shell find $(src) -name "*.py" ! -name "__init__.py" ! -name "manage.py" | grep -v mcdp_data | grep -v tests | grep -v mcdp_lang | grep -v disk_events | grep -v rcomp_units | grep -v branch_info)
+# see below for some description of the exclusions
+OBJECTS := $(patsubst %.py,%.so,$(PYTHON_FILES))
+
+all: $(OBJECTS)
+	echo $(PYTHON_FILES)
+
+delete-python-files:
+	rm $(PYTHON_FILES)
+
+%.c: %.py
+		@ echo "Compiling $<"
+		@ cython --no-docstrings $< -o $(patsubst %.py,%.c,$<)
+
+%.so: %.c
+		@ $(CC) $(CFLAGS) -o $@ $<
+		@ strip --strip-all $@
+
+compress:
+		@ for f in `find . -name "*.so"`; do \
+					upx -9 $$f; \
+						done
+
+clean-build:
+		@ find . ! -name "__init__.py" ! -name "manage.py" -name "*.py" -delete
+		@ find . -name "__init__.so" -o -name "manage.so" -delete
+
+clean:
+		@ rm -rf ./app
+		find $(src) -name '*.so' -delete
+		find $(src) -name '*.c' -delete
+
+run: clean
+		@ cp -R ../../app .
+		@ find . -iname "*.py[co]" -delete
+		@ $(MAKE) && $(MAKE) clean-build
+
+.DEFAULT: all
+
+.PHONY: all %.c %.so clean clean-build compress run
+
+# branch_info: excluded because needed in setup.py
+# rcomp_units: excluded because it is in code spec
+#
+#> | Could not instance the spec:
+#> | - mcdp_posets.make_rcompunit
+#> |   - {units: J}
+#> | because of this error:
+#> | | Traceback (most recent call last):
+#> | |   File "/mnt/dorothy-vmware-michela-shared/mcdp/src/mcdp_lang/eval_codespec_imp_utils.py", line 47, in instantiate_spec
+#> | |     return instantiate(function_name, parameters)
+#> | |   File "/mnt/dorothy-vmware-michela-shared/mcdp/src/mcdp_lang/eval_codespec_imp_utils_instantiate.py", line 31, in instantiate
+#> | |     raise SemanticMistake(msg)
+#> | | SemanticMistake: instantiate(): Could not call function 'mcdp_posets.make_rcompunit'
+#> | |  with params units='J':
+#> | | > make_rcompunit() takes no keyword arguments
+#> | | > Traceback (most recent call last):
+#> | | >   File "/mnt/dorothy-vmware-michela-shared/mcdp/src/mcdp_lang/eval_codespec_imp_utils_instantiate.py", line 25, in instantiate
+#> | | >     return function(**parameters)
+#> | | > TypeError: make_rcompunit() takes no keyword arguments
+#> | | >

@@ -7,10 +7,10 @@ from collections import namedtuple, defaultdict
 import git
 from bs4.element import Tag
 from contracts.utils import check_isinstance, raise_wrapped
+
 from mcdp_docs.tocs import LABEL_NAME
 from mcdp_utils_misc import memoize_simple, AugmentedResult, logger
 from mcdp_utils_xml import bs, to_html_stripping_fragment, gettext
-
 from .manual_constants import MCDPManualConstants
 from .manual_join_imp import DocToJoin
 
@@ -40,8 +40,10 @@ def get_changed_files(repo_root):
     logger.debug(msg)
     return changed
 
+
 # git.util.actor is not serializable
 Author = namedtuple('Author', 'name email')
+
 
 @memoize_simple
 def get_source_info(filename):
@@ -88,9 +90,9 @@ def get_source_info(filename):
             header2sourceinfo = None
 
         # print('%s last modified by %s on %s ' % (filename, author, last_modified))
-        res =  SourceInfo(commit=hexsha, author=author2, last_modified=last_modified,
-                          has_local_modifications=has_local_modifications,
-                          header2sourceinfo=header2sourceinfo)
+        res = SourceInfo(commit=hexsha, author=author2, last_modified=last_modified,
+                         has_local_modifications=has_local_modifications,
+                         header2sourceinfo=header2sourceinfo)
         # logger.debug(res)
         return res
     finally:
@@ -99,11 +101,14 @@ def get_source_info(filename):
 
 HeaderIdent = namedtuple('HeaderIdent', 'id_ text')
 
+
 class FileNotInGit(Exception):
     pass
 
+
 def get_blames(repo, commit, path):
     from mcdp_docs.mark.markd import render_markdown
+
     def contains_header(l):
         if not l.startswith('#'):
             return None

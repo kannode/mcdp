@@ -6,13 +6,9 @@ from collections import OrderedDict
 from bs4.element import Tag
 from contracts import contract
 from contracts.utils import indent, check_isinstance
+
 from mcdp import logger
-
-
-
-
 from mcdp_utils_xml import insert_inset
-
 from .pretty_printing import pretty_print_dict
 
 
@@ -40,23 +36,28 @@ class Note(object):
         stack = inspect.stack()
         self.created_function = stack[1 + stacklevel][3]
         module = inspect.getmodule(stack[1 + stacklevel][0])
-        self.created_module = module.__name__
-        self.created_file = module.__file__
+        if module is None:
+            self.created_module = None
+            self.created_file = None
+        else:
+            self.created_module = module.__name__
+            self.created_file = module.__file__
+
         self.prefix = prefix
 
     def update_file_path(self, prefix):
 
         # if isinstance(self.msg, Tag):
-            for k, l in self.locations.items():
-                from mcdp_docs.location import RelativeLocation
-                if isinstance(l, RelativeLocation):
-                    href2 = os.path.join(prefix, l.href)
-                    # print( ('updated %s \n%s \n' % (self.tags, l.href)) +
-                    #       ('with prefix %s\n' % prefix)  +
-                    #       ('     -> %s' % ( href2)))
-                    l.href = href2
-                # else:
-                    # print('ignore %s '% self.tags)
+        for k, l in self.locations.items():
+            from mcdp_docs.location import RelativeLocation
+            if isinstance(l, RelativeLocation):
+                href2 = os.path.join(prefix, l.href)
+                # print( ('updated %s \n%s \n' % (self.tags, l.href)) +
+                #       ('with prefix %s\n' % prefix)  +
+                #       ('     -> %s' % ( href2)))
+                l.href = href2
+            # else:
+            # print('ignore %s '% self.tags)
 
     def __str__(self):
         s = type(self).__name__
@@ -79,8 +80,9 @@ class Note(object):
                     locations[k] = v
             s += '\n' + indent(pretty_print_dict(locations), '  ')
 
-        s += '\n\nCreated by function %s()' % self.created_function
-        s += '\n   in module %s' % self.created_module
+        if self.created_function:
+            s += '\n\nCreated by function %s()' % self.created_function
+            s += '\n   in module %s' % self.created_module
         #         s += '\n   in file %s' % self.created_file
         # TODO: use Location
         if self.prefix:
@@ -298,7 +300,7 @@ class AugmentedResult(object):
                 if isinstance(l, HTMLIDLocation):
                     ID = l.element_id
                     if ID in id2filename:
-                        href = id2filename[ID] +'#' + ID
+                        href = id2filename[ID] + '#' + ID
                         # print('updated %s to %s' % (ID, href))
                         n = RelativeLocation(href, l.parent)
                         note.locations[k] = n

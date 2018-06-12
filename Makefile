@@ -14,7 +14,7 @@ serve-local:
 prepare_tests:
 	mkdir -p $(out)
 
-	$(MAKE) -C $(libraries)/unittests.mcdpshelf/basic.mcdplib/generated_dps/ clean all
+	DISABLE_CONTRACTS=1 $(MAKE) -C $(libraries)/unittests.mcdpshelf/basic.mcdplib/generated_dps/ clean all
 
 comptests: prepare_tests
 	comptests -o $(out) --contracts --nonose --console $(package)
@@ -154,28 +154,50 @@ show-unicode:
 serve-continuously:
 	./misc/serve_continuously.sh
 
-main_modules=\
-	src/mcdp\
-	src/mcdp_cli\
-	src/mcdp_depgraph\
-	src/mcdp_docs\
-	src/mcdp_dp\
-	src/mcdp_ext_libraries\
-	src/mcdp_figures\
-	src/mcdp_ipython_utils\
-	src/mcdp_lang\
-	src/mcdp_lang_utils\
-	src/mcdp_library\
-	src/mcdp_maps\
-	src/mcdp_opt\
-	src/mcdp_posets\
-	src/mcdp_report\
-	src/mcdp_web\
-	src/mocdp\
-	src/multi_index
+main_modules=mcdp\
+mcdp_cli\
+mcdp_comp_tests\
+mcdp_data\
+mcdp_depgraph\
+mcdp_docs\
+mcdp_docs_tests\
+mcdp_dp\
+mcdp_dp_tests\
+mcdp_figures\
+mcdp_figures_tests\
+mcdp_hdb\
+mcdp_hdb_mcdp\
+mcdp_hdb_mcdp_tests\
+mcdp_hdb_tests\
+mcdp_ipython_utils\
+mcdp_lang\
+mcdp_lang_tests\
+mcdp_lang_utils\
+mcdp_library\
+mcdp_library_tests\
+mcdp_maps\
+mcdp_opt\
+mcdp_opt_tests\
+mcdp_posets\
+mcdp_posets_tests\
+mcdp_repo\
+mcdp_report\
+mcdp_report_ndp_tests\
+mcdp_repo_tests\
+mcdp_shelf\
+mcdp_shelf_tests\
+mcdp_tests\
+mcdp_user_db\
+mcdp_utils_gitrepo\
+mcdp_utils_indexing\
+mcdp_utils_misc\
+mcdp_utils_xml\
+mcdp_web\
+mcdp_web_tests\
+mocdp
 
 test-dependencies.deps:
-	sfood $(main_modules) > $@
+	cd src && sfood $(main_modules) > $@
 
 %.dot: %.deps
 	sfood-graph < $< > $@
@@ -207,3 +229,5 @@ python-module-stats:
 		Pillow\
 		qtfaststart\
 		selenium
+
+include Makefile.docker

@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
-from contextlib import contextmanager
 import sys
 import traceback
-
-from decorator import decorator
-from nose.tools import assert_equal
+from contextlib import contextmanager
 
 from contracts import contract
 from contracts.utils import raise_desc, raise_wrapped, check_isinstance, indent
+from decorator import decorator
+from nose.tools import assert_equal
+
 from mcdp import logger, MCDPConstants
 from mcdp.development import mcdp_dev_warning, do_extra_checks
 from mcdp.exceptions import (DPInternalError, DPSemanticError, DPSyntaxError,
-                              MCDPExceptionWithWhere)
+                             MCDPExceptionWithWhere)
 from mcdp_lang_utils import Where, line_and_col, location
 from mcdp_lang_utils.where import format_where
 from mcdp_utils_misc.timing import timeit
-
 from .find_parsing_el import find_parsing_element
 from .fix_whitespace_imp import fix_whitespace
 from .namedtuple_tricks import get_copy_with_where, recursive_print
@@ -38,7 +37,7 @@ def copy_expr_remove_action(expr):
 def decorate_add_where(f, *args, **kwargs):
     where = args[0].where
 
-#     logger.debug('decorate_add_where where.string = %r' % where.string)
+    #     logger.debug('decorate_add_where where.string = %r' % where.string)
     try:
         return f(*args, **kwargs)
     except MCDPExceptionWithWhere as e:
@@ -54,6 +53,28 @@ def decorate_add_where(f, *args, **kwargs):
             r = 'unavailable'
         raise_wrapped(DPInternalError, e, msg, exc=sys.exc_info(), r=r)
 
+
+# def decorate_add_where(f):
+#
+#     def ff(*args, **kwargs):
+#         where = args[0].where
+#     #     logger.debug('decorate_add_where where.string = %r' % where.string)
+#         try:
+#             return f(*args, **kwargs)
+#         except MCDPExceptionWithWhere as e:
+#             _, _, tb = sys.exc_info()
+#             raise_with_info(e, where, tb)
+#         except MemoryError as e:
+#             raise
+#         except Exception as e:
+#             msg = 'Unexpected exception while executing %s.' % f.__name__
+#             if args and isnamedtupleinstance(args[0]):
+#                 r = recursive_print(args[0])
+#             else:
+#                 r = 'unavailable'
+#             raise_wrapped(DPInternalError, e, msg, exc=sys.exc_info(), r=r)
+#     ff.__name__ = f.__name__
+#     return ff
 
 @contextmanager
 def add_where_information(where):
@@ -88,9 +109,9 @@ def nice_stack(tb):
 def raise_with_info(e, where, tb):
     check_isinstance(e, MCDPExceptionWithWhere)
     existing = getattr(e, 'where', None)
-#     if existing is not None:
-#         raise
-#     use_where = existing if existing is not None else where
+    #     if existing is not None:
+    #         raise
+    #     use_where = existing if existing is not None else where
     if existing is not None and existing.string == where.string:
         use_where = existing
         error = e.error
@@ -99,11 +120,11 @@ def raise_with_info(e, where, tb):
         if existing is not None:
             use_where = where
             error = e.error + '\n' + format_where(existing)
-#             error = format_where(where) + '\n'+ format_where(existing)  + '\n' +  e.error
+        #             error = format_where(where) + '\n'+ format_where(existing)  + '\n' +  e.error
         else:
             use_where = where
             error = e.error
-#         logger.debug('raise_with_info: seen %r ' % existing)
+    #         logger.debug('raise_with_info: seen %r ' % existing)
     stack = nice_stack(tb)
 
     args = (error, use_where, stack)
@@ -111,7 +132,6 @@ def raise_with_info(e, where, tb):
 
 
 def wheredecorator(b):
-
     def bb(tokens, loc, s):
         where = Where(s, loc)
         try:
@@ -137,6 +157,7 @@ def wheredecorator(b):
             raise_wrapped(DPInternalError, e, "Error while parsing.",
                           where=where.__str__(), tokens=tokens)
 
+        # noinspection PyUnboundLocalVariable
         if isnamedtupleinstance(res) and res.where is None:
             res = get_copy_with_where(res, where=where)
 
@@ -150,7 +171,7 @@ def spa(x, b):
 
     @parse_action
     def p(tokens, loc, s):
-        #print('spa(): parsing %s %r %r %r ' % (x, tokens, loc, s))
+        # print('spa(): parsing %s %r %r %r ' % (x, tokens, loc, s))
         res = bb(tokens, loc, s)
         # if we are here, then it means the parse was successful
         # we try again to get loc_end
@@ -160,15 +181,15 @@ def spa(x, b):
             if res.where is not None:
                 check_isinstance(res.where, Where)
         if isnamedtupleinstance(res) and \
-            (res.where is None or res.where.character_end is None):
+                (res.where is None or res.where.character_end is None):
             w2 = Where(s, character=loc, character_end=character_end)
             res = get_copy_with_where(res, where=w2)
 
         if do_extra_checks():
             if not isinstance(res, (float, int, str)):
                 if res.where is None:
-                    msg = 'Found element with no where'
-                    raise_desc(ValueError, msg, res=res)
+                    msg_ = 'Found element with no where'
+                    raise_desc(ValueError, msg_, res=res)
 
             if hasattr(res, 'where'):
                 assert res.where.character_end is not None, \
@@ -195,8 +216,8 @@ def add_where_to_empty_list(result_of_function_above):
     check_isinstance(r, CDP.ModelStatements)
     ops = unwrap_list(r.statements)
     if len(ops) == 0:
-        l = make_list(ops, where=r.where)
-        res = CDP.ModelStatements(l, where=r.where)
+        li = make_list(ops, where=r.where)
+        res = CDP.ModelStatements(li, where=r.where)
         return res
     else:
         return r
@@ -206,9 +227,9 @@ def add_where_to_empty_list(result_of_function_above):
 @wheredecorator
 def mult_parse_action(tokens):
     tokens = list(tokens[0])
-    l = make_list(tokens)
-    assert l.where.character_end is not None
-    res = CDP.MultN(l, where=l.where)
+    li = make_list(tokens)
+    assert li.where.character_end is not None
+    res = CDP.MultN(li, where=li.where)
     return res
 
 
@@ -250,6 +271,8 @@ def fvalue_minus_parse_action(tokens):
     assert l.where.character_end is not None
     res = CDP.FValueMinusN(l, where=l.where)
     return res
+
+
 #
 #
 # def get_token_of_class(tokens, klass):
@@ -264,10 +287,10 @@ def fvalue_minus_parse_action(tokens):
 @parse_action
 def space_product_parse_action(tokens):
     tokens = list(tokens[0])
-#     if '(' in tokens: tokens.remove('(')
-#     if ')' in tokens: tokens.remove(')')
-#     lpar = get_token_of_class(tokens, CDP.LPAR)
-#     rpar = get_token_of_class(tokens, CDP.RPAR)
+    #     if '(' in tokens: tokens.remove('(')
+    #     if ')' in tokens: tokens.remove(')')
+    #     lpar = get_token_of_class(tokens, CDP.LPAR)
+    #     rpar = get_token_of_class(tokens, CDP.RPAR)
     lpar = None
     rpar = None
     ops = make_list(tokens)
@@ -328,7 +351,6 @@ def translate_where(where0, string):
 
 
 def parse_wrap(expr, string):
-
     """
 
 
@@ -401,7 +423,7 @@ def parse_wrap(expr, string):
         msg = 'RuntimeError %s while parsing string.' % (type(e).__name__)
         msg += '\n' + indent(string, 'string: ')
         compact = 'maximum recursion depth' in str(e)
-#         compact = False # XXX
+        #         compact = False # XXX
         raise_wrapped(DPInternalError, e, msg, compact=compact)
     except BaseException as e:
         msg = 'Unexpected exception %s while parsing string.' % (type(e).__name__)
@@ -442,21 +464,21 @@ def resshortcut1m(requires, rnames, prep_for, name):
 
 def parse_pint_unit(tokens):
     tokens = list(tokens)
-    pint_string = " ".join(tokens)  #_.encode('utf-8') for _ in tokens)
+    pint_string = " ".join(tokens)  # _.encode('utf-8') for _ in tokens)
     return CDP.RcompUnit(pint_string)
 
 
 def integer_fraction_from_superscript(x):
     w = None
     replacements = {
-    '¹': CDP.IntegerFraction(num=1, den=1, where=w),
-    '²': CDP.IntegerFraction(num=2, den=1, where=w),
-    '³': CDP.IntegerFraction(num=3, den=1, where=w),
-    '⁴': CDP.IntegerFraction(num=4, den=1, where=w),
-    '⁵': CDP.IntegerFraction(num=5, den=1, where=w),
-    '⁶': CDP.IntegerFraction(num=6, den=1, where=w),
-    '⁷': CDP.IntegerFraction(num=7, den=1, where=w),
-    '⁸': CDP.IntegerFraction(num=8, den=1, where=w),
-    '⁹': CDP.IntegerFraction(num=9, den=1, where=w),
+        '¹': CDP.IntegerFraction(num=1, den=1, where=w),
+        '²': CDP.IntegerFraction(num=2, den=1, where=w),
+        '³': CDP.IntegerFraction(num=3, den=1, where=w),
+        '⁴': CDP.IntegerFraction(num=4, den=1, where=w),
+        '⁵': CDP.IntegerFraction(num=5, den=1, where=w),
+        '⁶': CDP.IntegerFraction(num=6, den=1, where=w),
+        '⁷': CDP.IntegerFraction(num=7, den=1, where=w),
+        '⁸': CDP.IntegerFraction(num=8, den=1, where=w),
+        '⁹': CDP.IntegerFraction(num=9, den=1, where=w),
     }
     return replacements[x]

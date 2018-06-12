@@ -1,55 +1,48 @@
 # -*- coding: utf-8 -*-
 import functools
+import logging
 import math
 import sys
 
-from pint import UndefinedUnitError  # @UnresolvedImport
-from pint import UnitRegistry  # @UnresolvedImport
+from contracts import contract
+from contracts.utils import check_isinstance, raise_wrapped, raise_desc
+from pint import UndefinedUnitError, UnitRegistry
 
-# Redefining 'pixel' (<class 'pint.definitions.UnitDefinition'>)
-import logging
+from mcdp.constants import MCDPConstants
+from mcdp.development import do_extra_checks, mcdp_dev_warning
+from mcdp.exceptions import DPSyntaxError, \
+    DPSemanticError
+from mcdp_utils_misc.memoize_simple_imp import memoize_simple
+from .any import Any, BottomCompletion, TopCompletion
+from .poset import is_top, is_bottom
+from .rcomp import RcompBase, Rbicomp
+from .space import Map
 
 pint_logger = logging.getLogger('pint.util')
 pint_logger.setLevel(logging.ERROR)
 pint_logger.info('disabling warning')
 
-
-from contracts import contract
-from contracts.utils import check_isinstance, raise_wrapped, raise_desc
-from mcdp.exceptions import DPSyntaxError, \
-    DPSemanticError
-from mcdp_utils_misc.memoize_simple_imp import memoize_simple
-
-from .any import Any, BottomCompletion, TopCompletion
-from .poset import is_top, is_bottom
-from .rcomp import RcompBase, Rbicomp
-from .space import Map
-from mcdp.development import do_extra_checks, mcdp_dev_warning
-from mcdp.constants import MCDPConstants
-
-
 # str -> conversion to dollars
 currencies = {
-    'CHF': 1.03, # in dollars
+    'CHF': 1.03,  # in dollars
     'EUR': 1.14,
     'SGD': 0.70,
     'JPY': 0.0088,
     'GBP': 1.24,
 }
 
+
 class MyUnitRegistry(UnitRegistry):
     def __init__(self, *args, **kwargs):
         UnitRegistry.__init__(self, *args, **kwargs)
         self.define(' dollars = [cost] = USD')
- 
+
         self.define(' flops = [flops]')
         self.define(' pixels = [pixels] = pixel')
         self.define(' episodes = [episodes] = episode')
-        
+
         for currency, value in currencies.items():
             self.define(' %s = %s dollars' % (currency, value))
-            
-        
 
 
 _ureg = MyUnitRegistry()
@@ -59,10 +52,11 @@ def get_ureg():
     ureg = _ureg
     return ureg
 
+
 class RcompUnits(RcompBase):
 
     def __init__(self, pint_unit, string):
-        check_isinstance(string, str) # utf-8
+        check_isinstance(string, str)  # utf-8
         if do_extra_checks():
             ureg = get_ureg()
             check_isinstance(pint_unit, ureg.Quantity)
@@ -106,7 +100,7 @@ class RcompUnits(RcompBase):
             'units_formatted': self.units_formatted,
         }
 
-        att =MCDPConstants.ATTRIBUTE_NDP_RECURSIVE_NAME
+        att = MCDPConstants.ATTRIBUTE_NDP_RECURSIVE_NAME
         if hasattr(self, att):
             state[att] = getattr(self, att)
         return state
@@ -139,7 +133,9 @@ class RcompUnits(RcompBase):
         else:
             return s
 
+
 mcdp_dev_warning('(!) Need to create plenty of checks for this Rbicomb.')
+
 
 class RbicompUnits(Rbicomp):
     """ [-inf, inf] """
@@ -156,7 +152,7 @@ class RbicompUnits(Rbicomp):
         assert u == self.units, (self.units, u, string)
 
         self.units_formatted = format_pint_unit_short(self.units)
-    
+
     @staticmethod
     def from_rcompunits(P):
         check_isinstance(P, RcompUnits)
@@ -252,7 +248,7 @@ def parse_pint(s0):
         check_isinstance(p, str)
         check_isinstance(replacement, str)
         s = s.replace(p, replacement)
-        
+
     ureg = get_ureg()
     try:
         return ureg.parse_expression(s)
@@ -273,7 +269,7 @@ def parse_pint(s0):
 def make_rcompunit(units):
     try:
         s = units.strip()
-    
+
         mcdp_dev_warning('obsolete?')
         if s.startswith('set of'):
             t = s.split('set of')
@@ -284,25 +280,28 @@ def make_rcompunit(units):
         mcdp_dev_warning('obsolete?')
         if s == 'any':
             return BottomCompletion(TopCompletion(Any()))
-    
+
         if s == 'R':
-            raise DPSyntaxError('Form R is not recognized anymore. Use "dimensionless".')
-        
-            s = 'm/m'
-            
+            msg = 'Form R is not recognized anymore. Use "dimensionless".'
+            raise DPSyntaxError(msg)
+            #
+            # s = 'm/m'
+            #
         unit = parse_pint(s)
     except DPSyntaxError:
         raise
-#         msg = 'Cannot parse the unit %r.' % units
-#         raise_wrapped(DPSemanticError, e, msg, compact=True, exc=sys.exc_info())
-        
+    #         msg = 'Cannot parse the unit %r.' % units
+    #         raise_wrapped(DPSemanticError, e, msg, compact=True, exc=sys.exc_info())
+
     return RcompUnits(unit, s)
+
 
 R_Power_units = parse_pint('W')
 R_Energy_units = parse_pint('J')
 R_Weight_units = parse_pint('kg')
 R_Weight_g_units = parse_pint('g')
 R_Force_units = parse_pint('N')
+
 
 def format_pint_unit_short(units):
     # some preferred ways
@@ -324,29 +323,29 @@ def format_pint_unit_short(units):
     x = x.replace('dollars', '$')
     x = x.replace(' ', '')
     x = x.replace('**', '^')
-    
+
     if x.startswith('/'):
         x = '1' + x
-        
-        
+
     digit2superscript = {
-        '1':'¹',
-        '2':'²' ,
-        '3':'³',
-        '4':'⁴',
-        '5':'⁵',
-        '6':'⁶',
-        '7':'⁷',
-        '8':'⁸',
-        '9':'⁹',
+        '1': '¹',
+        '2': '²',
+        '3': '³',
+        '4': '⁴',
+        '5': '⁵',
+        '6': '⁶',
+        '7': '⁷',
+        '8': '⁸',
+        '9': '⁹',
     }
     # XXX
-#     from mcdp_lang.dealing_with_special_letters import digit2superscript
+    #     from mcdp_lang.dealing_with_special_letters import digit2superscript
     for n, replacement in digit2superscript.items():
         w = '^' + n
         x = x.replace(w, replacement)
-            
+
     return str(x)
+
 
 R_dimensionless = make_rcompunit('m/m')
 R_Time = make_rcompunit('s')
@@ -365,6 +364,7 @@ R_Voltage = make_rcompunit('V')
 def mult_table_seq(seq):
     return functools.reduce(mult_table, seq)
 
+
 @contract(a=RcompUnits, b=RcompUnits)
 def mult_table(a, b):
     check_isinstance(a, RcompUnits)
@@ -373,6 +373,7 @@ def mult_table(a, b):
     unit2 = a.units * b.units
     s = ('%s' % unit2).encode('utf-8')
     return RcompUnits(unit2, s)
+
 
 def check_mult_units_consistency_seq(factors, c):
     for f in factors:
@@ -402,6 +403,7 @@ def inverse_of_unit(a):
     s = ('%s' % unit2).encode('utf-8')
     return RcompUnits(unit2, s)
 
+
 def RbicompUnits_reflect(P, x):
     check_isinstance(P, RbicompUnits)
     if is_top(P, x):
@@ -409,9 +411,11 @@ def RbicompUnits_reflect(P, x):
     if is_bottom(P, x):
         return P.get_top()
     return -x
-    
+
+
 class UndefinedRbicompUnitsResult(Exception):
     pass
+
 
 def RbicompUnits_subtract(P, x, y):
     """
@@ -431,50 +435,53 @@ def RbicompUnits_add(P, x, y):
     """
         Raises UndefinedRbicompUnitsResult
     """
+
     def undefined():
         msg = 'Undefined addition.'
         raise_desc(UndefinedRbicompUnitsResult, msg, x=P.format(x), y=P.format(y))
-        
+
     if is_top(P, x):
         if is_top(P, y):
             return P.get_top()
         elif is_bottom(P, y):
-            return undefined() 
+            return undefined()
         return P.get_top()
     elif is_bottom(P, x):
         if is_top(P, y):
-            return undefined() 
+            return undefined()
         elif is_bottom(P, y):
-            return P.get_bottom() 
+            return P.get_bottom()
         return P.get_bottom()
     else:
         # x is normal: 
         if is_top(P, y):
-            return undefined() 
+            return undefined()
         elif is_bottom(P, y):
             return P.get_bottom()
         mcdp_dev_warning('underflow, overflow')
-        return x + y 
-    
+        return x + y
+
+
 def rcomp_add(x, y):
     from .rcomp import Rcomp
     P = Rcomp()
     x_is_top = is_top(P, x)
     y_is_top = is_top(P, y)
-    
+
     if x_is_top or y_is_top:
         return P.get_top()
-    mcdp_dev_warning('underflow, overflow')    
+    mcdp_dev_warning('underflow, overflow')
     return x + y
+
 
 def rcompunits_add(P, x, y):
     check_isinstance(P, RcompUnits)
     x_is_top = is_top(P, x)
     y_is_top = is_top(P, y)
-    
+
     if x_is_top or y_is_top:
         return P.get_top()
-    mcdp_dev_warning('underflow, overflow')    
+    mcdp_dev_warning('underflow, overflow')
     return x + y
 
 
@@ -513,14 +520,12 @@ class RCompUnitsPowerMap(Map):
         except OverflowError:
             return self.cod.get_top()
 
-    def __repr__(self): # XXX
+    def __repr__(self):  # XXX
         s = '^ '
         s += '%d' % self.num
         if self.den != 1:
             s += '/%s' % self.den
         return s
-    
+
     def repr_map(self, letter):
         return '%s ⟼ %s ^ %s/%s ' % (letter, letter, self.num, self.den)
-
-        

@@ -1,81 +1,73 @@
 version: 2
 jobs:
-    build:
+  build:
      docker:
-        - image: andreacensi/duckietown-xenial-kinetic:19
+        - image: andreacensi/mcdp_deps:compilation
           environment:
               COLUMNS: 160
-              NODE_PATH: /root/project/node_modules
+              NODE_PATH: /project/node_modules
+              MPLBACKEND: agg
+              MCDP_TEST_SKIP_MCDPOPT: 1
+              # MCDP_TEST_LIBRARIES_EXCLUDE = mcdp_theory
+              # MCDP_TEST_LIBRARIES = "basic,eversion,libtemplates,multisets_tests,posets,tuple_indexing,tuple_making,uncertainty,comments,documents,making,pop,batteries_v1"
      parallelism: 3
      resource_class: large
      steps:
         - checkout
         - run:
-            name: Pulling large files.
-            command: |
-                # git lfs version
-                # git lfs pull
-        - run:
-            name: deps
-            command: |
-                make python-module-stats
-                pip install -U -r requirements.txt
-                pip install -U selenium
-                make python-module-stats
-
-
-        - run:
-            name: NPM
-            command: |
-                curl -sL https://deb.nodesource.com/setup_6.x | bash
-                apt install -y nodejs
-                npm install MathJax-node jsdom@9.3 less
-
-
-        - run:
             name: Install
             command: |
+                # should do nothing if container up to date
+                pip install -r requirements.txt
+
                 python setup.py develop
-
-                # pip install pympler
-
-                apt install -y strace lsof iotop
-
-                make python-module-stats
 
                 mkdir -p out/comptests-failures
 
         - run:
             name: Make sure things are ok
             command:  |
-                echo "Worker" $CIRCLE_NODE_INDEX " of " $CIRCLE_NODE_TOTAL:
-                echo "Current directory:"
-                pwd
-                /usr/bin/nodejs --version
-                /usr/bin/npm --version
-                python --version
+                echo "Worker" $CIRCLE_NODE_INDEX " of " $CIRCLE_NODE_TOTAL.
+                echo 'nodejs:' `/usr/bin/nodejs --version`
+                echo 'npm:' `/usr/bin/npm --version`
+                echo 'python:' `python --version`
                 python -c "import numpy; print 'numpy: %s' % numpy.__version__"
                 python -c "import matplotlib; print 'matplotlib: %s' % matplotlib.__version__"
                 python -c "import compmake; print 'compmake: %s' % compmake.__version__"
+                python -c "import reprep; print 'reprep: %s' % reprep.__version__"
                 python -c "import contracts; print 'contracts: %s' % contracts.__version__"
-                fc-list | sort
+                python -c "import networkx; print 'networkx: %s' % networkx.__version__; print networkx.__file__"
+
+        - run:
+            name: compmake configuration
+            command:  |
                 cp misc/unittests-compmake.rc .compmake.rc
                 cat .compmake.rc
 
         - run:
+            name: Compilation of files
+            command:  |
+                make -f Makefile.cython -j4
+                make -f Makefile.cython delete-python-files
+
+        - run:
+            name: Compile the docs
+            command: |
+                git clone git@github.com:duckietown/docs-duckumentation.git
+                git -C docs-duckumentation submodule init
+                git -C docs-duckumentation submodule update
+                make -C docs-duckumentation compile-native
+
+        - run:
             command:  |
                 make clean circle
-            environment:
-                MCDP_TEST_SKIP_MCDPOPT: 1
-                # MCDP_TEST_LIBRARIES_EXCLUDE = mcdp_theory
-                # MCDP_TEST_LIBRARIES = "basic,eversion,libtemplates,multisets_tests,posets,tuple_indexing,tuple_making,uncertainty,comments,documents,making,pop,batteries_v1"
-                MPLBACKEND: agg
 
         - run:
             when: always
             command: |
                 mkdir -p out/comptests/junit
                 comptests-to-junit  out/comptests/compmake >  out/comptests/junit/junit.xml
+
         - test-results-store:
                 path: out/comptests/junit
 

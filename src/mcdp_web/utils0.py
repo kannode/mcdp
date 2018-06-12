@@ -2,16 +2,15 @@
 import traceback
 import urlparse
 
+from contracts import contract
 from contracts.utils import check_isinstance, indent, raise_desc
 from pyramid.httpexceptions import HTTPException, HTTPFound
 from pyramid.response import Response
 from pyramid.security import forget
 
 from mcdp import MCDPConstants, logger, __version__
-from mcdp_utils_misc import duration_compact,  format_list
-from mcdp_user_db.user import UserInfo, User 
-from contracts import contract
-
+from mcdp_user_db.user import UserInfo, User
+from mcdp_utils_misc import duration_compact, format_list
 
 Privileges = MCDPConstants.Privileges
 
@@ -27,29 +26,30 @@ def add_other_fields(self, res, request, context):
     res['root'] = self.get_root_relative_to_here(request)
 
     def _has_library_doc(document):
-        return document in e.library.documents 
+        return document in e.library.documents
 
-    # template functions
+        # template functions
+
     res['render_library_doc'] = lambda docname: self._render_library_doc(
-        request, docname)
+            request, docname)
     res['has_library_doc'] = _has_library_doc
     res['uptime_s'] = int(self.get_uptime_s())
     res['uptime_string'] = duration_compact(res['uptime_s'])
     res['time_start'] = self.time_start
     res['authenticated_userid'] = request.authenticated_userid
 
-    session = self.get_session(request) 
-    
+    session = self.get_session(request)
+
     if e.username is not None:
         res['user_info'] = e.user_info
         res['user_struct'] = e.user_struct
     else:
-        res['user_info'] = None 
+        res['user_info'] = None
         res['user_struct'] = None
-        
+
     app = self
     res['user_db'] = app.hi.db_view.user_db
-    
+
     def shelf_privilege(repo_name, sname, privilege):
         repos = session.app.hi.db_view.repos
         repo = repos[repo_name]
@@ -77,9 +77,9 @@ def add_other_fields(self, res, request, context):
 
     def shelf_subscribed(repo_name, _):  # @UnusedVariable
         return _ in e.user_info.subscriptions
-    
+
     res['shelf_can_read'] = can_read
-    res['shelf_can_write'] = can_write 
+    res['shelf_can_write'] = can_write
     res['shelf_can_subscribe'] = can_subscribe
     res['shelf_can_discover'] = can_discover
     res['shelf_can_admin'] = can_admin
@@ -95,9 +95,9 @@ def add_other_fields(self, res, request, context):
         url = '{root}/repos/{repo_name}/shelves/{shelf_name}/libraries/{this}'
         return url.format(this=_, **e.__dict__)
 
-    def library_url2(repo_name, shelf_name, library_name): 
+    def library_url2(repo_name, shelf_name, library_name):
         url = '{root}/repos/{repo_name}/shelves/{shelf_name}/libraries/{library_name}'
-        return url.format(root=e.root,  repo_name=repo_name, shelf_name=shelf_name, library_name=library_name)
+        return url.format(root=e.root, repo_name=repo_name, shelf_name=shelf_name, library_name=library_name)
 
     def thing_url(t):
         url = '{root}/repos/{repo_name}/shelves/{shelf_name}/libraries/{library_name}/{spec_name}/%s' % t
@@ -113,6 +113,7 @@ def add_other_fields(self, res, request, context):
 
     def shelf_url(repo_name, shelf_name):
         return e.root + '/repos/' + repo_name + '/shelves/' + shelf_name
+
     res['repo_url'] = repo_url
 
     res['shelf_url'] = shelf_url
@@ -132,7 +133,7 @@ def add_other_fields(self, res, request, context):
     res['icon_primitivedps'] = '&#x2712;'
 
     res['icon_documents'] = '&#128196;'
-    
+
     providers = self.get_authomatic_config()
     other_logins = {}
     for x in providers:
@@ -141,64 +142,73 @@ def add_other_fields(self, res, request, context):
 
     def icon_spec(spec_name):
         return res['icon_%s' % spec_name]
+
     res['icon_spec'] = icon_spec
 
-#     def get_user(username):
-#         x = session.get_user_struct(username)
-#         return x.info.dict_for_page()
+    #     def get_user(username):
+    #         x = session.get_user_struct(username)
+    #         return x.info.dict_for_page()
     def get_userstruct(username):
         return session.get_user_struct(username)
-   
+
     res['get_userstruct'] = get_userstruct
 
     add_jinja_tests(res)
-    
-def add_jinja_tests(res):
 
-    @contract(a_user=User)    
+
+def add_jinja_tests(res):
+    @contract(a_user=User)
     def is_current_user(a_user):
         ''' return true if this is the current user '''
         x = res['authenticated_userid']
         return x and (x == a_user.info.username)
-    
-    @contract(ui=UserInfo)    
+
+    @contract(ui=UserInfo)
     def is_current_user_ui(ui):
         ''' return true if this is the current user '''
-#         the_user = res['user_struct']
+        #         the_user = res['user_struct']
         x = res['authenticated_userid']
-        return x and (x ==  ui.username)
+        return x and (x == ui.username)
 
     res['is_current_user_ui'] = is_current_user_ui
     res['is_current_user'] = is_current_user
-    
+
     def is_userstruct(what):
-        return isinstance(what, User) #and what._schema == DB.user
+        return isinstance(what, User)  # and what._schema == DB.user
+
     def is_userinfo(what):
         return isinstance(what, UserInfo)
+
     def assert_is_string(what):
         check_isinstance(what, str)
         return ''
+
     def assert_is_userstruct(what):
         if is_userinfo(what):
             msg = 'This is a UserInfo, not a UserStruct'
             raise Exception(msg)
         check_isinstance(what, User)
         return ''
+
     def assert_is_userinfo(what):
         if is_userstruct(what):
             msg = 'This is a UserStruct, not a UserInfo'
-            raise Exception(msg) 
+            raise Exception(msg)
         check_isinstance(what, UserInfo)
         return ''
+
     res['assert_is_string'] = assert_is_string
     res['assert_is_userstruct'] = assert_is_userstruct
     res['assert_is_userinfo'] = assert_is_userinfo
-    
+
+
 def add_std_vars_context(f):
     return add_std_vars_context_(f, redir=True)
 
+
 def add_std_vars_context_no_redir(f):
     return add_std_vars_context_(f, redir=False)
+
 
 def add_std_vars_context_(f, redir):
     from .resource_tree import context_display_in_detail, Resource
@@ -209,16 +219,16 @@ def add_std_vars_context_(f, redir):
             if not request.url.startswith(url_base_internal):
                 msg = ('Given that url_base_internal is set, I was expecting that all urls'
                        ' would start with it.')
-                raise_desc(Exception, msg, 
-                           request_url=request.url, 
+                raise_desc(Exception, msg,
+                           request_url=request.url,
                            url_base_internal=url_base_internal)
-                
+
         if '//' in urlparse.urlparse(request.url).path:
             msg = 'This is an invalid URL with 2 slashes: %s' % request.url
             response = Response(msg)
             response.status_int = 500
             return response
-        
+
         if redir:
             url = request.url
             p = urlparse.urlparse(url)
@@ -232,7 +242,7 @@ def add_std_vars_context_(f, redir):
             if not p.path.endswith('.html'):
                 if not p.path.endswith('/'):
                     url2 = url2.replace(p.path, p.path + '/')
-            
+
             if url2 != url:
                 logger.info('Context: %s' % context)
                 logger.info('Redirection:\n from: %s\n   to: %s' % (url, url2))
@@ -249,7 +259,7 @@ def add_std_vars_context_(f, redir):
                     logger.warn(msg)
                     headers = forget(request)
                     raise HTTPFound(location=request.url, headers=headers)
- 
+
         try:
             res = f(self, context, request)
         except HTTPException:
@@ -270,4 +280,5 @@ def add_std_vars_context_(f, redir):
                 logger.debug(context_display_in_detail(context))
             raise
         return res
+
     return f0

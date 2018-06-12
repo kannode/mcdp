@@ -1,32 +1,45 @@
-bcrypt
+# run piprot to see which packages are outdated
+bcrypt==3.1.4
 beautifulsoup4==4.6.0
-chardet
+bumpversion==0.5.3
+cython==0.28.3
+chardet==3.0.4
 circleclient==0.1.6
-compmake==3.5.23
-comptests==1.4.24
-ConfTools==1.9.4
-DecentLogs==1.1.2
-decorator==4.1.0
-gitpython
-junit_xml==1.7
-lxml
-markdown
-networkx==1.11
-nose
-pillow
-pint==0.7.2
+decorator==4.3.0
+gitpython==2.1.10
+junit_xml==1.8
+lxml==4.2.1
+markdown==2.4.1 # 2.6.11
+matplotlib==2.2.2
+numpy==1.14.4
+networkx==1.11 # KEEP - does not work with 2.x
+nose==1.3.7
+pillow==5.1.0
+pint==0.7.2 # KEEP - untested
+PasteScript==2.0.2
 PyContracts==1.8.3
-PyGithub
+PyGithub==1.39
 pygments==2.2.0
 pygments_markdown_lexer==0.1.0.dev39
-pyramid==1.8.1
-pyramid_debugtoolbar==3.0.5
+pyramid==1.9.2
+pyramid_debugtoolbar==4.4
 pyramid_jinja2==2.7
 pytz==2017.3
-QuickApp==1.3.13
-reprep==2.10.1
 requests==2.18.4
-ruamel.yaml==0.14.4
-waitress==1.0.2
+# ruamel.yaml==0.14.4
+ruamel.yaml==0.15.37
+selenium==3.12.0
+twine==1.11.0
+waitress==1.1.0
 watchdog==0.8.3
-webtest
+webtest==2.0.29
+authomatic==0.1.0.post1
+
+compmake==3.5.28 # AC
+QuickApp==1.3.13 # AC
+reprep==2.10.5 # AC
+comptests==1.4.24 # AC
+ConfTools==1.9.4 # AC
+DecentLogs==1.1.2 # AC
+
+piprot

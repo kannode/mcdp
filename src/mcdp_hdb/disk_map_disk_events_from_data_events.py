@@ -1,12 +1,14 @@
 from collections import namedtuple
+from copy import deepcopy
+
 from contracts import contract
 from contracts.utils import raise_wrapped, indent, check_isinstance
-from copy import deepcopy
+
 from mcdp import logger
 from mcdp.exceptions import DPInternalError
 from mcdp_utils_misc import format_list, yaml_dump
-
-from .disk_events import disk_event_disk_event_group, disk_event_file_modify, disk_event_dir_delete, disk_event_file_create, disk_event_dir_create, disk_event_file_delete, disk_event_file_rename, disk_event_dir_rename
+from .disk_events import disk_event_disk_event_group, disk_event_file_modify, disk_event_dir_delete, \
+    disk_event_file_create, disk_event_dir_create, disk_event_file_delete, disk_event_file_rename, disk_event_dir_rename
 from .disk_map import DiskMap, HintFileYAML
 from .disk_struct import ProxyDirectory, ProxyFile
 from .hints import HintDir
@@ -18,9 +20,9 @@ from .schema import SchemaHash, SchemaContext, SchemaList, SchemaBase
 
 @contract(returns='list(dict)', schema=SchemaBase)
 def disk_events_from_data_event(disk_map, schema, data_rep, data_event):
-    viewmanager = ViewManager(schema) 
+    viewmanager = ViewManager(schema)
     view = viewmanager.create_view_instance(schema, data_rep)
-    view._schema.validate(data_rep  )
+    view._schema.validate(data_rep)
 
     # As a preliminary check, we check whether this change happened 
     # inside a YAML representation.
@@ -28,7 +30,7 @@ def disk_events_from_data_event(disk_map, schema, data_rep, data_event):
     # If yes, then the result will be a file_modify event for the YAML file.
     if inside_yaml:
         return disk_events_from_data_event_inside_yaml(disk_map, data_event, view, p=name_of_yaml)
-    
+
     handlers = {
         DataEvents.leaf_set: disk_events_from_leaf_set,
         DataEvents.hash_set: disk_events_from_hash_set,
@@ -50,7 +52,7 @@ def disk_events_from_data_event(disk_map, schema, data_rep, data_event):
             _id = data_event['id']
             for i, ev in enumerate(evs):
                 ev['id'] = _id + '-translated-%d' % i
-            return evs 
+            return evs
         except Exception as e:
             msg = 'Could not succesfully translate using %r:' % f.__name__
             msg += '\n' + 'Schema: ' + '\n' + indent(schema, ' schema ')
@@ -59,6 +61,7 @@ def disk_events_from_data_event(disk_map, schema, data_rep, data_event):
     else:
         raise NotImplementedError(operation)
 
+
 @contract(disk_map=DiskMap, view=ViewBase, p='seq(str)')
 def disk_events_from_data_event_inside_yaml(disk_map, data_event, view, p):
     # we now know that we are inside a YAML
@@ -66,19 +69,19 @@ def disk_events_from_data_event_inside_yaml(disk_map, data_event, view, p):
     p_schema = view._schema.get_descendant(p)
     p_hint = disk_map.get_hint(p_schema)
     assert isinstance(p_hint, HintFileYAML)
-    
+
     # make the data_event relative
     relative_data_event = deepcopy(data_event)
     name = data_event['arguments']['name']
     relative_name = name[len(p):]
     relative_data_event['arguments']['name'] = relative_name
-    
+
     parent_of_yaml = p[:-1]
     parent_of_yaml_schema = view._schema.get_descendant(parent_of_yaml)
     parent_of_yaml_hint = disk_map.get_hint(parent_of_yaml_schema)
     dirname = disk_map.dirname_from_data_url_(view._schema, parent_of_yaml)
     filename = parent_of_yaml_hint.filename_for_key(p[-1])
-    
+
     # this is the current data to go in yaml
     relative_data_view = view.get_descendant(p)
     # make a copy of the data
@@ -96,7 +99,6 @@ def disk_events_from_data_event_inside_yaml(disk_map, data_event, view, p):
     return [disk_event]
 
 
-
 @contract(returns='tuple(bool, *)')
 def change_was_inside_YAML(view, data_event, disk_map):
     ''' Checks whether the change was inside a YAML file. '''
@@ -104,8 +106,8 @@ def change_was_inside_YAML(view, data_event, disk_map):
         msg = 'Expected all events to have a "name" argument.'
         raise DPInternalError(msg)
     name = data_event['arguments']["name"]
-    
-    for i in range(len(name)+1):
+
+    for i in range(len(name) + 1):
         p = name[:i]
         p_schema = view._schema.get_descendant(p)
         p_hint = disk_map.get_hint(p_schema)
@@ -113,6 +115,7 @@ def change_was_inside_YAML(view, data_event, disk_map):
             return True, p
     else:
         return False, None
+
 
 @contract(value=dict)
 def disk_events_from_hash_set(disk_map, view, _id, who, name, value):
@@ -126,7 +129,7 @@ def disk_events_from_hash_set(disk_map, view, _id, who, name, value):
     for k in v:
         if not k in value:
             logger.debug('Deleting element k = %r' % k)
-            e = event_dict_delitem(name=name, key=k, _id=_id,  who=who)
+            e = event_dict_delitem(name=name, key=k, _id=_id, who=who)
             # simulate
             del data[k]
             equiv_events.append(e)
@@ -143,25 +146,26 @@ def disk_events_from_hash_set(disk_map, view, _id, who, name, value):
         de.extend(des)
     return de
 
+
 def disk_events_from_leaf_set(disk_map, view, _id, who, name, leaf, value):
     view_parent = get_view_node(view, name)
     schema_parent = view_parent._schema
     check_isinstance(schema_parent, SchemaContext)
     view_child = view_parent.child(leaf)
     schema_child = view_child._schema
-    
+
     hint = disk_map.get_hint(schema_parent)
     if isinstance(hint, HintDir):
         sub = disk_map.create_hierarchy_(schema_child, value)
         dirname = disk_map.dirname_from_data_url_(view._schema, name)
-        
+
         if isinstance(sub, ProxyFile):
             filename = leaf
             contents = sub.contents
             disk_event = disk_event_file_modify(_id, who, dirname, filename, contents)
             return [disk_event]
-        else: 
-            assert False 
+        else:
+            assert False
     elif isinstance(hint, HintFileYAML):
         sub = disk_map.create_hierarchy_(schema_child, value)
         check_isinstance(sub, ProxyFile)
@@ -174,8 +178,9 @@ def disk_events_from_leaf_set(disk_map, view, _id, who, name, leaf, value):
         raise NotImplementedError(hint)
 
 
-
 PP = namedtuple('PP', 'prefix schema hint parent_hint parent_schema')
+
+
 def iterate_prefix(disk_map, view, name):
     n = len(name)
     for i in range(n):
@@ -185,10 +190,10 @@ def iterate_prefix(disk_map, view, name):
         parent_schema = view._schema.get_descendant(prefix[:-1])
         parent_hint = disk_map.get_hint(parent_schema)
         yield PP(schema=schema, hint=hint, prefix=prefix, parent_hint=parent_hint, parent_schema=parent_schema)
- 
+
 
 def disk_events_from_list_append(disk_map, view, _id, who, name, value):
-    logger.debug('list append to %s for value %s' % (name, value)) 
+    logger.debug('list append to %s for value %s' % (name, value))
     view_parent = get_view_node(view, name)
     schema_parent = view_parent._schema
     check_isinstance(schema_parent, SchemaList)
@@ -208,9 +213,10 @@ def disk_events_from_list_append(disk_map, view, _id, who, name, value):
             e = disk_event_disk_event_group(_id, who, events=events)
             return [e]
         else:
-            assert False 
+            assert False
     else:
         raise NotImplementedError(hint)
+
 
 def disk_events_from_list_insert(disk_map, view, _id, who, name, index, value):
     view_parent = get_view_node(view, name)
@@ -218,19 +224,19 @@ def disk_events_from_list_insert(disk_map, view, _id, who, name, index, value):
     check_isinstance(schema_parent, SchemaList)
     hint = disk_map.get_hint(schema_parent)
     length = len(view_parent._data)
-#     logger.debug('list:\n%s' % yaml_dump(view_parent._data))
-#     logger.debug('inserting at index %d value %s' % (index, value))
+    #     logger.debug('list:\n%s' % yaml_dump(view_parent._data))
+    #     logger.debug('inserting at index %d value %s' % (index, value))
     if isinstance(hint, HintDir):
         # TODO: what about it is not a list of files, but directories?
-#         dirname = disk_map.dirname_from_data_url(name)
+        #         dirname = disk_map.dirname_from_data_url(name)
         dirname = disk_map.dirname_from_data_url_(view._schema, name)
         sub = disk_map.create_hierarchy_(schema_parent.prototype, value)
         events = []
         # first rename everything to i+1
         to_rename = []
         for i in range(index, length):
-            to_rename.append((i, i+1))
-#         logger.debug('to rename: %s' % to_rename)
+            to_rename.append((i, i + 1))
+        #         logger.debug('to rename: %s' % to_rename)
         for i in reversed(range(index, length)):
             i2 = i + 1
             filename1 = hint.filename_for_key(str(i))
@@ -240,7 +246,7 @@ def disk_events_from_list_insert(disk_map, view, _id, who, name, index, value):
             else:
                 dr = disk_event_dir_rename(_id, who, dirname, filename1, filename2)
             events.append(dr)
-#         logger.debug('Renaming events:\n %s' % yaml_dump(events))
+        #         logger.debug('Renaming events:\n %s' % yaml_dump(events))
         # now create the file
         sub = disk_map.create_hierarchy_(schema_parent.prototype, value)
         if isinstance(sub, ProxyFile):
@@ -256,7 +262,8 @@ def disk_events_from_list_insert(disk_map, view, _id, who, name, index, value):
         return [e]
     else:
         raise NotImplementedError(hint)
-    
+
+
 def disk_events_from_list_delete(disk_map, view, _id, who, name, index):
     view_parent = view.get_descendant(name)
     schema_parent = view_parent._schema
@@ -275,25 +282,26 @@ def disk_events_from_list_delete(disk_map, view, _id, who, name, index):
         if doing_files:
             disk_event = disk_event_file_delete(_id, who, dirname, filename)
             events = [disk_event]
-            for i in range(index+1, length):
+            for i in range(index + 1, length):
                 i2 = i - 1
                 filename1 = hint.filename_for_key(str(i))
                 filename2 = hint.filename_for_key(str(i2))
-                dr = disk_event_file_rename(_id, who, dirname, filename1, filename2) 
+                dr = disk_event_file_rename(_id, who, dirname, filename1, filename2)
                 events.append(dr)
         else:
             disk_event = disk_event_dir_delete(_id, who, dirname, filename)
             events = [disk_event]
-            for i in range(index+1, length):
+            for i in range(index + 1, length):
                 i2 = i - 1
                 filename1 = hint.filename_for_key(str(i))
                 filename2 = hint.filename_for_key(str(i2))
-                dr = disk_event_dir_rename(_id, who, dirname, filename1, filename2) 
+                dr = disk_event_dir_rename(_id, who, dirname, filename1, filename2)
                 events.append(dr)
         e = disk_event_disk_event_group(_id, who, events)
         return [e]
     else:
         raise NotImplementedError(hint)
+
 
 def disk_events_from_list_remove(disk_map, view, _id, who, name, value):
     view_parent = view.get_descendant(name)
@@ -302,34 +310,35 @@ def disk_events_from_list_remove(disk_map, view, _id, who, name, value):
         if v == value:
             return disk_events_from_list_delete(disk_map, view, _id, who, name, index)
     msg = 'There is no value %s in the list.' % value
-    msg += '\n values: %s' % format_list(data) 
+    msg += '\n values: %s' % format_list(data)
     raise InvalidOperation(msg)
+
 
 def disk_events_from_dict_setitem(disk_map, view, _id, who, name, key, value):
     view_parent = get_view_node(view, name)
     schema_parent = view_parent._schema
     check_isinstance(schema_parent, SchemaHash)
     prototype = schema_parent.prototype
-    
+
     hint = disk_map.get_hint(schema_parent)
     if isinstance(hint, HintDir):
         d = disk_map.create_hierarchy_(prototype, value)
         its_name = hint.filename_for_key(key)
         dirname = disk_map.dirname_from_data_url_(view._schema, name)
-        
+
         if isinstance(d, ProxyFile):
             contents = d.contents
             filename = its_name
             existed = key in view_parent._data
-            if existed: 
-                disk_event = disk_event_file_modify(_id, who, 
-                                                    dirname=dirname, 
-                                                    name=filename, 
+            if existed:
+                disk_event = disk_event_file_modify(_id, who,
+                                                    dirname=dirname,
+                                                    name=filename,
                                                     contents=contents)
             else:
-                disk_event = disk_event_file_create(_id, who, 
-                                                    dirname=dirname, 
-                                                    name=filename, 
+                disk_event = disk_event_file_create(_id, who,
+                                                    dirname=dirname,
+                                                    name=filename,
                                                     contents=contents)
             return [disk_event]
         elif isinstance(d, ProxyDirectory):
@@ -338,48 +347,50 @@ def disk_events_from_dict_setitem(disk_map, view, _id, who, name, key, value):
             if key in view_parent._data:
                 events.append(disk_event_dir_delete(_id, who, dirname=list(dirname), name=its_name))
             events.extend(disk_events_for_creating(_id, who, d, tuple(dirname) + (its_name,)))
-            
+
             e = disk_event_disk_event_group(_id, who, events=events)
             return [e]
         else:
-            assert False 
+            assert False
     else:
         raise NotImplementedError(hint)
+
 
 def disk_events_from_dict_delitem(disk_map, view, _id, who, name, key):
     view_parent = get_view_node(view, name)
     schema_parent = view_parent._schema
     check_isinstance(schema_parent, SchemaHash)
     prototype = schema_parent.prototype
-    
+
     hint = disk_map.get_hint(schema_parent)
     if isinstance(hint, HintDir):
-        dirname = disk_map.dirname_from_data_url_(view._schema, name) 
+        dirname = disk_map.dirname_from_data_url_(view._schema, name)
         its_name = hint.filename_for_key(key)
         # I just need to find out whether it would be ProxyDir or ProxyFile
         value = view_parent._data[key]
         d = disk_map.create_hierarchy_(prototype, value)
         if isinstance(d, ProxyFile):
-            disk_event = disk_event_file_delete(_id, who, 
-                                                dirname=dirname, 
+            disk_event = disk_event_file_delete(_id, who,
+                                                dirname=dirname,
                                                 name=its_name)
             return [disk_event]
         elif isinstance(d, ProxyDirectory):
-            disk_event = disk_event_dir_delete(_id, who, 
-                                                dirname=dirname, 
-                                                name=its_name)
+            disk_event = disk_event_dir_delete(_id, who,
+                                               dirname=dirname,
+                                               name=its_name)
             return [disk_event]
         else:
-            assert False 
+            assert False
     else:
         raise NotImplementedError(hint)
-    
+
+
 def disk_events_from_dict_rename(disk_map, view, _id, who, name, key, key2):
     view_parent = get_view_node(view, name)
     schema_parent = view_parent._schema
     check_isinstance(schema_parent, SchemaHash)
     prototype = schema_parent.prototype
-    
+
     hint = disk_map.get_hint(schema_parent)
     if isinstance(hint, HintDir):
         dirname = disk_map.dirname_from_data_url_(view._schema, name)
@@ -387,36 +398,36 @@ def disk_events_from_dict_rename(disk_map, view, _id, who, name, key, key2):
         its_name2 = hint.filename_for_key(key2)
         # I just need to find out whether it would be ProxyDir or ProxyFile
         if not key in view_parent._data:
-            msg = 'Cannot rename key %r that does not exist in %s.'  % (key, format_list(view_parent._data))
+            msg = 'Cannot rename key %r that does not exist in %s.' % (key, format_list(view_parent._data))
             raise InvalidOperation(msg)
         value = view_parent._data[key]
         d = disk_map.create_hierarchy_(prototype, value)
         if isinstance(d, ProxyFile):
-            disk_event = disk_event_file_rename(_id, who, 
-                                                dirname=dirname, 
+            disk_event = disk_event_file_rename(_id, who,
+                                                dirname=dirname,
                                                 name=its_name,
                                                 name2=its_name2)
             return [disk_event]
         elif isinstance(d, ProxyDirectory):
-            disk_event = disk_event_dir_rename(_id, who, 
-                                                dirname=dirname, 
-                                                name=its_name,
-                                                name2=its_name2)
+            disk_event = disk_event_dir_rename(_id, who,
+                                               dirname=dirname,
+                                               name=its_name,
+                                               name2=its_name2)
             return [disk_event]
         else:
-            assert False 
+            assert False
     else:
         raise NotImplementedError(hint)
-    
-    
+
+
 @contract(prefix='tuple,seq(str)', d=ProxyDirectory)
 def disk_events_for_creating(_id, who, d, prefix):
     # create this dir
     yield disk_event_dir_create(_id, who, dirname=prefix[:-1], name=prefix[-1])
     for fn, f in d.get_files().items():
-        yield disk_event_file_create(_id, who, 
-                                     dirname=list(prefix), 
-                                     name=fn, 
+        yield disk_event_file_create(_id, who,
+                                     dirname=list(prefix),
+                                     name=fn,
                                      contents=f.contents)
     for d2_name, d2 in d.get_directories().items():
         prefix2 = prefix + (d2_name,)

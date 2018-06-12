@@ -17,3 +17,14 @@ if MCDPConstants.softy_mode:
 
     if getpass.getuser() == 'andrea':
         logger.error('Remember this might break MCDP')
+
+
+# All of these are for Cython who has problems pickling
+from .source_info_imp import SourceInfo, HeaderIdent, Author
+from .elements_abbrevs import Result
+from .html_links import GenericReference
+from .videos import VimeoInfo
+from .github_file_ref.reference import GithubFileRef
+from .manual_join_imp import DocToJoin
+from .sync_from_circle import Artefact
+from .tocs import LinkElement

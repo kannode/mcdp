@@ -6,7 +6,7 @@ from bs4.element import Tag
 from compmake.utils.filesystem_utils import make_sure_dir_exists
 from contracts import contract
 from mcdp_cli.utils_mkdir import mkdirs_thread_safe
-from mcdp_report.embedded_images import extract_img_to_file
+
 from mcdp_utils_misc import write_data_to_file
 from mcdp_utils_misc.augmented_result import AugmentedResult
 from mcdp_utils_misc.string_utils import get_md5
@@ -66,6 +66,8 @@ def extract_assets_from_file(data, fo, assets_dir):
         write_data_to_file(data_, where, quiet=True)
         relative = os.path.relpath(where, os.path.dirname(fo))
         return relative
+
+    from mcdp_report.embedded_images import extract_img_to_file
 
     nimg = extract_img_to_file(soup, savefile)
     nsave = save_images_locally(soup, fo, assets_dir)

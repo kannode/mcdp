@@ -321,7 +321,7 @@ def eval_constant_space_custom_value(op, context):
             value = int(custom_string)
         else:
             msg = 'Cannot interpret value.'
-            raise_desc(DPInternalError, msg, value=value)
+            raise_desc(DPInternalError, msg, custom_string=custom_string)
         return ValueWithUnits(unit=Nat(), value=value)
 
     if isinstance(space, Int):
@@ -335,7 +335,7 @@ def eval_constant_space_custom_value(op, context):
             value = int(custom_string)
         else:
             msg = 'Cannot interpret value.'
-            raise_desc(DPInternalError, msg, value=value)
+            raise_desc(DPInternalError, msg, custom_string=custom_string)
         
         return ValueWithUnits(unit=Int(), value=value)
 
@@ -347,7 +347,7 @@ def eval_constant_space_custom_value(op, context):
             value = float(custom_string)
         else:
             msg = 'Cannot interpret value.'
-            raise_desc(DPInternalError, msg, value=value)
+            raise_desc(DPInternalError, msg, custom_string=custom_string)
         return ValueWithUnits(unit=Rcomp(), value=value)
         
     msg = 'Custom parsing not implemented for space.'

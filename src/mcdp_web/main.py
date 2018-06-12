@@ -12,16 +12,6 @@ from wsgiref.simple_server import make_server
 import git.cmd  # @UnusedImport
 from contracts import contract
 from contracts.utils import indent, check_isinstance
-from mcdp import MCDPConstants, logger
-from mcdp.exceptions import DPSemanticError, DPSyntaxError
-from mcdp_docs import render_complete
-from mcdp_hdb.schema import SchemaContext, SchemaHash
-from mcdp_hdb_mcdp.host_instance import HostInstance
-from mcdp_hdb_mcdp.main_db_schema import DB
-from mcdp_library import MCDPLibrary
-from mcdp_utils_misc import duration_compact, dir_from_package_name, format_list, yaml_load
-from mcdp_utils_misc.fileutils import create_tmpdir
-from mcdp_utils_misc.memoize_simple_imp import memoize_simple
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
@@ -32,6 +22,16 @@ from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.session import SignedCookieSessionFactory
 from quickapp import QuickAppBase
 
+from mcdp import MCDPConstants, logger
+from mcdp.exceptions import DPSemanticError, DPSyntaxError
+from mcdp_docs import render_complete
+from mcdp_hdb.schema import SchemaContext, SchemaHash
+from mcdp_hdb_mcdp.host_instance import HostInstance
+from mcdp_hdb_mcdp.main_db_schema import DB
+from mcdp_library import MCDPLibrary
+from mcdp_utils_misc import duration_compact, dir_from_package_name, format_list, yaml_load
+from mcdp_utils_misc.fileutils import create_tmpdir
+from mcdp_utils_misc.memoize_simple_imp import memoize_simple
 from .auhtomatic_auth import get_authomatic_config_, view_authomatic_, view_confirm_bind_, \
     view_confirm_creation_similar_, view_confirm_creation_, \
     view_confirm_creation_create_, view_confirm_bind_bind_
@@ -555,9 +555,14 @@ class WebApp(AppVisualization, AppStatus,
 
         config.add_renderer('jsonp', JSONP(param_name='callback'))
 
-        config.add_static_view(
-                name='static', path='static', cache_max_age=3600)
+        package = dir_from_package_name('mcdp_web')
+        static_path = os.path.join(package, 'static')
+        msg = 'Using static path %r' % static_path
+        logger.info(msg)
+
+        config.add_static_view(name='static', path=static_path, cache_max_age=3600)
         config.include('pyramid_jinja2')
+        config.add_jinja2_search_path('mcdp_web:.')
 
         AppStatus.config(self, config)
         AppVisualization.config(self, config)

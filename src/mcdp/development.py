@@ -5,11 +5,15 @@ from contracts import all_disabled
 
 from mcdp_utils_misc import memoize_simple
 
+__all__ = ['get_user', 'do_extra_checks', 'mcdp_dev_warning']
+
 
 # import warnings
 @memoize_simple
 def get_user():
     return getpass.getuser()
+
+
 # class _storage:
 #     first = True
 
@@ -17,15 +21,14 @@ def get_user():
 def do_extra_checks():
     """ True if we want to do extra paranoid checks for functions. """
     res = not all_disabled()
-#     if _storage.first:
-#         # logger.info('do_extra_checks: %s' % res)
-#         pass
-#     _storage.first = False
+    #     if _storage.first:
+    #         # logger.info('do_extra_checks: %s' % res)
+    #         pass
+    #     _storage.first = False
     return res
 
 
 def mcdp_dev_warning(s):  # @UnusedVariable
-    if get_user() in  ['andrea']:
-        #warnings.warn(s)
+    if get_user() in ['andrea']:
+        # warnings.warn(s)
         pass
-

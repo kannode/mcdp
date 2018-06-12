@@ -1,7 +1,7 @@
 from mcdp.constants import MCDPConstants
-from mcdp.logs import logger
 
-from .resource_tree import ResourceRepo, get_from_context, ResourceLibrary, ResourceShelf, ResourceThings, ResourceThing, ResourceThingView
+from .resource_tree import ResourceRepo, get_from_context, ResourceLibrary, ResourceShelf, ResourceThings, \
+    ResourceThing, ResourceThingView
 
 
 def cr2e(f):
@@ -9,8 +9,10 @@ def cr2e(f):
         e = Environment(context, request)
         res = f(self, e)
         return res
+
     f2.__name__ = 'cr2e_%s' % f.__name__
     return f2
+
 
 class Environment(object):
     def __init__(self, context, request):
@@ -36,15 +38,15 @@ class Environment(object):
             self.shelf_name = None
             self.shelf = None
         else:
-            self.shelf_name = rshelf.name 
+            self.shelf_name = rshelf.name
             self.shelf = self.session.get_shelf(self.shelf_name)
-            
+
         rlibrary = get_from_context(ResourceLibrary, context)
         if rlibrary is None:
             self.library_name = None
             self.library = None
         else:
-            self.library_name = rlibrary.name 
+            self.library_name = rlibrary.name
             self.library = self.shelf.libraries[self.library_name]
 
         from mcdp_web.editor_fancy.app_editor_fancy_generic import specs
@@ -57,7 +59,7 @@ class Environment(object):
             self.spec_name = rspec.specname
             self.spec = specs[self.spec_name]
             self.things = self.library.things.child(self.spec_name)
-        
+
         rthing = get_from_context(ResourceThing, context)
         if rthing is None:
             self.thing_name = None
@@ -66,15 +68,13 @@ class Environment(object):
             self.thing_name = rthing.name
             things = self.library.things.child(self.spec_name)
             self.thing = things[self.thing_name]
-            
-            
+
         rview = get_from_context(ResourceThingView, context)
         self.view_name = rview.name if rview is not None else None
- 
+
         self.user_struct = self.session.get_user_struct()
         self.user_info = self.user_struct.info
         # use username instead of authenticated_id
         self.username = None if self.user_info.username == MCDPConstants.USER_ANONYMOUS else self.user_info.username
-        
+
         self.root = app.get_root_relative_to_here(request)
-        

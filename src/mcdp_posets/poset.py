@@ -3,10 +3,9 @@ from abc import abstractmethod
 
 from contracts import contract
 from contracts.utils import raise_desc, raise_wrapped
+
 from mcdp.development import do_extra_checks
-
 from .space import Space
-
 
 __all__ = [
     'Poset',
@@ -15,19 +14,25 @@ __all__ = [
     'NotBounded',
     'Preorder',
     'is_top',
+    'is_bottom',
 ]
+
 
 class NotLeq(Exception):
     pass
 
+
 class NotJoinable(Exception):
     pass
+
 
 class NotMeetable(Exception):
     pass
 
+
 class NotBounded(Exception):
     pass
+
 
 class Preorder(Space):
     """
@@ -36,6 +41,7 @@ class Preorder(Space):
         Not necessarily antisymmetric. So if a <= b and b <= a,
         not necessarily a == b.
     """
+
     @abstractmethod
     def check_leq(self, a, b):
         """ Return None if a<=b; otherwise raise NotLeq with a description """
@@ -46,7 +52,8 @@ class Preorder(Space):
             return True
         except NotLeq:
             return False
-        
+
+
 class Poset(Preorder):
 
     @contract(returns='set')
@@ -57,7 +64,7 @@ class Poset(Preorder):
         try:
             bottom = self.get_bottom()
             return set([bottom])
-        except NotBounded: # pragma: no cover
+        except NotBounded:  # pragma: no cover
             msg = 'Not bounded so get_minimal_elements() not implemented.'
             raise_desc(NotImplementedError, msg, type=type(self).__name__)
 
@@ -69,18 +76,18 @@ class Poset(Preorder):
         try:
             top = self.get_top()
             return set([top])
-        except NotBounded as e: # pragma: no cover
+        except NotBounded as e:  # pragma: no cover
             msg = 'Not bounded so get_maximal_elements() not implemented.'
             raise_wrapped(NotImplementedError, e, msg, poset=self, type=type(self).__name__)
 
-    def get_bottom(self): # pragma: no cover
+    def get_bottom(self):  # pragma: no cover
         msg = 'Bottom not available.'
         raise_desc(NotBounded, msg, poset=self)
 
-    def get_top(self): # pragma: no cover
+    def get_top(self):  # pragma: no cover
         msg = 'Top not available.'
         raise_desc(NotBounded, msg, poset=self)
-        
+
     def get_test_chain(self, n):  # @UnusedVariable
         """
             Returns a test chain of length up to n.
@@ -101,7 +108,7 @@ class Poset(Preorder):
         if self.leq(b, a):
             return a
 
-        if True: # pragma: no cover
+        if True:  # pragma: no cover
             msg = 'The join %s ∨ %s does not exist in %s.' % (a, b, self)
             raise NotJoinable(msg)
 
@@ -111,7 +118,7 @@ class Poset(Preorder):
         if self.leq(b, a):
             return b
 
-        if True: # pragma: no cover
+        if True:  # pragma: no cover
             msg = 'The meet %s ∧ %s does not exist in %s.' % (a, b, self)
             raise NotJoinable(msg)
 
@@ -133,7 +140,7 @@ class Poset(Preorder):
             check_minimal(elements, poset=self)
         from mcdp_posets import UpperSet
         return UpperSet(elements, self)
-    
+
     def L(self, a):
         """ Returns the principal lower set corresponding to the given a. """
         if do_extra_checks():
@@ -145,10 +152,12 @@ class Poset(Preorder):
     def Ls(self, elements):
         from mcdp_posets import LowerSet
         return LowerSet(elements, self)
-   
+
+
 def is_top(poset, x):
     """ Returns True if the element is the Top """
     return poset.equal(x, poset.get_top())
+
 
 def is_bottom(poset, x):
     """ Returns True if the element is the Top """

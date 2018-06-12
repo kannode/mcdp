@@ -1,0 +1,57 @@
+
+#help-docker:
+#	@echo "$(sep)Docker commands"
+#	@echo
+#	@echo 'For using Docker images'
+#	@echo
+#	@echo '- `make docker-build`:    Creates the image.'
+#	@echo '- `make docker-upload`:   Uploads the image.'
+#	@echo '- `make docker-clean`:    Removes all local images.'
+#	@echo
+#	@echo
+
+branch := $(shell git rev-parse --abbrev-ref HEAD)
+
+tag := $(branch)
+
+mcdp_deps.Dockerfile: 0_deps.Dockerfile
+	cat $^ > $@
+
+mcdp.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile
+	cat $^ > $@
+
+mcdp_server.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 2_mcdp_server.Dockerfile
+	cat $^ > $@
+
+dockerfiles: mcdp_deps.Dockerfile  mcdp.Dockerfile mcdp_server.Dockerfile
+
+docker-build: dockerfiles
+	sudo docker build -t andreacensi/mcdp_deps:$(tag)   -f mcdp_deps.Dockerfile   .
+	sudo docker build -t andreacensi/mcdp:$(tag)        -f mcdp.Dockerfile        .
+	sudo docker build -t andreacensi/mcdp_server:$(tag) -f mcdp_server.Dockerfile .
+
+docker-upload: docker-build
+	$(MAKE) docker-upload-only
+
+docker-upload-only:
+	sudo docker push andreacensi/mcdp_deps:$(tag)
+	sudo docker push andreacensi/mcdp:$(tag)
+	sudo docker push andreacensi/mcdp_server:$(tag)
+
+
+docker-clean:
+	# Kill all running containers:
+	-sudo docker kill $(shell sudo docker ps -q)
+
+	# Delete all stopped containers (including data-only containers):
+	-sudo docker rm $(shell sudo docker ps -a -q)
+
+	# Delete all exited containers
+	-sudo docker rm $(shell sudo docker ps -q -f status=exited)
+
+	# Delete all images
+	-sudo docker rmi $(shell sudo docker images -q)
+
+
+docker-bash:
+	docker run -it --entrypoint /bin/bash andreacensi/mcdp:$(tag)

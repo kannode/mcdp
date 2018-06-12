@@ -19,9 +19,12 @@ def parse_action(f):
     from the call to the parse action (instead of the one caused by pyparsing's
     trial & error).
     """
-    num_args = len(inspect.getargspec(f).args)
-    if num_args > 3:
-        raise ValueError('Input function must take at most 3 parameters.')
+    try:
+        num_args = len(inspect.getargspec(f).args)
+        if num_args > 3:
+            raise ValueError('Input function must take at most 3 parameters.')
+    except TypeError:
+        pass
 
     @functools.wraps(f)
     def action(*args):

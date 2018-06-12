@@ -1,6 +1,10 @@
+*.so
+*.c
 out
 out*
+web
 _cached
+node_modules.*
 node_modules
 attic
 .git
