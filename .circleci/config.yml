@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
      docker:
-        - image: andreacensi/mcdp_deps:compilation
+        - image: andreacensi/mcdp_deps_auto:master
           environment:
               COLUMNS: 160
               NODE_PATH: /project/node_modules
