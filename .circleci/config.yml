@@ -10,6 +10,7 @@ jobs:
               MCDP_TEST_SKIP_MCDPOPT: 1
               # MCDP_TEST_LIBRARIES_EXCLUDE = mcdp_theory
               # MCDP_TEST_LIBRARIES = "basic,eversion,libtemplates,multisets_tests,posets,tuple_indexing,tuple_making,uncertainty,comments,documents,making,pop,batteries_v1"
+
      parallelism: 3
      resource_class: large
      steps:
