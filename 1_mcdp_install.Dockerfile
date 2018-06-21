@@ -31,3 +31,6 @@ ENV DISABLE_CONTRACTS=1
 RUN . deploy/bin/activate && mcdp-render-manual --help
 
 COPY entrypoint.sh /project/entrypoint.sh
+RUN  chmod +x /project/mcdp_server.sh
+
+RUN chmod 0777 /project
