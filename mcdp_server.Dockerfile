@@ -132,6 +132,8 @@ RUN apt-get clean
 
 ENV DISABLE_CONTRACTS=1
 RUN . deploy/bin/activate && mcdp-render-manual --help
+
+COPY entrypoint.sh /project/entrypoint.sh
 COPY mcdp_server.sh /project/mcdp_server.sh
 RUN chmod +x /project/mcdp_server.sh
 # WORKDIR /duckuments
