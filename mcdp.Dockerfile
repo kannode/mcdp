@@ -101,21 +101,21 @@ WORKDIR /project
 RUN npm install MathJax-node@0.3.1 jsdom@9.3 less@3.0.4
 
 RUN apt-get remove python-bs4 python-bs4-doc
-
-# install docker
-RUN apt-get remove docker docker-engine docker.io
-RUN apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    software-properties-common
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-RUN add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
-RUN apt-get update
-RUN apt-get install -y docker-ce
+#
+## install docker
+#RUN apt-get remove docker docker-engine docker.io
+#RUN apt-get install -y \
+#    apt-transport-https \
+#    ca-certificates \
+#    curl \
+#    software-properties-common
+#RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+#RUN add-apt-repository \
+#   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+#   $(lsb_release -cs) \
+#   stable"
+#RUN apt-get update
+#RUN apt-get install -y docker-ce
 
 RUN mkdir /project/mcdp
 COPY Makefile.cython /project/mcdp

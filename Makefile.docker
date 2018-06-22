@@ -1,15 +1,3 @@
-
-#help-docker:
-#	@echo "$(sep)Docker commands"
-#	@echo
-#	@echo 'For using Docker images'
-#	@echo
-#	@echo '- `make docker-build`:    Creates the image.'
-#	@echo '- `make docker-upload`:   Uploads the image.'
-#	@echo '- `make docker-clean`:    Removes all local images.'
-#	@echo
-#	@echo
-
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 
 tag := $(branch)
@@ -29,12 +17,20 @@ mcdp_server.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 2_mcdp_serve
 	cat $^ > $@
 	chmod -w $@
 
-dockerfiles: mcdp_deps.Dockerfile mcdp.Dockerfile mcdp_server.Dockerfile
+
+mcdp_books.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 2_mcdp_server.Dockerfile 3_books.Dockerfile
+	-chmod +w $@
+	cat $^ > $@
+	chmod -w $@
+
+
+dockerfiles: mcdp_deps.Dockerfile mcdp.Dockerfile mcdp_server.Dockerfile mcdp_books.Dockerfile
 
 docker-build: dockerfiles
 	docker build -t andreacensi/mcdp_deps:$(tag)   -f mcdp_deps.Dockerfile   .
 	docker build -t andreacensi/mcdp:$(tag)        -f mcdp.Dockerfile        .
 	docker build -t andreacensi/mcdp_server:$(tag) -f mcdp_server.Dockerfile .
+	docker build -t andreacensi/mcdp_books:$(tag)  -f mcdp_books.Dockerfile .
 
 docker-upload: docker-build
 	$(MAKE) docker-upload-only
@@ -43,20 +39,21 @@ docker-upload-only:
 	docker push andreacensi/mcdp_deps:$(tag)
 	docker push andreacensi/mcdp:$(tag)
 	docker push andreacensi/mcdp_server:$(tag)
+	docker push andreacensi/mcdp_books:$(tag)
 
 
 docker-clean:
 	# Kill all running containers:
-	-docker kill $(shell sudo docker ps -q)
+	-docker kill $(shell docker ps -q)
 
 	# Delete all stopped containers (including data-only containers):
-	-docker rm $(shell sudo docker ps -a -q)
+	-docker rm $(shell docker ps -a -q)
 
 	# Delete all exited containers
-	-docker rm $(shell sudo docker ps -q -f status=exited)
+	-docker rm $(shell docker ps -q -f status=exited)
 
 	# Delete all images
-	-docker rmi $(shell sudo docker images -q)
+	-docker rmi $(shell docker images -q)
 
 
 docker-bash:
