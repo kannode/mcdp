@@ -39,6 +39,7 @@ def locate_files(directory, pattern, followlinks=True,
 
     # directories visited
     visited = set()
+    visited_basename = set()
     # print('locate_files %r %r' % (directory, pattern))
     filenames = []
 
@@ -51,10 +52,11 @@ def locate_files(directory, pattern, followlinks=True,
     def accept_dirname_to_go_inside(root_, d_):
         if should_ignore_resource(d_):
             return False
-        dd = os.path.realpath(os.path.join(root_, d_))
-        if dd in visited:
-            return False
-        visited.add(dd)
+        # XXX
+        # dd = os.path.realpath(os.path.join(root_, d_))
+        # if dd in visited:
+        #     return False
+        # visited.add(dd)
         return True
 
     def accept_dirname_as_match(_):

@@ -15,15 +15,21 @@ branch := $(shell git rev-parse --abbrev-ref HEAD)
 tag := $(branch)
 
 mcdp_deps.Dockerfile: 0_deps.Dockerfile
+	-chmod +w $@
 	cat $^ > $@
+	chmod -w $@
 
 mcdp.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile
+	-chmod +w $@
 	cat $^ > $@
+	chmod -w $@
 
 mcdp_server.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 2_mcdp_server.Dockerfile
+	-chmod +w $@
 	cat $^ > $@
+	chmod -w $@
 
-dockerfiles: mcdp_deps.Dockerfile  mcdp.Dockerfile mcdp_server.Dockerfile
+dockerfiles: mcdp_deps.Dockerfile mcdp.Dockerfile mcdp_server.Dockerfile
 
 docker-build: dockerfiles
 	docker build -t andreacensi/mcdp_deps:$(tag)   -f mcdp_deps.Dockerfile   .
