@@ -1,6 +1,7 @@
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 
 tag := $(branch)
+tag := master
 
 mcdp_deps.Dockerfile: 0_deps.Dockerfile
 	-chmod +w $@
@@ -18,7 +19,7 @@ mcdp_server.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 2_mcdp_serve
 	chmod -w $@
 
 
-mcdp_books.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 2_mcdp_server.Dockerfile 3_books.Dockerfile
+mcdp_books.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 3_books.Dockerfile
 	-chmod +w $@
 	cat $^ > $@
 	chmod -w $@
