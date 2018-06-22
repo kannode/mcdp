@@ -1,7 +1,6 @@
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 
 tag := $(branch)
-tag := master
 
 mcdp_deps.Dockerfile: 0_deps.Dockerfile
 	-chmod +w $@
