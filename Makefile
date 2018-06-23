@@ -230,4 +230,4 @@ python-module-stats:
 		qtfaststart\
 		selenium
 
-include Makefile.docker
+include docker/Makefile.docker

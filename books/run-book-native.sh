@@ -2,7 +2,7 @@
 # language=sh
 #set -u
 set -eo pipefail
-set -x # echo commands
+#set -x # echo commands
 
 echo run-book-native.sh called with arguments "$@"
 
@@ -25,7 +25,6 @@ then
 else
    branch=${CIRCLE_BRANCH}
 fi
-
 
 org=`git config --get remote.origin.url | cut -f2 -d":"  | cut -f1 -d/ | tr '[:upper:]' '[:lower:]'`
 

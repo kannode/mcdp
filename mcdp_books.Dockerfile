@@ -101,6 +101,9 @@ WORKDIR /project
 RUN npm install MathJax-node@0.3.1 jsdom@9.3 less@3.0.4
 
 RUN apt-get remove python-bs4 python-bs4-doc
+
+RUN apt-get install -y rsync
+
 #
 ## install docker
 #RUN apt-get remove docker docker-engine docker.io
@@ -148,18 +151,20 @@ RUN apt-get clean
 ENV DISABLE_CONTRACTS=1
 RUN . deploy/bin/activate && mcdp-render-manual --help
 
-COPY entrypoint.sh /project/entrypoint.sh
-RUN  chmod +x /project/entrypoint.sh
+COPY docker/entrypoint.sh /project/entrypoint.sh
+RUN chmod +x /project/entrypoint.sh
+
+COPY docker/copy_dir.sh /project/copy_dir.sh
+RUN chmod +x /project/copy_dir.sh
+
+
 
 RUN chmod 0777 /project
-COPY mcdp_server.sh /project/mcdp_server.sh
-RUN chmod +x /project/mcdp_server.sh
-# WORKDIR /duckuments
-ENTRYPOINT ["/project/mcdp_server.sh"]
 
 #COPY make_index.py.tmp_copy /project/make_index.py
 COPY books/run-book-native.sh /project/run-book-native.sh
 COPY books/make_index.py /project/make_index.py
+
 
 WORKDIR /duckuments
 ENTRYPOINT ["/project/entrypoint.sh"]

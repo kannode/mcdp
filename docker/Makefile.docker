@@ -2,23 +2,25 @@ branch := $(shell git rev-parse --abbrev-ref HEAD)
 
 tag := $(branch)
 
-mcdp_deps.Dockerfile: 0_deps.Dockerfile
+dd=docker
+
+mcdp_deps.Dockerfile: $(dd)/0_deps.Dockerfile
 	-chmod +w $@
 	cat $^ > $@
 	chmod -w $@
 
-mcdp.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile
+mcdp.Dockerfile: $(dd)/0_deps.Dockerfile $(dd)/1_mcdp_install.Dockerfile
 	-chmod +w $@
 	cat $^ > $@
 	chmod -w $@
 
-mcdp_server.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 2_mcdp_server.Dockerfile
+mcdp_server.Dockerfile: $(dd)/0_deps.Dockerfile $(dd)/1_mcdp_install.Dockerfile $(dd)/2_mcdp_server.Dockerfile
 	-chmod +w $@
 	cat $^ > $@
 	chmod -w $@
 
 
-mcdp_books.Dockerfile: 0_deps.Dockerfile 1_mcdp_install.Dockerfile 3_books.Dockerfile
+mcdp_books.Dockerfile: $(dd)/0_deps.Dockerfile $(dd)/1_mcdp_install.Dockerfile $(dd)/3_books.Dockerfile
 	-chmod +w $@
 	cat $^ > $@
 	chmod -w $@

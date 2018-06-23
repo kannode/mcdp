@@ -101,6 +101,9 @@ WORKDIR /project
 RUN npm install MathJax-node@0.3.1 jsdom@9.3 less@3.0.4
 
 RUN apt-get remove python-bs4 python-bs4-doc
+
+RUN apt-get install -y rsync
+
 #
 ## install docker
 #RUN apt-get remove docker docker-engine docker.io

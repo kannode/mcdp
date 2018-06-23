@@ -30,7 +30,12 @@ RUN apt-get clean
 ENV DISABLE_CONTRACTS=1
 RUN . deploy/bin/activate && mcdp-render-manual --help
 
-COPY entrypoint.sh /project/entrypoint.sh
-RUN  chmod +x /project/entrypoint.sh
+COPY docker/entrypoint.sh /project/entrypoint.sh
+RUN chmod +x /project/entrypoint.sh
+
+COPY docker/copy_dir.sh /project/copy_dir.sh
+RUN chmod +x /project/copy_dir.sh
+
+
 
 RUN chmod 0777 /project
