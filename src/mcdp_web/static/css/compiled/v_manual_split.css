@@ -2262,7 +2262,7 @@ details.task a {
 @media print {
   div.transmuted-details {
     border: solid 1px red;
-    width: calc(98%);
+    width: calc(100% - 2em);
     display: block;
     margin: 0.4em;
     border-radius: 4px;
@@ -2277,11 +2277,11 @@ details.task a {
 }
 details.consecutive-note {
   display: block;
-  width: calc(98%);
+  width: calc(100% - 2em);
   /*margin: 0.4em;*/
 }
 details[open] {
-  width: calc(98%);
+  width: calc(100% - 2em);
   border-radius: 2px;
 }
 details[open] summary {
@@ -2494,6 +2494,11 @@ pre + p {
   margin-left: 2em;
   margin-right: 2em;
   border-radius: 10px;
+}
+@media print {
+  .like_buttons {
+    display: none;
+  }
 }
 .show_feedback .like_buttons {
   display: block;
