@@ -206,8 +206,8 @@ def get_repo_information(repo_root):
             # to '4bcaf737955277b156a5bacdd80d1805e4b8bb25'
             branch = None
 
-        logger.debug(str(gitrepo))
-        logger.debug('branch: %s' % branch)
+        # logger.debug(str(gitrepo))
+        # logger.debug('branch: %s' % branch)
 
         commit = gitrepo.head.commit.hexsha
         try:

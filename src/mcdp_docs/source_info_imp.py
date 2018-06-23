@@ -49,7 +49,7 @@ def get_last_commit(toplevel, filename):
     cmd = ["git", "log", "-n", "1", "--pretty=format:%H", os.path.realpath(filename)]
     res = system_cmd_result(toplevel, cmd, raise_on_error=True)
     commit = res.stdout.strip()
-    logger.debug('lasdt commit for %s is %s' % (filename, commit))
+    # logger.debug('lasdt commit for %s is %s' % (filename, commit))
     return commit
 
 

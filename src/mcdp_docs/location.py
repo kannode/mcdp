@@ -403,14 +403,15 @@ def get_github_location(filename):
     try:
         # need realpath because of relative names, e.g. filename = 'docs/file.md' and the root is at ..
         filename_r = os.path.realpath(filename)
-        repo_gitdir = get_repo_gitdir(filename_r)
+        # repo_gitdir = get_repo_gitdir(filename_r)
+        repo_toplevel =  get_repo_toplevel(filename_r)
         # repo_root = get_repo_root(filename_r)
     except NoRootRepo as e:
         # not in Git
         # print('file %s not in Git: %s' % (filename, e))
         return None
 
-    repo_info = get_repo_information(repo_gitdir)
+    repo_info = get_repo_information(repo_toplevel)
     branch = repo_info['branch']
     commit = repo_info['commit']
     org = repo_info['org']
@@ -419,7 +420,7 @@ def get_github_location(filename):
     if branch is None:
         branch = 'master'
     # Relative path in the directory
-    repo_toplevel = get_repo_toplevel(filename_r)
+    # repo_toplevel = get_repo_toplevel(filename_r)
     relpath = os.path.relpath(filename, repo_toplevel)
 
     repo_base = 'https://github.com/%s/%s' % (org, repo)
