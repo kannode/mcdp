@@ -7,13 +7,13 @@ from multiprocessing import cpu_count
 
 from bs4.element import Tag
 from contracts import contract
-from mcdp_docs.reveal import create_slides, download_reveal
+from quickapp import QuickApp
 
 from mcdp import logger
 from mcdp_docs.check_missing_links import get_id2element
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_docs.manual_constants import MCDPManualConstants
-
+from mcdp_docs.reveal import create_slides, download_reveal
 from mcdp_docs.tocs import generate_toc, substituting_empty_links
 from mcdp_utils_misc import get_md5, write_data_to_file
 from mcdp_utils_misc.augmented_result import AugmentedResult
@@ -21,8 +21,6 @@ from mcdp_utils_misc.timing import timeit_wall
 from mcdp_utils_xml import read_html_doc_from_file, to_html_entire_document
 from mcdp_utils_xml.parsing import bs, bs_entire_document
 from mcdp_utils_xml.project_text import gettext
-from quickapp import QuickApp
-
 from .add_mathjax import add_mathjax_call, add_mathjax_preamble
 from .extract_assets import extract_assets_from_file, save_css
 from .manual_join_imp import (add_prev_next_links, split_in_files, get_id2filename,
@@ -119,8 +117,7 @@ def only_second_part(mathjax, preamble, html, id2filename, filename):
         update_refs_(filename, html, id2filename)
 
     create_slides(html)
-        # context.comp(write_slides, slides_aug, out_split_dir)
-
+    # context.comp(write_slides, slides_aug, out_split_dir)
 
     with timeit('serialize'):
         result = str(html)
@@ -153,10 +150,11 @@ class Split(QuickApp):
         data = open(ifilename).read()
         data_aug = AugmentedResult()
         data_aug.set_result(data)
-        create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers=nworkers)
+        bookshort = 'unset'
+        create_split_jobs(context, data_aug, mathjax, preamble, output_dir, bookshort=bookshort, nworkers=nworkers)
 
 
-def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers=0,
+def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, bookshort, nworkers=0,
                       extra_panel_content=None,
                       add_toc_if_not_existing=True,
                       output_crossref=None,
@@ -183,6 +181,7 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
 
     for i in range(nworkers):
         promise = context.comp_dynamic(go, i, nworkers, data, mathjax, preamble, output_dir,
+                                       bookshort=bookshort,
                                        add_toc_if_not_existing=add_toc_if_not_existing,
                                        assets_dir=assets_dir,
                                        extra_panel_content=extra_panel_content,
@@ -193,7 +192,7 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
         jobs.append(promise)
 
         if only_refs:
-                break
+            break
 
     jobs.append(context.comp(download_reveal, output_dir))
 
@@ -215,7 +214,7 @@ def notification(aug, jobs_aug, output_dir):
 
 @contract(returns=AugmentedResult)
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir,
-       add_toc_if_not_existing, extra_panel_content, permalink_prefix=None, output_crossref=None,
+       add_toc_if_not_existing, extra_panel_content, bookshort, permalink_prefix=None, output_crossref=None,
        only_refs=False):
     res = AugmentedResult()
     soup = bs_entire_document(data)
@@ -250,7 +249,6 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
     # XXX: this is not the place to do it
     mark_toc_links_as_errored(main_toc, soup)
 
-
     body = soup.html.body
 
     with timeit("split_in_files"):
@@ -263,7 +261,8 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         from mcdp_docs.mcdp_render_manual import write_crossref_info
         context.comp(write_crossref_info, data=data, id2filename=id2filename,
                      output_crossref=output_crossref,
-                     permalink_prefix=permalink_prefix)
+                     permalink_prefix=permalink_prefix,
+                     bookshort=bookshort)
 
     if only_refs:
         logger.debug('Skipping rest because only_refs')
@@ -289,8 +288,6 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
         linkjs = create_link_base_js(id2filename)
         write_data_to_file(str(linkjs), os.path.join(output_dir, linkbasejs), quiet=True)
-
-
 
     if preamble is not None:
         if preamble.endswith('.tex'):  # XXX
@@ -340,7 +337,6 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
             fn = os.path.join(output_dir, filename)
 
-
             h = get_md5(result)[:8]
             r = context.comp(extract_assets_from_file, result, fn, assets_dir,
                              job_id='%s-%s-assets' % (filename, h))
@@ -380,8 +376,8 @@ def mark_toc_links_as_errored(main_toc, soup):
 
             if min_ != min0:
                 element.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = \
-                section.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = \
-                a.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = str(min_)
+                    section.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = \
+                    a.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_DAYS] = str(min_)
 
                 a.attrs[MCDPManualConstants.ATTR_GITHUB_LAST_MODIFIED_AUTHOR] = author
 
@@ -390,10 +386,9 @@ def mark_toc_links_as_errored(main_toc, soup):
             if ndrafts:
                 a[MCDPManualConstants.ATTR_STATUS] = 'draft'
 
-            nchanges = len(list(section.select('[%s]'%MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS)))
+            nchanges = len(list(section.select('[%s]' % MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS)))
             if nchanges:
                 a[MCDPManualConstants.ATTR_HAS_LOCAL_MODIFICATIONS] = '%d' % nchanges
-
 
             nerrors = 0
             ntasks = 0

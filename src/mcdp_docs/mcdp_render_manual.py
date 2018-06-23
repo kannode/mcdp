@@ -23,7 +23,7 @@ from mcdp_docs.composing.cli import compose_go2, ComposeConfig
 from mcdp_docs.embed_css import embed_css_files
 from mcdp_docs.location import LocalFile, HTMLIDLocation
 from mcdp_docs.prerender_math import prerender_mathjax
-from mcdp_docs.reveal import create_slides, write_slides
+# from mcdp_docs.reveal import create_slides, write_slides
 from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
@@ -47,6 +47,7 @@ class RenderManual(QuickApp):
         params.add_string('src', help="Directories with all contents; separate multiple entries with a colon.")
         params.add_string('resources', help='Extra directories for resources (but not Markdown). Colon separated.', default='')
 
+        params.add_string('bookshort', help='bookshort')
         params.add_string('output_crossref', help='Crossref', default=None)
         params.add_string('output_file', help='Output file', default=None)
         params.add_string('stylesheet', help='Stylesheet for html version', default=None)
@@ -112,6 +113,7 @@ class RenderManual(QuickApp):
         ignore_ref_errors = options.ignore_ref_errors
         only_refs = options.only_refs
         likebtn = options.likebtn
+        bookshort = options.bookshort
         extra_crossrefs = options.extra_crossrefs
         use_mathjax = True if options.mathjax else False
 
@@ -134,6 +136,7 @@ class RenderManual(QuickApp):
                     generate_pdf=generate_pdf,
                     stylesheet=stylesheet,
                     stylesheet_pdf=stylesheet_pdf,
+                    bookshort=bookshort,
                     remove=remove,
                     use_mathjax=use_mathjax,
                     raise_errors=raise_errors,
@@ -148,7 +151,7 @@ class RenderManual(QuickApp):
                     likebtn=likebtn,
                     ignore_ref_errors=ignore_ref_errors,
                     extra_crossrefs=extra_crossrefs,
-                    only_refs=only_refs
+                    only_refs=only_refs,
                     )
 
 
@@ -285,6 +288,7 @@ def look_for_files(srcdirs, pattern):
 @contract(src_dirs='seq(str)')
 def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, generate_pdf, stylesheet,
                 stylesheet_pdf,
+                bookshort,
                 use_mathjax, raise_errors, resolve_references=True,
                 remove=None, filter_soup=None, symbols=None,
                 out_pdf=None,
@@ -432,6 +436,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 
         extra_panel_content = context.comp(get_extra_content, joined_aug_with_html_stylesheet)
         id2filename_aug = context.comp_dynamic(create_split_jobs,
+                                               bookshort=bookshort,
                                                data_aug=joined_aug_with_html_stylesheet,
                                                mathjax=True,
                                                preamble=symbols,
@@ -453,7 +458,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         context.comp(write_manifest_pdf, out_pdf)
 
 
-def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
+def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bookshort):
     soup = bs_entire_document(data)
 
     cross = Tag(name='body')
@@ -479,6 +484,8 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix):
             basename = id2filename[id_]
 
             e2.attrs['url'] = '%s/%s#%s' % (permalink_prefix, basename, id_)
+            e2.attrs['bookshort'] = bookshort
+
             # print e2.attrs['url']
             a = Tag(name='a')
 

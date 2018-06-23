@@ -29,7 +29,7 @@ fi
 org=`git config --get remote.origin.url | cut -f2 -d":"  | cut -f1 -d/ | tr '[:upper:]' '[:lower:]'`
 
 base=http://docs-branches.duckietown.org/${org}/duckuments/branch/${branch}
-base=http://docs-branches.duckietown.org/duckietown/duckuments/branch/master
+#base=http://docs-branches.duckietown.org/duckietown/duckuments/branch/master
 cross=${base}/all_crossref.html
 permalink_prefix=${base}/${short}/out
 extra_crossrefs=${base}/all_crossref.html
@@ -84,6 +84,7 @@ echo Running in dir ${PWD}
 
 DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     --src ${src} \
+    --bookshort "${short}" \
     --resources ${resources}:${dist} \
     --stylesheet v_manual_split \
     --stylesheet_pdf v_manual_blurb_ready \
@@ -94,6 +95,7 @@ DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     --permalink_prefix ${permalink_prefix} \
     ${options1} \
     ${options2} \
+    ${EXTRA_MCDP_RENDER_OPTIONS} \
     -c "config echo 1; ${cmd}"
 #    --symbols docs/symbols.tex \
 
