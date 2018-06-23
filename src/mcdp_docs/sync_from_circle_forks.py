@@ -1,19 +1,17 @@
 import os
 import ssl
 import sys
+from collections import defaultdict
+
+import yaml
+
+
 
 
 def go():
+    ''' Find all the forks of the repos containing 'docs' '''
     username = sys.argv[1]
-    project = sys.argv[2]
-    d0 = sys.argv[3]
-    fn = sys.argv[4]
-
-    print('username: %s' % username)
-    print('project: %s' % project)
-    print('d0: %s' % d0)
-    print('fn: %s' % fn)
-
+    d0 = sys.argv[2]
     from github import Github
     if not 'GITHUB_TOKEN' in os.environ:
         raise Exception()
@@ -21,16 +19,37 @@ def go():
         github_token = os.environ['GITHUB_TOKEN']
         try:
             g = Github(github_token)
-            active_branches = [_.name for _ in g.get_organization(username).get_repo(project).get_branches()]
+            # active_branches = [_.name for _ in g.get_organization(username).get_repo(project).get_branches()]
         except ssl.SSLError as e:
             print('error: %s' % e)
             raise Exception(str(e))
 
     org = g.get_organization(username)
-    repo = org.get_repo(project)
-    forks = repo.get_forks()
-    for fork in forks:
-        print fork
+    repos = list(org.get_repos())
+    res = defaultdict(dict)
+
+    for repo in repos:
+        if 'docs' not in repo.name:
+            continue
+
+        forks = list(repo.get_forks())
+        # print repo.name
+        # print 'forks: %s' % forks
+        res[str(repo.name)][str(repo.owner.login)] = str(repo.url)
+
+        for repo in forks:
+            res[str(repo.name)][str(repo.owner.login)] = str(repo.url)
+
+    res = dict(**res)
+    print yaml.dump(res, allow_unicode=True)
+
+    from mcdp_docs.sync_from_circle import go_
+
+    for repo in res:
+        for username in res[repo]:
+            d = os.path.join(d0, repo, username)
+            fn = os.path.join(d, 'index.html')
+            go_(username, repo, d, fn)
 
 
 if __name__ == '__main__':

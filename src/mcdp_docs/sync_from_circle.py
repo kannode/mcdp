@@ -143,7 +143,7 @@ def read_build(client, username, project, token, r, d0):
                     tf = tarfile.open(f, 'r:gz')
                     tf.extractall(d_build)
                     print('extracting files')
-                    #os.unlink(f)
+                    os.unlink(f)
                 else:
                     print('could not find %r  ' % PACK)
         else:
@@ -151,7 +151,7 @@ def read_build(client, username, project, token, r, d0):
     # if artefacts:
     #     print(artefacts)
     artifacts = get_artefacts(d0, d_build)
-    print('Collected %s good artifacts for %s' % (len(artifacts),  build_num))
+    print('Collected %s good artifacts for %s' % (len(artifacts), build_num))
     return Build(r=r, artefacts=artifacts)
 
 
@@ -271,10 +271,6 @@ def get_branch2status(builds):
 
 
 def go():
-    now = datetime.datetime.now(tz=pytz.utc)
-    token = os.environ['CIRCLE_TOKEN']
-
-    client = circleclient.CircleClient(token)
     # print client.projects.list_projects()
     # print client.build.recent_all_projects()
 
@@ -287,7 +283,15 @@ def go():
     print('project: %s' % project)
     print('d0: %s' % d0)
     print('fn: %s' % fn)
-    print('circle token: %s' % token)
+
+    go_(username, project, d0, fn)
+
+
+def go_(username, project, d0, fn):
+    # print('circle token: %s' % token)
+    now = datetime.datetime.now(tz=pytz.utc)
+    token = os.environ['CIRCLE_TOKEN']
+    client = circleclient.CircleClient(token)
 
     from github import Github
     if not 'GITHUB_TOKEN' in os.environ:
@@ -336,6 +340,13 @@ def go():
     html.append(body)
 
     #    fn = os.path.join(d0, 'summary.html')
+    fnd = os.path.basename(fn)
+    if not os.path.exists(fnd):
+        try:
+            os.makedirs(fnd)
+        except Exception as e:
+            print e
+            pass
     with open(fn, 'w') as f:
         f.write(str(html))
 
@@ -466,8 +477,6 @@ def get_branch_table(d0, project, builds, active_branches):
 def get_links(build, branch=None):
     summary = Tag(name='summary')
 
-
-
     # if there is an "index" or "summary" use it
     res = Tag(name='div')
     for art in build.artefacts:
@@ -504,7 +513,6 @@ def get_links_(build, branch=None):
 def get_links_from_artefacts(artefacts, branch=None, build_num=None):
     links = Tag(name='span')
     links.attrs['class'] = 'links'
-
 
     groups = sorted(set([art.group for art in artefacts]))
     for j, g in enumerate(groups):
