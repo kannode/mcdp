@@ -16,108 +16,17 @@ from mcdp_report.html import get_css_filename
 from mcdp_utils_misc import write_data_to_file, AugmentedResult
 from mcdp_utils_xml import bs, gettext, bs_entire_document, to_html_entire_document
 
-BOOKS = """
-!!omap
-- base:
-    title: Information about the project
 
-    abstract: |
-        This is general information about the project
-        and how to contribute to it.
-
-    books: !!omap
-
-        - the_duckietown_project:
-            title: The Duckietown Project
-            abstract: |
-                Learn about the history and current status.
-
-        - AI_driving_olympics:
-            title: The AI Driving Olympics
-            abstract: |
-                Learn about the 2018 competition at NIPS.
-
-        - guide_for_instructors:
-            title: Guide for instructors
-
-        - duckumentation:
-            title: Contributing to the documentation
-
-
-- tech:
-    title: Operation manuals
-
-    abstract: |
-
-        These are the operation manuals.
-
-    books: !!omap
-
-        - opmanual_duckiebot:
-            title: Duckiebot manual
-
-        - opmanual_duckietown:
-            title: Duckietown manual
-
-        - software_carpentry:
-            title: Reference for useful commands
-
-- SW:
-    title: Software development
-
-    books: !!omap
-        - software_architecture:
-            title: Duckietown software architecture
-
-        - software_devel:
-            title: Software development in Duckietown
-
-        - code_docs:
-            title: Packages documentation
-
-
-- theory:
-    title: Class materials
-
-    books: !!omap
-
-        - learning_materials:
-            title: Learning materials
-
-        - exercises:
-            title: Exercises
-
-        - preliminaries:
-            title: Preliminaries
-
-
-- fall2017:
-    title: Past editions
-    books: !!omap
-
-        - class_fall2017:
-            title: Fall 2017
-
-        - class_fall2017_projects:
-            title: Fall 2017 projects
-
-- misc:
-    title: Miscellanea
-
-    abstract: |
-        Other content
-
-    books: !!omap
-        - drafts:
-            title: Drafts
-
-        - deprecated:
-            title: Deprecated
-
-"""
 
 
 def go():
+    fn = sys.argv[1]
+
+    out = sys.argv[2]
+    out_crossrefs = sys.argv[3]
+    out_pickle = sys.argv[4]
+
+    BOOKS = open(fn).read()
     groups = OrderedDict(yaml.load(BOOKS))
 
     import os
@@ -237,8 +146,6 @@ def go():
             divgroup.append(div)
         divgroups.append(divgroup)
 
-    out_pickle = sys.argv[3]
-
     nwarnings = len(res.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_WARNING))
     ntasks = len(res.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_TASK))
     nerrors = len(res.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR))
@@ -265,7 +172,7 @@ def go():
 
     for e in body.select('.notes-panel'):
         e.extract()
-    out = sys.argv[1]
+
     data = str(html)
     data = data.replace('<body>', '<body>\n<?php header1() ?>\n')
     write_data_to_file(data, out)
@@ -274,7 +181,6 @@ def go():
     mf = os.path.join(os.path.dirname(out), 'summary.manifest.yaml')
     write_data_to_file(yaml.dump(manifest), mf)
 
-    out_crossrefs = sys.argv[2]
 
     html = Tag(name='html')
     head = Tag(name='head')

@@ -100,6 +100,7 @@ DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
 #    --symbols docs/symbols.tex \
 
 
-python /project/make_index.py duckuments-dist/index.html \
-                duckuments-dist/all_crossref.html \
-                duckuments-dist/errors_and_warnings.pickle
+python -m mcdp_docs.make_index.py resources/books.yaml \
+    duckuments-dist/index.html \
+    duckuments-dist/all_crossref.html \
+    duckuments-dist/errors_and_warnings.pickle

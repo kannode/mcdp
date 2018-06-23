@@ -287,7 +287,7 @@ def go():
     go_(username, project, d0, fn)
 
 
-def go_(username, project, d0, fn):
+def go_(username, project, d0, fn, repo=None):
     # print('circle token: %s' % token)
     now = datetime.datetime.now(tz=pytz.utc)
     token = os.environ['CIRCLE_TOKEN']
@@ -300,8 +300,12 @@ def go_(username, project, d0, fn):
     else:
         github_token = os.environ['GITHUB_TOKEN']
         try:
-            g = Github(github_token)
-            active_branches = [_.name for _ in g.get_organization(username).get_repo(project).get_branches()]
+            if repo is None:
+                g = Github(github_token)
+                org = g.get_organization(username)
+                repo = org.get_repo(project)
+            branches = repo.get_branches()
+            active_branches = [_.name for _ in branches]
         except ssl.SSLError as e:
             print('error: %s' % e)
             active_branches = None
@@ -340,13 +344,16 @@ def go_(username, project, d0, fn):
     html.append(body)
 
     #    fn = os.path.join(d0, 'summary.html')
-    fnd = os.path.basename(fn)
+    fnd = os.path.dirname(fn)
     if not os.path.exists(fnd):
         try:
             os.makedirs(fnd)
         except Exception as e:
             print e
             pass
+
+    if os.path.exists(fnd):
+        print('exist %s' % fnd)
     with open(fn, 'w') as f:
         f.write(str(html))
 

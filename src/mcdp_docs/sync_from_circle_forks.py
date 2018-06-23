@@ -6,8 +6,6 @@ from collections import defaultdict
 import yaml
 
 
-
-
 def go():
     ''' Find all the forks of the repos containing 'docs' '''
     username = sys.argv[1]
@@ -35,10 +33,10 @@ def go():
         forks = list(repo.get_forks())
         # print repo.name
         # print 'forks: %s' % forks
-        res[str(repo.name)][str(repo.owner.login)] = str(repo.url)
+        res[str(repo.name)][str(repo.owner.login)] = repo
 
-        for repo in forks:
-            res[str(repo.name)][str(repo.owner.login)] = str(repo.url)
+        for repo1 in forks:
+            res[str(repo1.name)][str(repo1.owner.login)] = repo1
 
     res = dict(**res)
     print yaml.dump(res, allow_unicode=True)
@@ -47,9 +45,11 @@ def go():
 
     for repo in res:
         for username in res[repo]:
+            print('\n%s - %s\n' % (repo, username))
             d = os.path.join(d0, repo, username)
             fn = os.path.join(d, 'index.html')
-            go_(username, repo, d, fn)
+
+            go_(username, repo, d, fn, repo=res[repo][username])
 
 
 if __name__ == '__main__':
