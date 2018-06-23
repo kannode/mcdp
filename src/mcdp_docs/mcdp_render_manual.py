@@ -45,7 +45,7 @@ class RenderManual(QuickApp):
 
     def define_options(self, params):
         params.add_string('src', help="Directories with all contents; separate multiple entries with a colon.")
-        params.add_string('resources', help='Extra directories for resources (but not Markdown)', default='')
+        params.add_string('resources', help='Extra directories for resources (but not Markdown). Colon separated.', default='')
 
         params.add_string('output_crossref', help='Crossref', default=None)
         params.add_string('output_file', help='Output file', default=None)
@@ -92,7 +92,7 @@ class RenderManual(QuickApp):
         resources_dirs = split_colons(options.resources)
 
         self.info("Src dirs: \n" + "\n -".join(src_dirs))
-        self.info("Resources dirs: \n" + "\n -".join(resources_dirs))
+        self.info("Resources dirs: %s" % resources_dirs)
 
         raise_errors = options.raise_errors
         # out_dir = options.output
@@ -340,6 +340,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         else:
             msg = "Could not find dir for %s in %s" % (filename, src_dirs)
             raise Exception(msg)
+
 
         html_contents = context.comp(render_book, generate_pdf=generate_pdf,
                                      src_dirs=src_dirs + resources_dirs,

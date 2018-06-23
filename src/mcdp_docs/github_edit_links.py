@@ -7,6 +7,8 @@ from datetime import datetime
 from bs4 import Tag
 from contracts.utils import raise_wrapped
 from git.repo.base import Repo
+from system_cmd import system_cmd_result
+
 from mcdp_docs.check_missing_links import get_id2element, MultipleMatches, match_ref, NoMatches
 from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_docs.source_info_imp import SourceInfo
@@ -19,7 +21,30 @@ class NoRootRepo(Exception):
 
 
 @memoize_simple
-def get_repo_root(d):
+def get_repo_gitdir(fn):
+    cmd = "git rev-parse --git-dir"
+    cwd = os.path.dirname(fn)
+    res = system_cmd_result(cwd, cmd, raise_on_error=True)
+    gitdir = res.stdout.strip()
+    # logger.debug('gitdir for %s is %s' % (fn, gitdir))
+    return gitdir
+
+
+@memoize_simple
+def get_repo_toplevel(fn):
+    cmd = "git rev-parse --show-toplevel"
+    cwd = os.path.dirname(fn)
+    res = system_cmd_result(cwd, cmd, raise_on_error=True)
+    gitdir = res.stdout.strip()
+    # logger.debug('toplevel for %s is %s' % (fn, gitdir))
+    return gitdir
+
+def get_repo_root():
+    pass
+
+
+@memoize_simple
+def get_repo_root_old(d):
     """ Returns the root of the repo root, or raise ValueError. """
     if os.path.exists(os.path.join(d, '.git')):
         return d
@@ -29,7 +54,7 @@ def get_repo_root(d):
             msg = 'Could not find repo root'
             raise NoRootRepo(msg)
         try:
-            return get_repo_root(parent)
+            return get_repo_root_old(parent)
         except NoRootRepo:
             msg = 'Could not find root repo for "%s"' % d
             raise NoRootRepo(msg)
@@ -181,6 +206,9 @@ def get_repo_information(repo_root):
             # to '4bcaf737955277b156a5bacdd80d1805e4b8bb25'
             branch = None
 
+        logger.debug(str(gitrepo))
+        logger.debug('branch: %s' % branch)
+
         commit = gitrepo.head.commit.hexsha
         try:
             origin = gitrepo.remotes.origin
@@ -189,6 +217,8 @@ def get_repo_information(repo_root):
         url = origin.url
     except ValueError as e:
         msg = 'Could not get branch, commit, url. Maybe the repo is not initialized.'
+        msg += '\nUsing repo_root = %s' % repo_root
+
         raise_wrapped(RepoInfoException, e, msg, compact=True)
         raise
 

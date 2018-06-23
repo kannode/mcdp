@@ -8,6 +8,7 @@ import git
 from bs4.element import Tag
 from contracts.utils import check_isinstance, raise_wrapped
 
+from system_cmd import system_cmd_result
 from mcdp_docs.tocs import LABEL_NAME
 from mcdp_utils_misc import memoize_simple, AugmentedResult, logger
 from mcdp_utils_xml import bs, to_html_stripping_fragment, gettext
@@ -30,12 +31,12 @@ SourceInfo = namedtuple('SourceInfo', 'commit author last_modified has_local_mod
 
 
 @memoize_simple
-def get_changed_files(repo_root):
-    repo = get_repo_object(repo_root)
+def get_changed_files(toplevel):
+    repo = get_repo_object(toplevel)
     diff = repo.head.commit.diff(None)
     changed = list([os.path.realpath(x.a_path) for x in diff.iter_change_type('M')])
     repo.git = None
-    msg = 'Files changed in %s' % repo_root
+    msg = 'Files changed in %s' % toplevel
     msg += "\n".join(changed)
     logger.debug(msg)
     return changed
@@ -44,38 +45,53 @@ def get_changed_files(repo_root):
 # git.util.actor is not serializable
 Author = namedtuple('Author', 'name email')
 
+def get_last_commit(toplevel, filename):
+    cmd = ["git", "log", "-n", "1", "--pretty=format:%H", os.path.realpath(filename)]
+    res = system_cmd_result(toplevel, cmd, raise_on_error=True)
+    commit = res.stdout.strip()
+    logger.debug('lasdt commit for %s is %s' % (filename, commit))
+    return commit
+
 
 @memoize_simple
 def get_source_info(filename):
     """ Returns a SourceInfo object or None if the file is not
         part of the repository. """
-    from .github_edit_links import get_repo_root, NoRootRepo
+    from .github_edit_links import NoRootRepo
+    from .github_edit_links import get_repo_gitdir, get_repo_toplevel
 
     try:
-        root = get_repo_root(os.path.realpath(filename))
+        # gitdir = get_repo_gitdir(os.path.realpath(filename))
+        toplevel = get_repo_toplevel(os.path.realpath(filename))
     except NoRootRepo as e:
         msg = 'Could not get root repo for %s' % filename
         raise_wrapped(NoSourceInfo, e, msg, compact=True)
         raise
 
-    repo = get_repo_object(root)
+    repo = get_repo_object(toplevel)
 
     try:
-        path = filename
+        path = os.path.realpath(filename)
 
-        try:
-            commit = repo.iter_commits(paths=path, max_count=1).next()
-        except (StopIteration, ValueError) as _e:
-            # ValueError: Reference at 'refs/heads/master' does not exist
-            msg = 'Could not find commit for %s' % filename
-            raise_wrapped(NoSourceInfo, _e, msg, compact=True)
-            raise
+        sha = get_last_commit(toplevel, filename)
+        commit = repo.commit(sha)
+
+        # try:
+        #     commit = repo.iter_commits(paths=path, max_count=1).next()
+        # except (StopIteration, ValueError) as _e:
+        #     # ValueError: Reference at 'refs/heads/master' does not exist
+        #     msg = 'Could not find commit for path %s' % path
+        #     msg += '\n gitdir = %s' % gitdir
+        #     msg += '\n toplevel = %s' % toplevel
+        #     msg += '\nRepo: %s' % repo
+        #     raise_wrapped(NoSourceInfo, _e, msg, compact=True)
+        #     raise
 
         author2 = Author(name=commit.author.name, email=commit.author.email)
         last_modified = time.gmtime(commit.committed_date)
         last_modified = datetime.datetime.fromtimestamp(time.mktime(last_modified))
 
-        has_local_modifications = os.path.realpath(filename) in get_changed_files(root)
+        has_local_modifications = os.path.realpath(filename) in get_changed_files(toplevel)
 
         hexsha = commit.hexsha
 

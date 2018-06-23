@@ -8,6 +8,7 @@ jobs:
               NODE_PATH: /project/node_modules
               MPLBACKEND: agg
               MCDP_TEST_SKIP_MCDPOPT: 1
+              TERM: xterm
               # MCDP_TEST_LIBRARIES_EXCLUDE = mcdp_theory
               # MCDP_TEST_LIBRARIES = "basic,eversion,libtemplates,multisets_tests,posets,tuple_indexing,tuple_making,uncertainty,comments,documents,making,pop,batteries_v1"
 
@@ -18,6 +19,7 @@ jobs:
         - run:
             name: Install
             command: |
+                echo TERM = $TERM
                 # should do nothing if container up to date
                 pip install -r requirements.txt
 

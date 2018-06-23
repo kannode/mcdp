@@ -101,10 +101,11 @@ class MCDPConstants(object):
                                         'mcdp-value', 'mcdp-poset']
 
     # directories ignored by locate_files
-    locate_files_ignore_patterns = ['node_modules', '.git', 'commons', '_cached',
+    locate_files_ignore_patterns = ['node_modules', '.git', '_cached',
                                     '_mcdpweb_cache', 'resized',
                                     '1301-jbds-figures', 'out', 'out-html', 'reprep-static',
                                     '*.html_resources', 'out-*', 'compmake', '*.key']
+    locate_files_ignore_patterns += ['commons']
 
     # images used to look for icons for DPs
     exts_for_icons = ('png', 'jpg', 'PNG', 'JPG')  # 'jpeg', 'JPEG') # XXX

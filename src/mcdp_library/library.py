@@ -411,8 +411,11 @@ class MCDPLibrary(object):
         """ Adds the directory to the search directory list. """
         pattern = ['*.' + ext for ext in MCDPLibrary.all_extensions]
             
-        files_mcdp = locate_files(directory=d, pattern=pattern,
-                                  followlinks=True)
+        files_mcdp = list(locate_files(directory=d, pattern=pattern,
+                                  followlinks=True))
+
+        # logger.debug('add_search_dir(%s, %s) = %s' % (d, pattern, files_mcdp))
+
         for f in files_mcdp:
             assert isinstance(f, str)
             if os.path.islink(f):

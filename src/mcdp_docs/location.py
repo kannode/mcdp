@@ -11,6 +11,7 @@ from contracts import contract, check_isinstance
 from contracts.interface import location
 from contracts.utils import indent
 from mcdp_docs import logger
+
 from mcdp_lang_utils import Where
 from mcdp_utils_misc import pretty_print_dict
 from mcdp_utils_xml import stag, br
@@ -393,7 +394,8 @@ class GithubLocation(Location):
 @contract(returns='$GithubLocation|None')
 def get_github_location(filename):
     from .github_edit_links import NoRootRepo
-    from .github_edit_links import get_repo_root, get_repo_information
+    from .github_edit_links import get_repo_information
+    from .github_edit_links import get_repo_gitdir, get_repo_toplevel
 
     # TODO: detect if the copy is dirty
     if not os.path.exists(filename):
@@ -401,13 +403,14 @@ def get_github_location(filename):
     try:
         # need realpath because of relative names, e.g. filename = 'docs/file.md' and the root is at ..
         filename_r = os.path.realpath(filename)
-        repo_root = get_repo_root(filename_r)
+        repo_gitdir = get_repo_gitdir(filename_r)
+        # repo_root = get_repo_root(filename_r)
     except NoRootRepo as e:
         # not in Git
         # print('file %s not in Git: %s' % (filename, e))
         return None
 
-    repo_info = get_repo_information(repo_root)
+    repo_info = get_repo_information(repo_gitdir)
     branch = repo_info['branch']
     commit = repo_info['commit']
     org = repo_info['org']
@@ -416,7 +419,8 @@ def get_github_location(filename):
     if branch is None:
         branch = 'master'
     # Relative path in the directory
-    relpath = os.path.relpath(filename, repo_root)
+    repo_toplevel = get_repo_toplevel(filename_r)
+    relpath = os.path.relpath(filename, repo_toplevel)
 
     repo_base = 'https://github.com/%s/%s' % (org, repo)
     commit_url = repo_base + '/commit/' + commit
