@@ -11,64 +11,9 @@ all:
 serve-local:
 	DISABLE_CONTRACTS=1 PYRAMID_RELOAD_TEMPLATES=1 pserve --reload ../mcdp-user-db/config/local.ini
 
-prepare_tests:
-	mkdir -p $(out)
+include Makefile.tests
 
-	DISABLE_CONTRACTS=1 $(MAKE) -C $(libraries)/unittests.mcdpshelf/basic.mcdplib/generated_dps/ clean all
-
-comptests: prepare_tests
-	comptests -o $(out) --contracts --nonose --console $(package)
-
-comptests-nocontracts: prepare_tests
-	comptests -o $(out) --nonose --console $(package)
-
-comptests-run: prepare_tests
-	comptests -o $(out) --contracts --nonose $(package)
-
-comptests-run-nocontracts: prepare_tests
-	comptests -o $(out) --nonose $(package)
-	compmake $(out) -c "ls failed"
-
-comptests-run-nocontracts-console: prepare_tests
-	comptests -o $(out) --nonose $(package) --console
-
-comptests-run-parallel: prepare_tests
-	comptests -o $(out) --contracts --nonose -c "rparmake" $(package)
-
-comptests-run-parallel-nocontracts: prepare_tests
-	DISABLE_CONTRACTS=1 \
-	MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
-		comptests -o $(out) --nonose -c "rparmake" $(package)
-
-circle-1-of-4:
-	CIRCLE_NODE_INDEX=0 CIRCLE_NODE_TOTAL=4 $(MAKE) circle
-
-
-circle-3-of-4:
-	CIRCLE_NODE_INDEX=2 CIRCLE_NODE_TOTAL=4 $(MAKE) circle
-
-
-circle: prepare_tests
-	echo Make: $(CIRCLE_NODE_INDEX) " of " $(CIRCLE_NODE_TOTAL)
-	DISABLE_CONTRACTS=1 \
-	# MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates,manual" \
-	# 	comptests -o $(out) --nonose -c "rparmake n=2" $(package)
-	# MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
-	# 	strace -o $(CIRCLE_NODE_INDEX).trace -ff comptests -o $(out) --nonose -c "rmake" $(package)
-	MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
-		comptests -o $(out) --nonose -c "rmake" $(package)
-	# ./misc/t ls failed
-	# ./misc/t parmake
-
-comptests-run-parallel-nocontracts-onlysetup: prepare_tests
-	DISABLE_CONTRACTS=1 comptests -o $(out) --nonose -c "parmake dynamic and ready; parmake dynamic and ready; parmake dynamic and ready" $(package)
-
-comptests-run-parallel-nocontracts-cov: prepare_tests
-	DISABLE_CONTRACTS=1 comptests -o $(out) --coverage --nonose -c "rparmake" $(package)
-
-comptests-run-parallel-nocontracts-prof: prepare_tests
-	DISABLE_CONTRACTS=1 comptests -o $(out) --profile --nonose -c "make; rparmake" $(package)
-
+THESE_FIRST=mcdp_tests-composing1
 
 docoverage-single: prepare_tests
 	# note you need "rmake" otherwise it will not be captured

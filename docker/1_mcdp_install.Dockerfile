@@ -33,6 +33,8 @@ RUN chmod +x /project/entrypoint.sh
 COPY docker/copy_dir.sh /project/copy_dir.sh
 RUN chmod +x /project/copy_dir.sh
 
-
+RUN curl -L -o reveal-3.6.0.zip https://github.com/hakimel/reveal.js/archive/3.6.0.zip
+RUN echo "534378be63e218338e46430a106e2def  /project/reveal-3.6.0.zip" > md5-checks.txt
+RUN md5sum -c md5-checks.txt
 
 RUN chmod 0777 /project

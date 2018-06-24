@@ -2,7 +2,6 @@
 import shutil
 
 import requests
-
 from bs4 import Tag, NavigableString
 
 from mcdp_docs import logger
@@ -57,7 +56,6 @@ def create_slides(soup):
     sub_notes(div_slides)
     sub_markers(div_slides)
 
-
     stylesheet = "v_manual_reveal"
     add_stylesheet(soup, stylesheet)
     embed_css_files(soup)
@@ -68,25 +66,33 @@ def download_reveal(output_dir):
     res = AugmentedResult()
     url = "https://github.com/hakimel/reveal.js/archive/3.6.0.zip"
     target = os.path.join(output_dir, 'revealjs')
+    dest = os.path.join(output_dir, 'reveal-3.6.0.zip')
 
     if os.path.exists(target):
         logger.debug('skipping downloading because target exists: %s' % target)
+
     else:
-        dest = os.path.join(output_dir, 'reveal-3.6.0.zip')
-        if True or not os.path.exists(dest):
-            logger.info('Downloading %s' % url)
-            # ctx = ssl.create_default_context()
-            # ctx.check_hostname = False
-            # ctx.verify_mode = ssl.CERT_NONE
 
-            response = requests.get(url, stream=True) # context=ssl._create_unverified_context())
-            # data = response.raw.read() # read()
-            with open(dest, 'wb') as f:
-                shutil.copyfileobj(response.raw, f)
+        caches = ['/project/reveal-3.6.0.zip']
 
-            # logger.info('downloaded %1.fMB' % (len(data) / (1000.0 * 1000)))
-            # write_data_to_file(data, dest)
-        logger.info(dest)
+        for c in caches:
+            if os.path.exists(c):
+                shutil.copy(c, dest)
+                break
+
+        else:
+
+            if True or not os.path.exists(dest):
+                logger.info('Downloading %s' % url)
+
+                response = requests.get(url, stream=True)
+
+                with open(dest, 'wb') as f:
+                    shutil.copyfileobj(response.raw, f)
+
+                # logger.info('downloaded %1.fMB' % (len(data) / (1000.0 * 1000)))
+                # write_data_to_file(data, dest)
+            logger.info(dest)
 
         target_tmp = target + '.tmp'
         import zipfile
@@ -150,18 +156,15 @@ def sub_markers(soup):
                 # consider the char `▶`
                 continue
 
-
             if marker in ns:
                 ns2 = ns.replace(marker, '')
                 parent = ns.parent
 
-
                 if parent.parent and parent.parent.name == 'li':
                     parent = parent.parent
                 else:
-                    if 'figure-conv-to-div' in parent.attrs.get('class',''):
+                    if 'figure-conv-to-div' in parent.attrs.get('class', ''):
                         parent = parent.parent.parent
-
 
                 add_class(parent, 'fragment')
 
