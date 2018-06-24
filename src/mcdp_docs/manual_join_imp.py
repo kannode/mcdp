@@ -731,13 +731,13 @@ def split_in_files(body, levels=('sec', 'part', 'book')):
 
     for i, (filename, section) in enumerate(file2contents.items()):
         if i < len(ids) - 1:
-            section.attrs[ATTR_NEXT] = ids[i + 1].replace(':section', '')
+            section.attrs[ATTR_NEXT] = ids[i + 1]
         else:
             section.attrs[ATTR_NEXT] = ""
         if i == 0:
             section.attrs[ATTR_PREV] = ""
         else:
-            section.attrs[ATTR_PREV] = ids[i - 1].replace(':section', '')
+            section.attrs[ATTR_PREV] = ids[i - 1]
 
     return file2contents
 
@@ -790,7 +790,7 @@ def update_refs_(filename, contents, id2filename, main_headers=[]):
     :param main_headers: If given, then it will be treated as the main headers
     :return:
     '''
-    logger.debug('main_headers: %s' % main_headers)
+    # logger.debug('main_headers: %s' % main_headers)
     test_href = lambda _: _ is not None and _.startswith('#')
     elements = list(contents.find_all('a', attrs={'href': test_href}))
 

@@ -262,7 +262,12 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
     for filename, contents in filename2contents.items():
         from .source_info_imp import get_main_header
         actual_id = get_main_header(contents)
+
+        i = actual_id.index(':')
+        sec = actual_id[i+1:] + ':section' # TODO: add util for this
         main_headers.append(actual_id)
+        main_headers.append(sec)
+
     logger.debug('main headers: %s' % main_headers)
 
     li = LinkInfo(id2filename, main_headers)

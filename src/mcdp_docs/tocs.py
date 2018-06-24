@@ -317,6 +317,9 @@ def number_items2(root, res):
                 item.tag.attrs[LABEL_WHAT_NUMBER] = what + ' ' + number
                 item.tag.attrs[LABEL_NUMBER] = number
 
+            if item.tag.attrs.get('type','') == 'slides':
+                item.tag.attrs[LABEL_NAME] = u"🎦 " + item.tag.attrs[LABEL_NAME]
+
             allattrs = [LABEL_NAME, LABEL_WHAT, LABEL_WHAT_NUMBER_NAME, LABEL_NUMBER, LABEL_SELF]
             for c in counters:
                 if c in counter_parents[counter] or c == counter:

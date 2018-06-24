@@ -126,7 +126,7 @@ def add_last_modified_info(soup, location):
                 nid = match_ref(header_ident.id_, id2element)
                 return id2element[nid]
             except (MultipleMatches, NoMatches) as e_:
-                msg = 'Could not find header %r to add last modified info:\n %s' % (header_ident.id_, e_)
+                msg = 'Could not find header %r to add last modified info:\n%s' % (header_ident.id_, e_)
                 raise_wrapped(NoIdent, e_, msg, compact=True)
         else:
             for hi in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):

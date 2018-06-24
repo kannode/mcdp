@@ -211,7 +211,7 @@ def match_ref(ref, id2element):
         return matches[0]
     else:
         msg = 'Cannot match %r (core=%r).' % (ref, core)
-        msg += 'Know: %s' % sorted(id2element)
+        msg += '\nKnow: %s' % sorted(id2element)
         raise NoMatches(msg)
 
 

@@ -461,6 +461,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
 
 
 def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bookshort, main_headers=[]):
+    from mcdp_docs.tocs import LABEL_NAME
     soup = bs_entire_document(data)
 
     cross = Tag(name='body')
@@ -469,7 +470,7 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bo
     container.attrs['id'] = 'container'
     cross.append(container)
 
-    for e in soup.select('[label-name]'):
+    for e in soup.select('[%s]' % LABEL_NAME):
         # logger.debug('considering %s' % e)
         if not 'id' in e.attrs:
             continue
@@ -503,7 +504,8 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bo
                 a.append(code)
                 a.append(' ')
                 a.append(br())
-            a.append(e2.attrs['label-name'])
+
+            a.append(e2.attrs[LABEL_NAME])
             # e2.insert(0, Tag(name='br'))
             # e2.insert(0, ' ')
             e2.insert(0, a)
