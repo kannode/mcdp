@@ -202,7 +202,7 @@ def prerender_mathjax_(html, aug_res):
                     msg += 'You have to install the MathJax and/or jsdom libraries.'
                     msg += '\nOn Ubuntu, you can install them using:'
                     msg += '\n\n\tsudo apt-get install npm'
-                    msg += '\n\n\tnpm install MathJax-node jsdom'
+                    msg += '\n\n\tnpm install MathJax-node@0.3.1 jsdom@9.3 less@3.0.4'
                     msg += '\n\n' + indent(res2.stderr, '  |')
                     raise PrerenderError(msg)
                 elif "FATAL ERROR" in res2.stderr:

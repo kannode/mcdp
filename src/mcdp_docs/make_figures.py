@@ -49,6 +49,8 @@ def make_figure_from_figureid_attr(soup, res, location):
         else:
             ID = ID0
 
+        figure.attrs.pop('id')
+
         figure_class = figure.attrs.get('class', '')
         go(soup, figure, ID, figure_class, res, location)
 

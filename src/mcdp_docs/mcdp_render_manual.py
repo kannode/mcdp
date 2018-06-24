@@ -162,7 +162,7 @@ def get_bib_files(src_dirs):
 import requests
 
 
-def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignore=[]):
+def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignore=()):
     res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
     id2file = {}
@@ -185,10 +185,11 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
             if id_ == 'container': continue  # XXX:
 
             if not 'bookshort' in e.attrs:
-                logger.warning('This element does not have bookshort.')
+                # logger.warning('This element does not have bookshort.')
+                pass
             else:
                 if bookshort == e.attrs['bookshort']:
-                    logger.warning('Skipping because same bookshort.')
+                    # logger.warning('Skipping because same bookshort.')
                     continue
 
             if id_ in id2file:

@@ -55,6 +55,8 @@ def test_toc():
     fix_ids_and_add_missing(soup, 'prefix-', AugmentedResult(), LocationUnknown())
     generate_toc(soup)
 
+
+
     s = str(soup)
     expected = ['sec:one', 'sub:two']
     #     print(indent(s, 'transformed > '))

@@ -99,7 +99,6 @@ DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     -c "config echo 1; ${cmd}"
 #    --symbols docs/symbols.tex \
 
-
 python -m mcdp_docs.make_index resources/books.yaml \
     duckuments-dist/index.html \
     duckuments-dist/all_crossref.html \
