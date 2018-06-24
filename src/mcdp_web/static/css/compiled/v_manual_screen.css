@@ -1549,6 +1549,10 @@ p.special-par-point-of-contact::before {
   content: 'Point of contact: ';
   font-weight: bold;
 }
+p.assignment {
+  font-size: smaller;
+  color: gray;
+}
 p.special-par-assigned::before {
   content: 'Assigned to: ';
   font-weight: bold;

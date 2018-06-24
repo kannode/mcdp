@@ -139,7 +139,6 @@ def substitute_todo(soup, res, location):
 
 
 def substitute_assignment(soup, res, location):
-    # from mcdp_docs.manual_join_imp import split_robustly
     from mcdp_docs.manual_join_imp import split_robustly
 
     for prefix in MCDPManualConstants.ASSIGNMENTS_PREFIXES:
@@ -158,6 +157,8 @@ def substitute_assignment(soup, res, location):
             s.attrs['class'] = 'assignment'
             r.element.insert_before(s)
             r.element.replace_with(rep)
+
+            add_class(rep, 'assignment') # XXX
 
 def format_name(name):
     ns = Tag(name='span')

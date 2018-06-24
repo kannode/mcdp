@@ -118,7 +118,7 @@ class MCDPManualConstants(object):
         'A:': 'special-par-answer',
 
         "Author: ": 'special-par-author',
-        "Maintainer: ": 'special-par-maintainer',
+        # "Maintainer: ": 'special-par-maintainer',
         "Point of contact: ": 'special-par-point-of-contact',
         "Slack channel: ": 'special-par-slack-channel',
         # Reference and See are the same thing
