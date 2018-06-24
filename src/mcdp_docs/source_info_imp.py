@@ -36,9 +36,12 @@ def get_changed_files(toplevel):
     diff = repo.head.commit.diff(None)
     changed = list([os.path.realpath(x.a_path) for x in diff.iter_change_type('M')])
     repo.git = None
-    msg = 'Files changed in %s' % toplevel
-    msg += "\n".join(changed)
-    logger.debug(msg)
+    if changed:
+        msg = 'Files changed in %s' % toplevel
+        msg += "\n".join(changed)
+        logger.debug(msg)
+    else:
+        logger.debug('No files changed in %s' % toplevel)
     return changed
 
 
