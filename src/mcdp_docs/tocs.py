@@ -438,11 +438,13 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
     if resolve_external:
         for a in soup.select('a[href]'):
             href = a.attrs['href']
-            logger.debug('changing remote href %s' % href)
+
             if href.startswith('+'):
                 s = href.index('#')
                 href2 = href[s:]
                 a.attrs['href'] = href2
+
+                logger.debug('changing remote href %s to %s' % (href, href2))
 
     for le in get_empty_links_to_fragment(soup, extra_refs=extra_refs, res=res):
         a = le.linker
