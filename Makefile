@@ -13,6 +13,7 @@ serve-local:
 
 include Makefile.tests
 
+# Uncomment this to give a list of tests to be run first
 THESE_FIRST=mcdp_tests-composing1
 
 docoverage-single: prepare_tests
@@ -41,28 +42,7 @@ coverage-coveralls:
 
 clean:
 	rm -rf $(out) out/opt_basic_*
-	#_cached
 
-
-stats-locs:
-	wc -l `find . -type f -name '*.py' | grep -v test`
-
-stats-locs-tests:
-	wc -l `find . -type f -name '*.py' | grep test`
-
-
-# bump-upload:
-# 	bumpversion patch
-# 	git push --tags
-# 	python setup.py sdist upload
-
-bump-upload:
-	bumpversion patch
-	git push --tags
-	git push --all
-	rm -f dist/*
-	python setup.py sdist
-	twine upload dist/*
 
 readme-commands:
 	mcdp-solve -d $(libraries)/examples/example-battery.mcdplib battery "<1 hour, 0.1 kg, 1 W>"
@@ -70,31 +50,6 @@ readme-commands:
 
 check-unicode-encoding-line:
 	grep 'coding: utf-8' -r --include '*.py' -L  src/
-
-clean-branches:
-	@echo First delete branches on Github.
-	@echo Then run this command.
-	@echo
-	git fetch -p && git branch -vv | awk '/: gone]/{print $$1}' | xargs git branch -d
-
-
-naked-prints:
-	zsh -c "grep '^[[:space:]]*print ' src/**/*py 2>/dev/null  | grep -v gvgen | grep -v pyparsing_bundled | grep -v /libraries | grep -v XCP | grep -v node_modules | grep -v tests"
-
-
-list-ignored:
-	git status --ignored src | grep -v pyc | grep -v .DS_Store | grep -v out/ | grep -v .compmake_history.txt | grep -v _cached | grep -v .egg-info
-
-
-big-files-in-git:
-	git rev-list --objects --all | grep "$(git verify-pack -v .git/objects/pack/*.idx | sort -k 3 -n | tail -10 | awk '{print$1}')"
-
-branches-to-merge:
-	@echo  "\nThese branches need to be merged in the current branch:\n"
-	@git branch -a --no-merged
-
-show-unicode:
-	cat src/mcdp_lang/*.py | python show_not_ascii.py
 
 serve-continuously:
 	./misc/serve_continuously.sh
@@ -176,3 +131,5 @@ python-module-stats:
 		selenium
 
 include docker/Makefile.docker
+
+include Makefile.utils
