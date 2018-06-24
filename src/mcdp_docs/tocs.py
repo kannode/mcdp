@@ -452,6 +452,7 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
         if has_a_remote_href(a):
             msg = "Ignoring the remote reference %s" % a.attrs['href']
             res.note_warning(msg, HTMLIDLocation.for_element(a))
+            a.append('[%s]' % a.attrs['href'])
             continue
 
         href = a.attrs.get('href', '(not present)')
