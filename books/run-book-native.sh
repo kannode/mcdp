@@ -29,10 +29,9 @@ fi
 org=`git config --get remote.origin.url | cut -f2 -d":"  | cut -f1 -d/ | tr '[:upper:]' '[:lower:]'`
 
 toplevel=`git -C ${src} rev-parse --show-toplevel`
-repo=`basename $toplevel`
+repo=`basename ${toplevel}`
 
 base=http://docs-branches.duckietown.org/${org}/${repo}/branch/${branch}
-#base=http://docs-branches.duckietown.org/duckietown/duckuments/branch/master
 cross=${base}/all_crossref.html
 permalink_prefix=${base}/${short}/out
 
@@ -48,7 +47,7 @@ else
 
 fi
 
-options1="
+options1=""
 #extra_crossrefs=${base}/all_crossref.html
 #options1="--extra_crossrefs ${extra_crossrefs}"
 
@@ -104,7 +103,7 @@ DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     -c "config echo 1; ${cmd}"
 #    --symbols docs/symbols.tex \
 
-python -m mcdp_docs.make_index resources/books.yaml \
+DISABLE_CONTRACTS=1 python -m mcdp_docs.make_index resources/books.yaml \
     duckuments-dist/index.html \
     duckuments-dist/all_crossref.html \
     duckuments-dist/errors_and_warnings.pickle
