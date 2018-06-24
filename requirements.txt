@@ -26,7 +26,6 @@ pyramid_debugtoolbar==4.4
 pyramid_jinja2==2.7
 pytz==2017.3
 requests==2.18.4
-# ruamel.yaml==0.14.4
 ruamel.yaml==0.15.37
 selenium==3.12.0
 twine==1.11.0
@@ -42,4 +41,4 @@ comptests==1.4.24 # AC
 ConfTools==1.9.4 # AC
 DecentLogs==1.1.2 # AC
 
-piprot
+piprot==0.9.10

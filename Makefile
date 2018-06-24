@@ -11,34 +11,13 @@ all:
 serve-local:
 	DISABLE_CONTRACTS=1 PYRAMID_RELOAD_TEMPLATES=1 pserve --reload ../mcdp-user-db/config/local.ini
 
-include Makefile.tests
-
 # Uncomment this to give a list of tests to be run first
-THESE_FIRST=mcdp_tests-composing1
+THESE_FIRST:=mcdp_tests-composing1
 
-docoverage-single: prepare_tests
-	# note you need "rmake" otherwise it will not be captured
-	rm -rf ouf_coverage .coverage
-	-DISABLE_CONTRACTS=1 comptests -o $(out) --nonose -c "exit" $(package)
-	-DISABLE_CONTRACTS=1 coverage2 run `which compmake` $(out) -c "rmake"
-	coverage html -d out_coverage --include '*src/mcdp*'
 
-docoverage-parallel: prepare_tests
-	# note you need "rmake" otherwise it will not be captured
-	rm -rf ouf_coverage .coverage .coverage.*
-	-DISABLE_CONTRACTS=1 MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory" comptests -o $(out) --nonose -c "exit" $(package)
-	-DISABLE_CONTRACTS=1 coverage run --concurrency=multiprocessing  `which compmake` $(out) -c "rparmake"
-	coverage combine
-	$(MAKE) coverage-report
-	$(MAKE) coverage-coveralls
-	#coverage html -d out_coverage --include '*src/mcdp*'
+include Makefile.tests
+include Makefile.coverage
 
-coverage-report:
-	coverage html -d out_coverage --include '*src/mcdp*'
-
-coverage-coveralls:
-	# without --nogit, coveralls does not find the source code
-	COVERALLS_REPO_TOKEN=LDWrmw94YNEgp8YSpJ6ifSWb9aKfQt3wC coveralls --nogit --base_dir .
 
 clean:
 	rm -rf $(out) out/opt_basic_*
@@ -108,9 +87,6 @@ test-dependencies.deps:
 css:
 	$(MAKE) -C src/mcdp_web/static/css/
 
-
-
-
 python-module-stats:
 	./misc/python_environment.py \
 		compmake\
@@ -129,6 +105,8 @@ python-module-stats:
 		Pillow\
 		qtfaststart\
 		selenium
+
+	piprot
 
 include docker/Makefile.docker
 
