@@ -188,11 +188,11 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
             if id_ == 'container': continue  # XXX:
 
             if not 'bookshort' in e.attrs:
-                # logger.warning('This element does not have bookshort.')
+                logger.warning('This element "%s" does not have bookshort.' % id_)
                 pass
             else:
                 if bookshort == e.attrs['bookshort']:
-                    # logger.warning('Skipping because same bookshort.')
+                    logger.warning('Skipping because same bookshort = "%s".' % bookshort)
                     continue
 
             if id_ in id2file:

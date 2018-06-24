@@ -25,7 +25,7 @@ from .minimal_doc import add_extra_css
 from .moving_copying_deleting import move_things_around
 from .read_bibtex import extract_bibtex_blocks
 from .tocs import generate_toc, substituting_empty_links, LABEL_WHAT_NUMBER, LABEL_WHAT_NUMBER_NAME, LABEL_WHAT, \
-    LABEL_NUMBER, LABEL_NAME, LABEL_SELF
+    LABEL_NUMBER, LABEL_NAME, LABEL_SELF, downcast_external
 
 
 def get_manual_css_frag():
@@ -380,6 +380,9 @@ def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
 
     from .check_missing_links import check_if_any_href_is_invalid
     logger.info('checking hrefs')
+    if resolve_external:
+        downcast_external(soup)
+
     check_if_any_href_is_invalid(soup, res, location, extra_refs=crossrefs)
 
     # Note that this should be done *after* check_if_any_href_is_invalid()
@@ -387,8 +390,7 @@ def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
     if resolve_references:
         logger.info('substituting empty links')
 
-        substituting_empty_links(soup, raise_errors=False, res=res, extra_refs=crossrefs,
-                                 resolve_external=resolve_external)
+        substituting_empty_links(soup, raise_errors=False, res=res, extra_refs=crossrefs)
 
     for a in soup.select('a[href_external]'):
         a.attrs['href'] = a.attrs['href_external']

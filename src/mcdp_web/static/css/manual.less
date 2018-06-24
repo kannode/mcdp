@@ -1498,3 +1498,30 @@ details.task:not([open]) summary {
 details.warning summary {
   color: orange;
 }
+
+
+/* The last modified next to headers */
+p.last-modified {
+  text-align: right;
+  font-size: smaller;
+  padding-top: 0;
+  margin-top: 0;
+  color: green;
+  display: none;
+  a {
+    text-decoration: none;
+    //color: inherit !important;
+  }
+}
+
+@media print {
+  .like_buttons {
+    display: none;
+  }
+}
+
+.show_feedback {
+  .like_buttons {
+    display: block;
+  }
+}

@@ -235,8 +235,6 @@ h3.draft {
   color: red !important;
 }
 span.placeholder {
-  padding-left: 1px;
-  padding-right: 1px;
   color: blue;
   background-color: #efe;
   border-radius: 4px;
@@ -2342,6 +2340,26 @@ details.task:not([open]) summary {
 details.warning summary {
   color: orange;
 }
+/* The last modified next to headers */
+p.last-modified {
+  text-align: right;
+  font-size: smaller;
+  padding-top: 0;
+  margin-top: 0;
+  color: green;
+  display: none;
+}
+p.last-modified a {
+  text-decoration: none;
+}
+@media print {
+  .like_buttons {
+    display: none;
+  }
+}
+.show_feedback .like_buttons {
+  display: block;
+}
 @media screen {
   body {
     display: inline-block;
@@ -2499,26 +2517,6 @@ pre + p {
   margin-right: 2em;
   border-radius: 10px;
 }
-@media print {
-  .like_buttons {
-    display: none;
-  }
-}
-.show_feedback .like_buttons {
-  display: block;
-}
-/* The last modified next to headers */
-p.last-modified {
-  text-align: right;
-  font-size: smaller;
-  padding-top: 0;
-  margin-top: 0;
-  color: green;
-  display: none;
-}
-p.last-modified a {
-  text-decoration: none;
-}
 .show_header_change p.last-modified {
   display: block;
 }
@@ -2586,7 +2584,6 @@ p.last-modified a {
 }
 .questions-asked {
   padding: 0.3em;
-  margin-left: 3em;
   font-size: smaller;
   margin: 0.5em;
   background-color: #f2dede;

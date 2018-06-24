@@ -413,10 +413,19 @@ def has_a_remote_href(a):
     else:
         return False
 
+def downcast_external(soup):
+    for a in soup.select('a[href]'):
+        href = a.attrs['href']
+
+        if href.startswith('+'):
+            s = href.index('#')
+            href2 = href[s:]
+            a.attrs['href'] = href2
+
+            logger.debug('changing remote href %s to %s' % (href, href2))
 
 @contract(raise_errors=bool)
 def substituting_empty_links(soup, raise_errors=False, res=None,
-                             resolve_external=True,
                              extra_refs=None):
     """
         soup: where to look for references
@@ -435,16 +444,7 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
     if res is None:
         res = AugmentedResult()
 
-    if resolve_external:
-        for a in soup.select('a[href]'):
-            href = a.attrs['href']
 
-            if href.startswith('+'):
-                s = href.index('#')
-                href2 = href[s:]
-                a.attrs['href'] = href2
-
-                logger.debug('changing remote href %s to %s' % (href, href2))
 
     for le in get_empty_links_to_fragment(soup, extra_refs=extra_refs, res=res):
         a = le.linker

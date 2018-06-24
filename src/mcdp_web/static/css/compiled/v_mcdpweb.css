@@ -152,8 +152,6 @@ h3.draft {
   color: red !important;
 }
 span.placeholder {
-  padding-left: 1px;
-  padding-right: 1px;
   color: blue;
   background-color: #efe;
   border-radius: 4px;
