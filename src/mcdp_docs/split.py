@@ -2,12 +2,13 @@
 import getpass
 import logging
 import os
-from collections import namedtuple
+
 from contextlib import contextmanager
 from multiprocessing import cpu_count
 
 from bs4.element import Tag
 from contracts import contract
+from mcdp_docs import LinkInfo
 from quickapp import QuickApp
 
 from mcdp import logger
@@ -213,7 +214,6 @@ def notification(aug, jobs_aug, reveal_download, output_dir):
     logger.info(msg)
     return res
 
-LinkInfo = namedtuple('LinkInfo', 'id2filename main_headers')
 
 @contract(returns=AugmentedResult)
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir,
@@ -268,7 +268,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         main_headers.append(actual_id)
         main_headers.append(sec)
 
-    logger.debug('main headers: %s' % main_headers)
+    # logger.debug('main headers: %s' % main_headers)
 
     li = LinkInfo(id2filename, main_headers)
     res.set_result(li)

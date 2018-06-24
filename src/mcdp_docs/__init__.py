@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+from collections import namedtuple
 
 from mcdp import MCDPConstants
+
+LinkInfo = namedtuple('LinkInfo', 'id2filename main_headers')
 
 from .logs import logger
 from .mcdp_render import mcdp_render_main

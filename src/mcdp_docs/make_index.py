@@ -18,7 +18,6 @@ from mcdp_utils_xml import bs, gettext, bs_entire_document, to_html_entire_docum
 
 
 
-
 def go():
     fn = sys.argv[1]
 
@@ -154,6 +153,8 @@ def go():
     logger.error('%d nerrors' % nerrors)
 
     from mcdp_docs.mcdp_render_manual import write_errors_and_warnings_files
+    from mcdp_docs import LinkInfo
+    res.set_result(LinkInfo({},[]))
     write_errors_and_warnings_files(res, os.path.dirname(out_pickle))
 
     out_junit = os.path.join(os.path.dirname(out_pickle), 'junit', 'notes', 'junit.xml')

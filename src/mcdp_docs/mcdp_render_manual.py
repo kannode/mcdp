@@ -1072,7 +1072,8 @@ def get_notes_panel(aug):
 def write_errors_and_warnings_files(aug, d):
     if aug.has_result():
         li = aug.get_result()
-        from .split import LinkInfo
+
+        from mcdp_docs import LinkInfo
         check_isinstance(li, LinkInfo)
 
         # id2filename = li.id2filename
