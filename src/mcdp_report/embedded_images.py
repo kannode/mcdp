@@ -292,32 +292,54 @@ def embed_img_data(soup, resolve, raise_on_error,
 
             break
 
+import tempfile
+import errno
+
+def is_writable(path):
+    try:
+        testfile = tempfile.TemporaryFile(dir = path)
+        testfile.close()
+    except OSError as e:
+        if e.errno == errno.EACCES:  # 13
+            return False
+        e.filename = path
+        raise
+    return True
+
 def get_link_to_image_file(filename, max_width):
+    dirname = os.path.dirname(filename)
     basename, ext = os.path.splitext(os.path.basename(filename).lower())
-    if ext in ['.jpg', '.jpeg']:
-        with open(filename) as f:
-            im = Image.open(f)
-            # print filename, im.size
-            if im.size[0] > max_width:
-                b = basename + '-' + get_md5(filename)[:4] + '.jpg'
-                dest = os.path.join(get_mcdp_tmp_dir(), 'images', b)
-                height = int(im.size[1]*max_width/im.size[0])
-                new_size = (max_width, height)
-                msg = 'Resizing image %s from %s to %s' % (filename, im.size, new_size)
-                logger.info(msg)
-                # print('resizing to %s in %s' % (str(new_size), dest))
-                if not os.path.exists(dest):
-                    make_sure_dir_exists(dest)
-                    resized = im.resize(new_size)
 
-                    resized.save(dest)
-
-                return dest
-            # im.save(file + ".thumbnail", "JPEG")
-
+    if ext not in ['.jpg', '.jpeg']:
         return filename
+
+    if is_writable(dirname):
+        dest = os.path.join(dirname, basename+'-resized-%d' % max_width+'.jpg')
     else:
-        return filename
+        b = basename + '-' + get_md5(filename)[:4] + '.jpg'
+        dest = os.path.join(get_mcdp_tmp_dir(), 'images', b)
+
+    if os.path.exists(dest):
+        return dest
+
+    with open(filename) as f:
+        im = Image.open(f)
+        # print filename, im.size
+
+        if im.size[0] <= max_width:
+            return filename
+
+        height = int(im.size[1]*max_width/im.size[0])
+        new_size = (max_width, height)
+        msg = 'Resizing image %s from %s to %s' % (filename, im.size, new_size)
+        logger.info(msg)
+        # print('resizing to %s in %s' % (str(new_size), dest))
+        if not os.path.exists(dest):
+            make_sure_dir_exists(dest)
+            resized = im.resize(new_size)
+            resized.save(dest)
+        return dest
+
 
 def embed_svg_images(soup, extensions=('png', 'jpg')):
     """

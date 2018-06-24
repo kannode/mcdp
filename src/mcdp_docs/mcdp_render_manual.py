@@ -428,7 +428,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         joined_aug = context.comp(add_likebtn, joined_aug, likebtn)
 
     if wordpress_integration:
-        joined_aug = context.comp(add_related, joined_aug)
+        joined_aug = context.comp(add_related, joined_aug, resources_dirs)
 
     if output_file is not None:
         context.comp(write, joined_aug, output_file)
@@ -770,17 +770,17 @@ def mark_errors_and_rest(joined_aug):
     return res
 
 
-def add_related(joined_aug):
+def add_related(joined_aug, resources_dirs):
     res = AugmentedResult()
     res.merge(joined_aug)
     soup = bs_entire_document(joined_aug.get_result())
-    add_related_(soup, res)
+    add_related_(soup, res, resources_dirs)
     res.set_result(to_html_entire_document(soup))
     return res
 
 
-def add_related_(soup, res):
-    posts, users = get_related(res)
+def add_related_(soup, res, resources_dirs):
+    posts, users = get_related(res, resources_dirs)
 
     add_person_links(soup, users, res)
 
@@ -882,8 +882,10 @@ def add_person_links(soup, users, res):
             res.note_warning(msg.encode('utf8'), HTMLIDLocation.for_element(span))
 
 
-def get_related(res):
-    filenames = locate_files('.', '*.related.yaml')
+def get_related(res, resources_dirs):
+    filenames = []
+    for rd in resources_dirs:
+        filenames.extend(locate_files(rd, '*.related.yaml'))
 
     users = {}
     posts = {}

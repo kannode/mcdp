@@ -406,6 +406,7 @@ Please remove the "#".
             res.note_error(msg.lstrip(), HTMLIDLocation.for_element(a, location))
 
 def has_a_remote_href(a):
+
     href = a.attrs['href']
     if href.startswith('+'):
         return True

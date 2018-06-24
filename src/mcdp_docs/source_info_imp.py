@@ -32,6 +32,9 @@ SourceInfo = namedtuple('SourceInfo', 'commit author last_modified has_local_mod
 
 @memoize_simple
 def get_changed_files(toplevel):
+    """
+    Returns a list of realpaths.
+    """
     repo = get_repo_object(toplevel)
     diff = repo.head.commit.diff(None)
     changed = list([os.path.realpath(x.a_path) for x in diff.iter_change_type('M')])
