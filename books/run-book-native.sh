@@ -28,11 +28,14 @@ fi
 
 org=`git config --get remote.origin.url | cut -f2 -d":"  | cut -f1 -d/ | tr '[:upper:]' '[:lower:]'`
 
-base=http://docs-branches.duckietown.org/${org}/duckuments/branch/${branch}
+toplevel=`git -C ${src} rev-parse --show-toplevel`
+repo=`basename $toplevel`
+
+base=http://docs-branches.duckietown.org/${org}/${repo}/branch/${branch}
 #base=http://docs-branches.duckietown.org/duckietown/duckuments/branch/master
 cross=${base}/all_crossref.html
 permalink_prefix=${base}/${short}/out
-extra_crossrefs=${base}/all_crossref.html
+
 
 
 if [ "$CI" = "" ]
@@ -45,7 +48,9 @@ else
 
 fi
 
-options1="--extra_crossrefs ${extra_crossrefs}"
+options1="
+#extra_crossrefs=${base}/all_crossref.html
+#options1="--extra_crossrefs ${extra_crossrefs}"
 
 
 dist=duckuments-dist
