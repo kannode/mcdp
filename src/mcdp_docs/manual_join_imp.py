@@ -55,6 +55,7 @@ DocToJoin = namedtuple('DocToJoin', 'docname contents source_info')
           remove_selectors='None|seq(str)')
 def manual_join(template, files_contents,
                 stylesheet, remove=None, extra_css=None,
+                resolve_external=True,
                 remove_selectors=None,
                 hook_before_toc=None,
                 references=None,
@@ -216,7 +217,8 @@ def manual_join(template, files_contents,
 
         with timeit('document_final_pass_after_toc'):
             document_final_pass_after_toc(soup=d, crossrefs=crossrefs,
-                                          resolve_references=resolve_references, res=result)
+                                          resolve_references=resolve_references,
+                                          resolve_external=resolve_external, res=result)
 
         if extra_css is not None:
             logger.info('adding extra CSS')
@@ -366,7 +368,9 @@ def document_final_pass_before_toc(soup, remove, remove_selectors, res=None, loc
         move_things_around(soup=soup, res=res)
 
 
-def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True, res=None, location=LocationUnknown()):
+def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
+                                  resolve_external=True,
+                                  res=None, location=LocationUnknown()):
     if res is None:
         res = AugmentedResult()
     """ This is done to a final document """
@@ -383,7 +387,8 @@ def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
     if resolve_references:
         logger.info('substituting empty links')
 
-        substituting_empty_links(soup, raise_errors=False, res=res, extra_refs=crossrefs)
+        substituting_empty_links(soup, raise_errors=False, res=res, extra_refs=crossrefs,
+                                 resolve_external=resolve_external)
 
     for a in soup.select('a[href_external]'):
         a.attrs['href'] = a.attrs['href_external']

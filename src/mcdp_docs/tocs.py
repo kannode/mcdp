@@ -3,6 +3,7 @@
 from collections import namedtuple
 
 from bs4.element import Tag, NavigableString
+
 from contracts import contract
 from contracts.utils import indent
 from mcdp.logs import logger
@@ -10,7 +11,6 @@ from mcdp_docs.check_missing_links import get_id2element
 from mcdp_docs.location import HTMLIDLocation
 from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_xml import add_class, bs
-
 from .manual_constants import MCDPManualConstants, get_style_duckietown
 from .toc_number import render_number, number_styles, ZERO
 
@@ -60,8 +60,9 @@ def fix_header_id(header, globally_unique_id_part, res, location):
                     # header.insert_after(Comment('Error: ' + msg))
                     res.note_error(msg, HTMLIDLocation.for_element(header, location))
                 else:
-                    ID_short = ID.replace(prefix+':', '')
+                    ID_short = ID.replace(prefix + ':', '')
                     header.attrs['id-short'] = ID_short
+
 
 class InvalidHeaders(ValueError):
     pass
@@ -76,7 +77,6 @@ def get_things_to_index(soup):
         or div with ['exa', 'rem', 'lem', 'def', 'prop', 'prob', 'thm']
     """
     formatter = None
-
 
     THINGS_TO_INDEX = MCDPManualConstants.HEADERS_TO_INDEX + MCDPManualConstants.OTHER_THINGS_TO_INDEX
     for h in soup.findAll(THINGS_TO_INDEX):
@@ -127,7 +127,7 @@ def get_things_to_index(soup):
             yield h, depth, name
 
         # elif h.name in ['figure']:
-        if h.name in ['div', 'figure']: # now figures are converted to div
+        if h.name in ['div', 'figure']:  # now figures are converted to div
             if element_has_one_of_prefixes(h, MCDPManualConstants.figure_prefixes):
 
                 # XXX: bug because it gets confused with children
@@ -149,7 +149,7 @@ def get_things_to_index(soup):
 
 
 def generate_toc(soup, max_depth=None, max_levels=2, res=AugmentedResult()):
-    max_levels += 1 # since we added "book"
+    max_levels += 1  # since we added "book"
     stack = [Item(None, -1, 'root', 'root', [])]
 
     headers_depths = list(get_things_to_index(soup))
@@ -317,7 +317,7 @@ def number_items2(root, res):
                 item.tag.attrs[LABEL_WHAT_NUMBER] = what + ' ' + number
                 item.tag.attrs[LABEL_NUMBER] = number
 
-            if item.tag.attrs.get('type','') == 'slides':
+            if item.tag.attrs.get('type', '') == 'slides':
                 item.tag.attrs[LABEL_NAME] = u"🎦 " + item.tag.attrs[LABEL_NAME]
 
             allattrs = [LABEL_NAME, LABEL_WHAT, LABEL_WHAT_NUMBER_NAME, LABEL_NUMBER, LABEL_SELF]
@@ -405,16 +405,18 @@ Please remove the "#".
             # note_error2(a, 'syntax error', )
             res.note_error(msg.lstrip(), HTMLIDLocation.for_element(a, location))
 
-def has_a_remote_href(a):
 
+def has_a_remote_href(a):
     href = a.attrs['href']
     if href.startswith('+'):
         return True
     else:
         return False
 
+
 @contract(raise_errors=bool)
 def substituting_empty_links(soup, raise_errors=False, res=None,
+                             resolve_external=True,
                              extra_refs=None):
     """
         soup: where to look for references
@@ -432,6 +434,15 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
         extra_refs = Tag(name='div')
     if res is None:
         res = AugmentedResult()
+
+    if resolve_external:
+        for a in soup.select('a[href]'):
+            href = a.attrs['href']
+            logger.debug('changing remote href %s' % href)
+            if href.startswith('+'):
+                s = href.index('#')
+                href2 = href[s:]
+                a.attrs['href'] = href2
 
     for le in get_empty_links_to_fragment(soup, extra_refs=extra_refs, res=res):
         a = le.linker
@@ -541,7 +552,7 @@ def sub_link(a, element_id, element, res):
             label_name = element.attrs[LABEL_NAME]
         except KeyError as e:
             msg = 'Cannot find %r in %s' % (e, element.attrs)
-            raise Exception(msg) # XXX
+            raise Exception(msg)  # XXX
 
         classes = [CLASS_ONLY_NAME]
     else:
@@ -645,6 +656,7 @@ def compact_desc_tag(element):
     t.append(' ... ')
     return str(t)
 
+
 def string_starts_with(prefixes, s):
     return any([s.startswith(_) for _ in prefixes])
 
@@ -682,6 +694,7 @@ def get_empty_links_to_fragment(element_to_modify, extra_refs, res):
                 continue
 
             msg = 'ID %s in cross references also contained locally.' % k
+
             def cut(x):
                 if len(x) < 500:
                     return x

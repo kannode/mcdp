@@ -61,6 +61,7 @@ class RenderManual(QuickApp):
         params.add_string('likebtn', help='site id for likebtn', default=None, )
         params.add_flag('raise_errors', help='If given, fail the compilation on errors')
         params.add_flag('cache')
+        params.add_flag('resolve_external')
         params.add_flag('ignore_ref_errors')
         params.add_string('extra_crossrefs', help='Link to extra crossrefs', default=None)
         params.add_flag('wordpress_integration')
@@ -113,6 +114,7 @@ class RenderManual(QuickApp):
         likebtn = options.likebtn
         bookshort = options.bookshort
         extra_crossrefs = options.extra_crossrefs
+        resolve_external = options.resolve_external
         use_mathjax = True if options.mathjax else False
 
         logger.info('use mathjax: %s' % use_mathjax)
@@ -150,6 +152,7 @@ class RenderManual(QuickApp):
                     ignore_ref_errors=ignore_ref_errors,
                     extra_crossrefs=extra_crossrefs,
                     only_refs=only_refs,
+                    resolve_external=resolve_external,
                     )
 
 
@@ -296,6 +299,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                 stylesheet_pdf,
                 bookshort,
                 use_mathjax, raise_errors, resolve_references=True,
+                resolve_external=True,
                 remove=None, filter_soup=None, symbols=None,
                 out_pdf=None,
                 only_refs=False,
@@ -408,6 +412,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     joined_aug = context.comp(manual_join, template=template, files_contents=files_contents,
                               stylesheet=None, remove=remove, references=references,
                               resolve_references=resolve_references,
+                              resolve_external=resolve_external,
                               crossrefs_aug=crossrefs_aug,
                               permalink_prefix=permalink_prefix,
                               job_id='join-%s' % cs)
