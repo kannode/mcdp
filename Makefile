@@ -11,9 +11,6 @@ all:
 serve-local:
 	DISABLE_CONTRACTS=1 PYRAMID_RELOAD_TEMPLATES=1 pserve --reload ../mcdp-user-db/config/local.ini
 
-# Uncomment this to give a list of tests to be run first
-THESE_FIRST:=mcdp_tests-composing1
-
 
 include Makefile.tests
 include Makefile.coverage
