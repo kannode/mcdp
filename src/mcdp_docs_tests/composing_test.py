@@ -140,6 +140,7 @@ book.version.yaml: |
                 '--src', 'docs',
                '--stylesheet', 'v_manual_split',
                '--mathjax', '0',
+                '--bookshort', 'bookshort',
                '-o', 'out/out1',
                 '--no_resolve_references',
                '--output_file', res])
