@@ -10,34 +10,32 @@ import yaml
 from bs4 import Tag
 from compmake import UserError
 from compmake.utils.friendly_path_imp import friendly_path
-from contracts import contract, indent
-from contracts.utils import raise_wrapped
-from quickapp import QuickApp
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
 
+from contracts import contract, indent, check_isinstance
+from contracts.utils import raise_wrapped
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
-from mcdp_docs.composing.cli import compose_go2, ComposeConfig
-from mcdp_docs.embed_css import embed_css_files
-from mcdp_docs.location import LocalFile, HTMLIDLocation
-from mcdp_docs.prerender_math import prerender_mathjax
-# from mcdp_docs.reveal import create_slides, write_slides
-from mcdp_docs.split import create_split_jobs
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
     html_list_of_notes, mark_in_html, read_data_from_file
-
 from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs, br
+from quickapp import QuickApp
 from .check_bad_input_files import check_bad_input_file_presence
+from .composing.cli import compose_go2, ComposeConfig
+from .embed_css import embed_css_files
 from .github_edit_links import add_edit_links2, add_last_modified_info
+from .location import LocalFile, HTMLIDLocation
 from .manual_constants import MCDPManualConstants
-from .manual_join_imp import DocToJoin, manual_join
+from .manual_join_imp import DocToJoin, manual_join, update_refs_
 from .minimal_doc import get_minimal_document
+from .prerender_math import prerender_mathjax
 from .read_bibtex import run_bibtex2html
 from .source_info_imp import get_source_info, make_last_modified, NoSourceInfo
+from .split import create_split_jobs
 
 
 class RenderManual(QuickApp):
@@ -45,7 +43,8 @@ class RenderManual(QuickApp):
 
     def define_options(self, params):
         params.add_string('src', help="Directories with all contents; separate multiple entries with a colon.")
-        params.add_string('resources', help='Extra directories for resources (but not Markdown). Colon separated.', default='')
+        params.add_string('resources', help='Extra directories for resources (but not Markdown). Colon separated.',
+                          default='')
 
         params.add_string('bookshort', help='bookshort')
         params.add_string('output_crossref', help='Crossref', default=None)
@@ -73,7 +72,6 @@ class RenderManual(QuickApp):
                           default=None)
         params.add_flag('no_resolve_references')
         params.add_flag('mcdp_settings')
-
 
     def define_jobs_context(self, context):
         options = self.get_options()
@@ -164,7 +162,7 @@ def get_bib_files(src_dirs):
 import requests
 
 
-def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, ignore=[]):
+def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignore=[]):
     res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
     id2file = {}
@@ -185,6 +183,13 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, ignore=[]):
         for e in s.select('[id]'):
             id_ = e.attrs['id']
             if id_ == 'container': continue  # XXX:
+
+            if not 'bookshort' in e.attrs:
+                logger.warning('This element does not have bookshort.')
+            else:
+                if bookshort == e.attrs['bookshort']:
+                    logger.warning('Skipping because same bookshort.')
+                    continue
 
             if id_ in id2file:
                 if not ignore_alread_present:
@@ -345,7 +350,6 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
             msg = "Could not find dir for %s in %s" % (filename, src_dirs)
             raise Exception(msg)
 
-
         html_contents = context.comp(render_book, generate_pdf=generate_pdf,
                                      src_dirs=src_dirs + resources_dirs,
                                      data=contents, realpath=filename,
@@ -365,7 +369,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         ignore.append(output_crossref)
 
     crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs,
-                                   ignore=ignore)
+                                   ignore=ignore, bookshort=bookshort)
 
     bib_files = get_bib_files(src_dirs)
 
@@ -425,12 +429,10 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
     if wordpress_integration:
         joined_aug = context.comp(add_related, joined_aug)
 
-
     if output_file is not None:
         context.comp(write, joined_aug, output_file)
 
     if out_split_dir is not None:
-
 
         joined_aug_with_html_stylesheet = context.comp(add_style, joined_aug, stylesheet)
 
@@ -458,7 +460,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         context.comp(write_manifest_pdf, out_pdf)
 
 
-def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bookshort):
+def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bookshort, main_headers=[]):
     soup = bs_entire_document(data)
 
     cross = Tag(name='body')
@@ -483,7 +485,12 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bo
         if id_ in id2filename:
             basename = id2filename[id_]
 
-            e2.attrs['url'] = '%s/%s#%s' % (permalink_prefix, basename, id_)
+            base = '%s/%s' % (permalink_prefix, basename)
+            if id_ in main_headers:
+                url = base
+            else:
+                url = base + '#' + id_
+            e2.attrs['url'] = url
             e2.attrs['bookshort'] = bookshort
 
             # print e2.attrs['url']
@@ -1062,12 +1069,18 @@ def get_notes_panel(aug):
 
 def write_errors_and_warnings_files(aug, d):
     if aug.has_result():
-        id2filename = aug.get_result()
+        li = aug.get_result()
+        from .split import LinkInfo
+        check_isinstance(li, LinkInfo)
+
+        # id2filename = li.id2filename
     else:
-        id2filename = {}
-    # print('id2filename: %s' % sorted(id2filename))
+        msg = 'pass aug does not have a result'
+        logger.debug(aug.summary())
+        raise Exception(msg)
+
     assert isinstance(aug, AugmentedResult)
-    aug.update_refs(id2filename)
+    aug.update_refs(li.id2filename)
 
     header = get_notes_panel(aug)
 
@@ -1076,7 +1089,7 @@ def write_errors_and_warnings_files(aug, d):
     fn = os.path.join(d, 'warnings.html')
 
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_WARNING, 'warnings', 'warning', header=header)
-    # update_refs_('warnings', html, id2filename)
+    update_refs_('warnings', html, li.id2filename, li.main_headers)
 
     write_data_to_file(str(html), fn, quiet=True)
     if nwarnings:
@@ -1089,7 +1102,7 @@ def write_errors_and_warnings_files(aug, d):
     fn = os.path.join(d, 'tasks.html')
 
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_TASK, 'tasks', 'task', header=header)
-    # update_refs_('tasks', html, id2filename)
+    update_refs_('tasks', html, li.id2filename, li.main_headers)
     write_data_to_file(str(html), fn, quiet=True)
     if nwarnings:
         manifest.append(dict(display='%d tasks' % ntasks,
@@ -1100,7 +1113,7 @@ def write_errors_and_warnings_files(aug, d):
     nerrors = len(aug.get_notes_by_tag(MCDPManualConstants.NOTE_TAG_ERROR))
     fn = os.path.join(d, 'errors.html')
     html = html_list_of_notes(aug, MCDPManualConstants.NOTE_TAG_ERROR, 'errors', 'error', header=header)
-    # update_refs_('tasks', html, id2filename)
+    update_refs_('tasks', html, li.id2filename, li.main_headers)
     write_data_to_file(str(html), fn, quiet=True)
     if nerrors:
         manifest.append(dict(display='%d errors' % nerrors,

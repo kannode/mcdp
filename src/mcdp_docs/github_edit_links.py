@@ -171,7 +171,7 @@ def add_last_modified_info(soup, location):
             p.attrs['class'] = 'last-modified'
             author = l.author
             when = compact_when(l.last_modified)
-            p.append('Modified %s by ' % (when))
+            p.append('Modified %s by ' % when)
 
             p.append(format_name(author.name))
             p.append(' (')

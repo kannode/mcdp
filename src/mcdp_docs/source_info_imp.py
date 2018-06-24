@@ -126,7 +126,11 @@ def get_blames(repo, commit, path):
     from mcdp_docs.mark.markd import render_markdown
 
     def contains_header(l):
-        if not l.startswith('#'):
+        options = ['# ', '## ', '### ', '#### ', '##### ', "###### "]
+        for o in options:
+            if l.startswith(o):
+                break
+        else:
             return None
         html = bs(render_markdown(l.encode('utf8')))
         for e in html.select('h1,h2,h3,h4,h5,h6'):

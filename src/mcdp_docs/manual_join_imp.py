@@ -610,7 +610,6 @@ ATTR_NEXT = 'next'
 CLASS_LINK_NEXT = 'link_next'
 CLASS_LINK_PREV = 'link_prev'
 
-
 def add_prev_next_links(filename2contents, only_for=None):
     new_one = OrderedDict()
     for filename, contents in list(filename2contents.items()):
@@ -646,16 +645,7 @@ def add_prev_next_links(filename2contents, only_for=None):
         contents2 = contents
         S.append(contents2)
 
-        from .source_info_imp import get_main_header
-        actual_id = get_main_header(contents2)
 
-        if False:  # just checking
-            e = contents2.find(id=actual_id)
-            if e is not None:
-                pass
-            else:
-                logger.error('not found %r' % actual_id)
-        S.attrs['id'] = actual_id
 
         contents2.insert(0, nav1.__copy__())
         contents2.append(nav1.__copy__())
@@ -665,7 +655,7 @@ def add_prev_next_links(filename2contents, only_for=None):
     return new_one
 
 
-def split_in_files(body, levels=['sec', 'part', 'book']):
+def split_in_files(body, levels=('sec', 'part', 'book')):
     """
         Returns an ordered dictionary filename -> contents
     """
@@ -686,19 +676,18 @@ def split_in_files(body, levels=['sec', 'part', 'book']):
 
     filenames = []
     for i, section in enumerate(sections):
-        if i < len(sections) - 1:
-            section.attrs[ATTR_NEXT] = sections[i + 1].attrs['id']
-        else:
-            section.attrs[ATTR_NEXT] = ""
-        if i == 0:
-            section.attrs[ATTR_PREV] = ""
-        else:
-            section.attrs[ATTR_PREV] = sections[i - 1].attrs['id']
+        # if i < len(sections) - 1:
+        #     section.attrs[ATTR_NEXT] = sections[i + 1].attrs['id'].replace(':section', '')
+        # else:
+        #     section.attrs[ATTR_NEXT] = ""
+        # if i == 0:
+        #     section.attrs[ATTR_PREV] = ""
+        # else:
+        #     section.attrs[ATTR_PREV] = sections[i - 1].attrs['id'].replace(':section', '')
 
         id_ = section.attrs['id']
         id_sanitized = id_.replace(':', '_').replace('-', '_').replace('_section', '').replace('/', '_')
 
-        #         filename = '%03d_%s.html' % (i, id_sanitized)
         filename = '%s.html' % id_sanitized
 
         if filename in filenames:
@@ -742,13 +731,13 @@ def split_in_files(body, levels=['sec', 'part', 'book']):
 
     for i, (filename, section) in enumerate(file2contents.items()):
         if i < len(ids) - 1:
-            section.attrs[ATTR_NEXT] = ids[i + 1]
+            section.attrs[ATTR_NEXT] = ids[i + 1].replace(':section', '')
         else:
             section.attrs[ATTR_NEXT] = ""
         if i == 0:
             section.attrs[ATTR_PREV] = ""
         else:
-            section.attrs[ATTR_PREV] = ids[i - 1]
+            section.attrs[ATTR_PREV] = ids[i - 1].replace(':section', '')
 
     return file2contents
 
@@ -792,9 +781,21 @@ def update_refs(filename2contents, id2filename):
         update_refs_(filename, contents, id2filename)
 
 
-def update_refs_(filename, contents, id2filename):
+def update_refs_(filename, contents, id2filename, main_headers=[]):
+    '''
+
+    :param filename:
+    :param contents:
+    :param id2filename:
+    :param main_headers: If given, then it will be treated as the main headers
+    :return:
+    '''
+    logger.debug('main_headers: %s' % main_headers)
     test_href = lambda _: _ is not None and _.startswith('#')
     elements = list(contents.find_all('a', attrs={'href': test_href}))
+
+    in_same_document, _ = get_id2element(contents, 'id')
+
     # logger.debug('updates: %s' % sorted(id2filename))
     for a in elements:
         href = a.attrs['href']
@@ -803,7 +804,10 @@ def update_refs_(filename, contents, id2filename):
         if id_ in id2filename:
             point_to_filename = id2filename[id_]
             if point_to_filename != filename:
-                new_href = '%s#%s' % (point_to_filename, id_)
+                if id_ in main_headers:
+                    new_href = point_to_filename
+                else:
+                    new_href = '%s#%s' % (point_to_filename, id_)
                 a.attrs['href'] = new_href
                 add_class(a, 'link-different-file')
             else:
@@ -828,7 +832,10 @@ def update_refs_(filename, contents, id2filename):
                         add_class(p, 'contains-link-same-file')
                     p = p.parent
         else:
-            logger.error('update_ref() for %r: no element with ID "%s".' % (filename, id_))
+            if id_ in in_same_document:
+                pass
+            else:
+                logger.error('update_ref() for %r: no element with ID "%s".' % (filename, id_))
 
 
 def tag_like(t):

@@ -2,6 +2,7 @@
 import getpass
 import logging
 import os
+from collections import namedtuple
 from contextlib import contextmanager
 from multiprocessing import cpu_count
 
@@ -104,7 +105,7 @@ def make_page(contents, head0, add_toc, extra_panel_content, add_home_link):
     return html
 
 
-def only_second_part(mathjax, preamble, html, id2filename, filename):
+def only_second_part(mathjax, preamble, html, id2filename, main_headers, filename):
     if mathjax:
         if preamble is not None:
             with timeit('add_mathjax_preamble()'):
@@ -114,7 +115,7 @@ def only_second_part(mathjax, preamble, html, id2filename, filename):
             add_mathjax_call(html)
 
     with timeit('update_refs_'):
-        update_refs_(filename, html, id2filename)
+        update_refs_(filename, html, id2filename, main_headers)
 
     create_slides(html)
     # context.comp(write_slides, slides_aug, out_split_dir)
@@ -194,23 +195,25 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, bookshor
         if only_refs:
             break
 
-    jobs.append(context.comp(download_reveal, output_dir))
+    reveal_download = context.comp(download_reveal, output_dir)
 
-    return context.comp(notification, res, jobs, output_dir)
+    return context.comp(notification, res, jobs, reveal_download, output_dir)
 
 
-def notification(aug, jobs_aug, output_dir):
+def notification(aug, jobs_aug, reveal_download, output_dir):
     res = AugmentedResult()
     res.merge(aug)
     for job_aug in jobs_aug:
         res.merge(job_aug)
-        # res.set_result(job_aug.get_result())
+        # need to pass this because it contains id2filename
+        res.set_result(job_aug.get_result())
     main = os.path.join(output_dir, 'index.html')
     msg = '\n \n      The HTML version is ready at %s ' % main
     msg += '\n \n \nPlease wait a few more seconds for the PDF version.'
     logger.info(msg)
     return res
 
+LinkInfo = namedtuple('LinkInfo', 'id2filename main_headers')
 
 @contract(returns=AugmentedResult)
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir,
@@ -255,11 +258,20 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         filename2contents = split_in_files(body)
         id2filename = get_id2filename(filename2contents)
 
-    res.set_result(id2filename)
+    main_headers = []
+    for filename, contents in filename2contents.items():
+        from .source_info_imp import get_main_header
+        actual_id = get_main_header(contents)
+        main_headers.append(actual_id)
+    logger.debug('main headers: %s' % main_headers)
+
+    li = LinkInfo(id2filename, main_headers)
+    res.set_result(li)
 
     if output_crossref is not None:
         from mcdp_docs.mcdp_render_manual import write_crossref_info
         context.comp(write_crossref_info, data=data, id2filename=id2filename,
+                     main_headers=main_headers,
                      output_crossref=output_crossref,
                      permalink_prefix=permalink_prefix,
                      bookshort=bookshort)
@@ -297,6 +309,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
     for k in list(id2filename):
         if not 'autoid' in k:
             ids_to_use.append(k)
+
     ids_to_use = sorted(ids_to_use)
 
     pointed_to = []
@@ -305,7 +318,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         if not f in pointed_to:
             pointed_to.append(f)
 
-    # data = ",".join(pointed_to)
+
     head0 = soup.html.head
 
     if True:
@@ -330,7 +343,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
         with timeit("direct job"):
             result = only_second_part(
-                    mathjax, preamble, html, id2filename, filename)
+                    mathjax, preamble, html, id2filename=id2filename, filename=filename, main_headers=main_headers)
 
             # ... we remove it. In this way we don't have to copy it every time...
             main_toc.extract()
@@ -342,7 +355,7 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
                              job_id='%s-%s-assets' % (filename, h))
             asset_jobs.append(r)
 
-    update_refs_('toc.html', main_toc, id2filename)
+    update_refs_('toc.html', main_toc, id2filename, main_headers=main_headers)
     out_toc = os.path.join(output_dir, 'toc.html')
     write_data_to_file(str(main_toc), out_toc, quiet=True)
 
