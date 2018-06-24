@@ -27,10 +27,10 @@ comptests-run-parallel-nocontracts: prepare_tests
 	DISABLE_CONTRACTS=1 \
 	ifdef THESE_FIRST
 		MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
-			comptests -o $(out) --nonose -c "rparmake" $(package)
+			comptests -o $(out) --nonose -c "make $(THESE_FIRST); rparmake" $(package)
 	else
 		MCDP_TEST_LIBRARIES_EXCLUDE="mcdp_theory,droneD_complete_templates" \
-			comptests -o $(out) --nonose -c "make $(THESE_FIRST); rparmake" $(package)
+			comptests -o $(out) --nonose -c "rparmake" $(package)
 	fi
 
 circle-1-of-4:
