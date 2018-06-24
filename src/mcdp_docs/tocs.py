@@ -405,6 +405,12 @@ Please remove the "#".
             # note_error2(a, 'syntax error', )
             res.note_error(msg.lstrip(), HTMLIDLocation.for_element(a, location))
 
+def has_a_remote_href(a):
+    href = a.attrs['href']
+    if href.startswith('+'):
+        return True
+    else:
+        return False
 
 @contract(raise_errors=bool)
 def substituting_empty_links(soup, raise_errors=False, res=None,
@@ -442,6 +448,11 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
         sub_link(a, element_id, element, res)
 
     for a in get_empty_links(soup):
+        if has_a_remote_href(a):
+            msg = "Ignoring the remote reference %s" % a.attrs['href']
+            res.note_warning(msg, HTMLIDLocation.for_element(a))
+            continue
+
         href = a.attrs.get('href', '(not present)')
         if not href:
             href = '""'
