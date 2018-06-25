@@ -8,5 +8,6 @@ RUN git clone https://github.com/AndreaCensi/linkchecker.git
 RUN . /project/deploy/bin/activate && cd linkchecker && python setup.py install
 RUN . /project/deploy/bin/activate &&  linkchecker --version
 
+RUN apt install -y zsh
 #WORKDIR /duckuments
 ENTRYPOINT ["/project/entrypoint.sh"]

@@ -6,7 +6,7 @@ from bs4.element import Tag
 from mcdp_docs.manual_constants import MCDPManualConstants
 
 from .logs import logger
-
+import warnings
 
 def add_github_links_if_edit_url(soup, permalink_prefix=None):
     """ 
@@ -31,14 +31,18 @@ def add_github_links_if_edit_url(soup, permalink_prefix=None):
         if hid is not None:
             if ':' in hid:
                 hid = hid[hid.index(':') + 1:]
-            if permalink_prefix is not None:
-                if not 'autoid' in hid:
-                    url = permalink_prefix + str(hid)
-                    a.attrs['href'] = url
-                    a.string = '🔗'
-                    a.attrs['class'] = 'purl-link'
-                    a.attrs['title'] = "Use this link as the permanent link to share with people."
-                    s.append(a)
+
+            if True:
+                warnings.warn('permalinks temporarily disabled')
+            else:
+                if permalink_prefix is not None:
+                    if not 'autoid' in hid:
+                        url = permalink_prefix + str(hid)
+                        a.attrs['href'] = url
+                        a.string = '🔗'
+                        a.attrs['class'] = 'purl-link'
+                        a.attrs['title'] = "Use this link as the permanent link to share with people."
+                        s.append(a)
 
         s.attrs['class'] = 'github-etc-links'
         h.insert_after(s)

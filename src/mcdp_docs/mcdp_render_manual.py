@@ -1207,7 +1207,7 @@ def get_main_template(root_dir, resources_dirs):
             embed_img_data(soup, resolve, raise_on_error=False,
                            res=AugmentedResult(), location=location,
                            embed=True)
-            return to_html_entire_document(template)
+            return to_html_entire_document(soup)
 
     msg = 'Could not find template {}'.format(fn)
     raise ValueError(msg)
