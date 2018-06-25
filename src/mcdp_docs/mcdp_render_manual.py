@@ -10,6 +10,7 @@ import yaml
 from bs4 import Tag
 from compmake import UserError
 from compmake.utils.friendly_path_imp import friendly_path
+from mcdp_report.embedded_images import embed_img_data
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
 
@@ -28,7 +29,7 @@ from .check_bad_input_files import check_bad_input_file_presence
 from .composing.cli import compose_go2, ComposeConfig
 from .embed_css import embed_css_files
 from .github_edit_links import add_edit_links2, add_last_modified_info
-from .location import LocalFile, HTMLIDLocation
+from .location import LocalFile, HTMLIDLocation, LocationUnknown
 from .manual_constants import MCDPManualConstants
 from .manual_join_imp import DocToJoin, manual_join, update_refs_
 from .minimal_doc import get_minimal_document
@@ -466,7 +467,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         context.comp(write_manifest_pdf, out_pdf)
 
 
-def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bookshort, main_headers=[]):
+def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bookshort, main_headers=()):
     from mcdp_docs.tocs import LABEL_NAME
     soup = bs_entire_document(data)
 
@@ -1190,7 +1191,23 @@ def get_main_template(root_dir, resources_dirs):
     for d in resources_dirs:
         fns = locate_files(d, MCDPManualConstants.main_template)
         for fn in fns:
-            return parse_main_template(fn)
+            logger.debug('Found %s' % fn )
+            template = parse_main_template(fn)
+            soup = bs_entire_document(template)
+            location = LocationUnknown()
+            def resolve(href):
+                r = os.path.join(os.path.dirname(fn), href)
+
+                data = open(r).read()
+
+                res = dict(data=data, realpath=r)
+                logger.debug('resolved %s to %s' %(href, r))
+                return res
+
+            embed_img_data(soup, resolve, raise_on_error=False,
+                           res=AugmentedResult(), location=location,
+                           embed=True)
+            return to_html_entire_document(template)
 
     msg = 'Could not find template {}'.format(fn)
     raise ValueError(msg)

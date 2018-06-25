@@ -452,9 +452,10 @@ def substituting_empty_links(soup, raise_errors=False, res=None,
         element = le.linked
 
         if not element:
-            msg = ('Cannot find %s' % element_id)
+            msg = ('Cannot resolve reference "#%s"' % element_id)
             res.note_error(msg, HTMLIDLocation.for_element(a))
 
+            a.append('? #%s' % element_id)
             if raise_errors:
                 raise ValueError(msg)
             continue
@@ -648,8 +649,9 @@ def sub_link(a, element_id, element, res):
         add_class(frag, 'reflabel')
         a.append(frag)
 
-        if 'base_url' in element.attrs:
-            a['href'] = element.attrs['base_url'] + a['href']
+        # FIXME - I didn't understand
+        # if 'base_url' in element.attrs:
+        #     a['href'] = element.attrs['base_url'] + a['href']
 
 
 def compact_desc_tag(element):

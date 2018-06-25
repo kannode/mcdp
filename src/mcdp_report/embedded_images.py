@@ -245,52 +245,75 @@ def embed_img_data(soup, resolve, raise_on_error,
 
     img_extensions = MCDPManualConstants.embed_img_data_extensions
 
+    def accept_href(tag0, href0):
+        if href0.startswith('data:'):
+            return False
+
+        if href0.startswith('http'):
+            msg = 'I will not embed remote files, such as\n   %s' % href0
+            res.note_warning(msg, HTMLIDLocation.for_element(tag0, location))
+            return False
+
+        return True
+
+
+#<link rel="icon" href="https://www2.duckietown.org/wp-content/uploads/2018/05/cropped-duckie2-192x192.png" sizes="192x192" />
+    for tag in soup.select('link[rel=icon]'):
+        print tag
+        href = tag.attrs['href']
+        if not accept_href(tag, href):
+            continue
+
+        sub_img_url(tag, 'href', resolve, img_extensions, raise_on_error, res, location, embed)
+
     for tag in soup.select('img[src]'):
         href = tag['src']
-        if href.startswith('data:'):
+
+        if not accept_href(tag, href):
             continue
 
-        if href.startswith('http'):
-            msg = 'I will not embed remote files, such as\n   %s' % href
-            res.note_warning(msg, HTMLIDLocation.for_element(tag, location))
+        sub_img_url(tag, 'src', resolve, img_extensions, raise_on_error, res, location, embed)
+
+
+def sub_img_url(tag, ATT, resolve, img_extensions, raise_on_error, res, location, embed):
+    href = tag[ATT]
+
+    for ext in img_extensions:
+
+        if not href.endswith('.' + ext):
             continue
 
-        for ext in img_extensions:
+        data = resolve(href)
 
-            if not href.endswith('.' + ext):
-                continue
+        if data is None:
+            msg = 'embed_img_data: Could not find file:\n     %s' % href
 
-            data = resolve(href)
-
-            if data is None:
-                msg = 'embed_img_data: Could not find file:\n     %s' % href
-
-                if raise_on_error:
-                    raise Exception(msg)  # XXX
-                else:
-                    res.note_error(msg, HTMLIDLocation.for_element(tag, location))
-                    continue
-            file_data = data['data']
-            realpath = data['realpath']
-
-            check_isinstance(data, dict)
-
-            if embed:
-                tag['src'] = data_encoded_for_src(file_data, ext)
+            if raise_on_error:
+                raise Exception(msg)  # XXX
             else:
-                if not os.path.exists(realpath):
-                    msg = 'Expecting a path from %r, but does not exist %s' % (href, realpath)
-                    raise Exception(msg)  # XXX
+                res.note_error(msg, HTMLIDLocation.for_element(tag, location))
+                continue
+        file_data = data['data']
+        realpath = data['realpath']
 
-                max_width = MCDPManualConstants.max_width_for_image
-                try:
-                    tag['src'] = get_link_to_image_file(realpath, max_width)
-                except IOError as e:
-                    msg = 'Could not resize %s:' % realpath
-                    msg += '\n\n ' + str(e)
-                    res.note_error(msg, locations=HTMLIDLocation.for_element(tag, location))
+        check_isinstance(data, dict)
 
-            break
+        if embed:
+            tag[ATT] = data_encoded_for_src(file_data, ext)
+        else:
+            if not os.path.exists(realpath):
+                msg = 'Expecting a path from %r, but does not exist %s' % (href, realpath)
+                raise Exception(msg)  # XXX
+
+            max_width = MCDPManualConstants.max_width_for_image
+            try:
+                tag[ATT] = get_link_to_image_file(realpath, max_width)
+            except IOError as e:
+                msg = 'Could not resize %s:' % realpath
+                msg += '\n\n ' + str(e)
+                res.note_error(msg, locations=HTMLIDLocation.for_element(tag, location))
+
+        break
 
 import tempfile
 import errno

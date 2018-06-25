@@ -143,7 +143,8 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
                     element = id2element[matches[0]]
                     # msg = 'Using foreign resolve for %s -> %s' % (matches[0], a['href'])
                     # logger.info(msg)
-                    a.attrs['href_external'] = element.attrs['base_url'] + '#' + matches[0]
+                    # a.attrs['href_external'] = element.attrs['base_url'] + '#' + matches[0]
+                    a.attrs['href_external'] = element.attrs['url']
 
                 if show_debug_message_for_corrected_links:
                     msg = '%s not found, but corrected in %s' % (href, matches[0])

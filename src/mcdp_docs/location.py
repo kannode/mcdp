@@ -133,18 +133,23 @@ class LocalFile(Location):
 
     def as_html(self, inline=False):
         div = Tag(name='div')
-        p = Tag(name='p')
-        p.append('File ')
-        # p.append(Tag(name='span'))
-        # p.append(br())
-        a = Tag(name='a')
-        a.attrs['href'] = self.filename
-        a.append(self.filename)
-        p.append(a)
-        p.append('.')
-        #        a = Tag(name='a')
-        #        a.attrs['href'] = 'edit://' + self.filename
-        #        a.append('edit')
+
+        if True:
+            p = Tag(name='p')
+            p.append('File ')
+            # p.append(Tag(name='span'))
+            # p.append(br())
+            a = Tag(name='span')
+            # TODO: re-add it - now a quick fix for urls
+            # a.attrs['href'] = self.filename
+            a.append(self.filename)
+            p.append(a)
+            p.append('.')
+
+
+            #        a = Tag(name='a')
+            #        a.attrs['href'] = 'edit://' + self.filename
+            #        a.append('edit')
 
         div.append(p)
         if self.github_info is not None:
