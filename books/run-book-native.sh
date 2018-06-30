@@ -85,6 +85,7 @@ mkdir -p ${dist}
 NP=${PWD}/node_modules:${NODE_PATH}
 
 echo Running in dir ${PWD}
+#    --likebtn 5ae54e0d6fd08bb24f3a7fa1 \
 
 DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     --src ${src} \
@@ -94,7 +95,6 @@ DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     --stylesheet_pdf v_manual_blurb_ready \
     --wordpress_integration \
     --output_crossref ${dist}/${short}/crossref.html \
-    --likebtn 5ae54e0d6fd08bb24f3a7fa1 \
     -o out/${short} \
     --permalink_prefix ${permalink_prefix} \
     ${options1} \

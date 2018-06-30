@@ -287,7 +287,7 @@ def go():
     go_(username, project, d0, fn)
 
 
-def go_(username, project, d0, fn, repo=None):
+def go_(username, project, d0, fn, repo=None, limit=50):
     # print('circle token: %s' % token)
     now = datetime.datetime.now(tz=pytz.utc)
     token = os.environ['CIRCLE_TOKEN']
@@ -311,7 +311,7 @@ def go_(username, project, d0, fn, repo=None):
             active_branches = None
 
     print('active branches: %s' % active_branches)
-    res = client.build.recent(username, project, limit=50, offset=0)
+    res = client.build.recent(username, project, limit=limit, offset=0)
 
     builds = OrderedDict()
 
@@ -358,6 +358,8 @@ def go_(username, project, d0, fn, repo=None):
         f.write(str(html))
 
     print('Created ' + fn)
+
+    return builds
 
 
 def get_branch_table(d0, project, builds, active_branches):
