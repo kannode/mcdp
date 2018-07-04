@@ -161,7 +161,8 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
                       add_toc_if_not_existing=True,
                       output_crossref=None,
                       permalink_prefix=None,
-                      only_refs=False):
+                      only_refs=False,
+                      reveal=True):
     data = data_aug.get_result()
     if nworkers == 0:
         nworkers = max(1, cpu_count() - 2)
@@ -195,7 +196,8 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, nworkers
         if only_refs:
                 break
 
-    jobs.append(context.comp(download_reveal, output_dir))
+    if reveal:
+        jobs.append(context.comp(download_reveal, output_dir))
 
     return context.comp(notification, res, jobs, output_dir)
 
