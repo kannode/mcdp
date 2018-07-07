@@ -75,7 +75,7 @@ def check_no_forbidden(s, res, location0):
     forbidden = {
         '>=': ['≥'],
         '<=': ['≤'],
-        '>>': ['?']  # added by mistake by Atom autocompletion
+        # '>>': ['?']  # added by mistake by Atom autocompletion
     }
     for f in forbidden:
         if f in s:

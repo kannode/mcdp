@@ -1,3 +1,4 @@
+from __future__ import print_function
 from comptests.registrar import comptest, run_module_tests
 from mcdp_docs import render_complete
 
@@ -22,7 +23,7 @@ def figureid1():
     raise_errors = True
     realpath = 'transformations.py'
     s2 = render_complete(library, s, raise_errors, realpath, generate_pdf=False)
-    print s2
+    print(s2)
 
     assert  'id="myID"' not in s2
     assert 'id="fig:myID"'  in s2

@@ -6,12 +6,10 @@ from contracts import contract, indent
 from contracts.utils import raise_desc
 from mcdp import logger
 from mcdp.constants import MCDPConstants
-from mcdp.exceptions import DPInternalError
 from mcdp_library import MCDPLibrary
 from mcdp_report.gg_utils import embed_images_from_library2
 from mcdp_utils_misc import get_md5, AugmentedResult
 from mcdp_utils_xml import to_html_stripping_fragment, bs, describe_tag
-
 from .check_missing_links import check_if_any_href_is_invalid, fix_subfig_references
 from .elements_abbrevs import check_good_use_of_special_paragraphs, other_abbrevs, substitute_special_paragraphs
 from .github_file_ref.display_file_imp import display_files
@@ -51,7 +49,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
         res = AugmentedResult()
     if location is None:
         location = LocationUnknown()
-    from mcdp_report.gg_utils import resolve_references_to_images
+
     s0 = s
 
     unique = get_md5(realpath)[:8]
@@ -59,6 +57,7 @@ def render_complete(library, s, raise_errors, realpath, generate_pdf=False,
     raise_missing_image_errors = raise_errors
 
     # Imports here because of circular dependencies
+    from mcdp_report.gg_utils import resolve_references_to_images
     from .latex.latex_preprocess import extract_maths, extract_tabular
     from .latex.latex_preprocess import latex_preprocessing
     from .latex.latex_preprocess import replace_equations

@@ -27,6 +27,7 @@ programs = ['sudo', 'pip', 'git', 'python', 'cd', 'apt-get', 'rosrun',
             'add-apt-repository', 'truncate', 'losetup', 'gparted',
             'rosbag', 'roscore',
             'export', 'fdisk', 'rosdep', 'rosrun', 'rosparam', 'rospack',
+            'docker',
             'rostest'] \
            + ['|']  # pipe
 
