@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Multi-Arrow Links</title>
+    <meta name="description"
+          content="A custom Link geometry that draws arrowheads at the end of each segment of orthogonally routed links."/>
+    <!-- Copyright 1998-2018 by Northwoods Software Corporation. -->
+    <meta charset="UTF-8">
+    <script src="go-debug.js"></script>
+    <script src="../assets/js/goSamples.js"></script>  <!-- this is only for the GoJS Samples framework -->
+    <script id="code">
+        function init() {
+            if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
+            var $ = go.GraphObject.make;
+
+            myDiagram =
+                $(go.Diagram, "myDiagramDiv", // the ID of the DIV HTML element
+                    {
+                        initialContentAlignment: go.Spot.Center,
+                        layout: $(go.ForceDirectedLayout),
+                        "undoManager.isEnabled": true
+                    });
+
+            myDiagram.nodeTemplate =
+                $(go.Node, go.Panel.Auto,
+                    {locationSpot: go.Spot.Center},
+                    $(go.Shape,
+                        {
+                            figure: "RoundedRectangle",
+                            parameter1: 10,
+                            fill: "orange",  // default fill color
+                            portId: "",
+                            fromLinkable: true,
+                            fromSpot: go.Spot.AllSides,
+                            toLinkable: true,
+                            toSpot: go.Spot.AllSides,
+                            cursor: "pointer"
+                        },
+                        new go.Binding("fill", "color")),
+                    $(go.TextBlock,
+                        {margin: 10, font: "bold 12pt sans-serif"},
+                        new go.Binding("text"))
+                );
+
+            function MultiColoredLink() {
+
+                go.Link.call(this);
+
+            }
+
+            go.Diagram.inherit(MultiColoredLink, go.Link);
+
+
+            MultiColoredLink.prototype.makeGeometry = function () {
+                var geo = go.Link.prototype.makeGeometry.call(this);
+                var colors = ["red", "green"];
+
+                var paths = [];  // find all path Shapes
+
+                this.elements.each(function (elt) {
+                    if (elt.isPanelMain && elt instanceof go.Shape) {
+                        paths.push(elt);
+                    }
+                });
+
+                var numcolors = Math.min(colors.length, paths.length);
+
+                if (numcolors > 0) {
+
+                    var seclen = geo.flattenedTotalLength / numcolors;  // length of each color section
+
+                    for (var i = 0; i < paths.length; i++) {  // go through all path Shapes
+
+                        var shape = paths[i];
+
+                        if (i < numcolors) {
+
+                            shape.visible = true;  // make sure this Shape can be seen
+
+                            shape.stroke = colors[i];  // and assign a color
+
+                            if (i > 0) {  // and a stroke dash array so that it only draws the needed fraction
+                                shape.strokeDashArray = [0, i * seclen, seclen, 99999];
+                            }
+
+                        } else {  // unneeded Shapes are not visible
+                            shape.visible = false;
+                        }
+                    }
+                }
+
+
+                return geo;
+
+            }
+
+            myDiagram.linkTemplate =
+
+                $(MultiColoredLink,
+                    {
+                        relinkableFrom: true,
+                        relinkableTo: true,
+                        reshapable: true,
+                        resegmentable: true,
+                        routing: go.Link.AvoidsNodes,
+                        corner: 10,
+                        curve: go.Link.JumpOver,
+                    },
+
+                    $(go.Shape, {isPanelMain: true, strokeWidth: 3, strokeDashArray: [3, 3]}),
+                    $(go.Shape, {isPanelMain: true, strokeWidth: 3}),
+                    $(go.Shape, "Circle", {width: 20, height: 20, fill: "white", strokeWidth: 3})
+                );
+
+
+            // create a few nodes and links
+            myDiagram.model = new go.GraphLinksModel([
+                {key: 1, text: "one", color: "lightyellow"},
+                {key: 2, text: "two", color: "brown"},
+                {key: 3, text: "three", color: "green"},
+                {key: 4, text: "four", color: "slateblue"},
+                {key: 5, text: "five", color: "aquamarine"},
+                {key: 6, text: "six", color: "lightgreen"},
+                {key: 7, text: "seven"}
+            ], [
+                {from: 5, to: 6},
+                {from: 1, to: 2},
+                {from: 1, to: 3},
+                {from: 1, to: 4},
+                {from: 2, to: 5},
+                {from: 3, to: 5},
+                {from: 4, to: 5},
+                {from: 6, to: 7}
+            ]);
+        }
+
+
+    </script>
+</head>
+<body onload="init()">
+<div id="sample">
+    <div id="myDiagramDiv" style="border: solid 1px black; width:100%; height:700px; min-width: 200px"></div>
+    <p>
+        This sample demonstrates customization of the <a>Link</a> <a>Shape</a>'s <a>Geometry</a>.
+    </p>
+    <p>
+        The MultiArrowLink class in this sample inherits from Link and overrides the <a>Link.makeGeometry</a> method
+        to add arrowheads at the end of each interior segment, assuming that the route is orthogonal.
+    </p>
+</div>
+</body>
+</html>
