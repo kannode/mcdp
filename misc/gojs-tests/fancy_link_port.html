@@ -113,56 +113,41 @@
                 );
 
             LEFT = $(go.Panel, "Vertical",
-                        new go.Binding("itemArray", "leftArray"),
-                        {
-                            row: 1, column: 0,
-                            itemTemplate:
-                                $(go.Panel,
-                                    {
-                                        _side: "left",  // internal property to make it easier to tell which side it's on
-                                        fromSpot: go.Spot.Left, toSpot: go.Spot.Left,
-                                        fromLinkable: false, toLinkable: true, cursor: "pointer",
-                                        // contextMenu: portMenu
-                                    },
-                                    new go.Binding("portId", "portId"),
-                                    // $(go.Shape, "Rectangle",
-                                    //     {
-                                    //         stroke: null, strokeWidth: 0,
-                                    //         desiredSize: portSize,
-                                    //         margin: new go.Margin(1, 0),
-                                    //         fill: "green",
-                                    //     },
-                                    // ),
-                                    $(go.TextBlock, {stroke: "green"}, new go.Binding("text", "port_label")),
-                                )  // end itemTemplate
-                        }
-                    );  // end Vertical Panel
-            RIGHT =   $(go.Panel, "Vertical",
-                        new go.Binding("itemArray", "rightArray"),
-                        {
-                            row: 1,
-                            column: 2,
-                            itemTemplate:
-                                $(go.Panel,
-                                    {
-                                        _side: "right",
-                                        fromSpot: go.Spot.Right,
-                                        toSpot: go.Spot.Right,
-                                        fromLinkable: true, toLinkable: false, cursor: "pointer",
-                                        // contextMenu: portMenu
-                                    },
-                                    new go.Binding("portId", "portId"),
-                                    $(go.Shape, "Rectangle",
-                                        {
-                                            stroke: null, strokeWidth: 0,
-                                            desiredSize: portSize,
-                                            margin: new go.Margin(1, 0),
-                                            fill: "red",
-                                        },),
-                                    $(go.TextBlock, {stroke: "red"}, new go.Binding("text", "port_label")),
-                                )  // end itemTemplate
-                        }
-                    );  // end Vertical Panel
+                new go.Binding("itemArray", "leftArray"),
+                {
+                    row: 1, column: 0,
+                    itemTemplate:
+                        $(go.Panel,
+                            {
+                                _side: "left",  // internal property to make it easier to tell which side it's on
+                                fromSpot: go.Spot.Left, toSpot: go.Spot.Left,
+                                fromLinkable: false, toLinkable: true, cursor: "pointer",
+                                // contextMenu: portMenu
+                            },
+                            new go.Binding("portId", "portId"),
+                            $(go.TextBlock, {stroke: "green"}, new go.Binding("text", "port_label")),
+                        )  // end itemTemplate
+                }
+            );
+            RIGHT = $(go.Panel, "Vertical",
+                new go.Binding("itemArray", "rightArray"),
+                {
+                    row: 1,
+                    column: 2,
+                    itemTemplate:
+                        $(go.Panel,
+                            {
+                                _side: "right",
+                                fromSpot: go.Spot.Right,
+                                toSpot: go.Spot.Right,
+                                fromLinkable: true, toLinkable: false, cursor: "pointer",
+                                // contextMenu: portMenu
+                            },
+                            new go.Binding("portId", "portId"),
+                            $(go.TextBlock, {stroke: "red"}, new go.Binding("text", "port_label")),
+                        )  // end itemTemplate
+                }
+            );
             myDiagram.nodeTemplate =
                 $(go.Node, "Table",
                     {
@@ -195,22 +180,19 @@
                     LEFT,
 
 
-                  RIGHT,
-                );  // end Node
+                    RIGHT,
+                );
 
-            // this predicate is true if both nodes have the same color
-          function sameColor(fromnode, fromport, tonode, toport) {
-            return fromport.data.unit === toport.data.unit;
-            // this could look at the fromport.fill and toport.fill instead,
-            // assuming that the ports are Shapes, which they are because portID was set on them,
-            // and that there is a data Binding on the Shape.fill
-          }
 
-          // only allow new links between ports of the same color
-          myDiagram.toolManager.linkingTool.linkValidation = sameColor;
+            function sameColor(fromnode, fromport, tonode, toport) {
+                return fromport.data.unit === toport.data.unit;
+            }
 
-          // only allow reconnecting an existing link to a port of the same color
-          myDiagram.toolManager.relinkingTool.linkValidation = sameColor;
+            // only allow new links between ports of the same color
+            myDiagram.toolManager.linkingTool.linkValidation = sameColor;
+
+            // only allow reconnecting an existing link to a port of the same color
+            myDiagram.toolManager.relinkingTool.linkValidation = sameColor;
 
             nodes = [
                 {
@@ -240,18 +222,18 @@
                     "key": 2, "name": "unit Two", "loc": "320 152",
                     "leftArray": [
                         {
-                        "unit": "m",
-                        "portId": "F0",
-                        "port_label": "F0 [m]",
-                    }, {
-                        "portId": "F1",
-                        "port_label": "F1 [W]",
+                            "unit": "m",
+                            "portId": "F0",
+                            "port_label": "F0 [m]",
+                        }, {
+                            "portId": "F1",
+                            "port_label": "F1 [W]",
                             "unit": "W",
-                    }, {
-                        "portId": "F2",
-                        "port_label": "F2 [s]",
+                        }, {
+                            "portId": "F2",
+                            "port_label": "F2 [s]",
                             "unit": "s",
-                    }],
+                        }],
 
                     "rightArray": []
                 },
@@ -259,41 +241,37 @@
                     "key": 3, "name": "unit Three", "loc": "384 319",
                     "leftArray": [
                         {
-
-                       "portId": "F0",
-                        "port_label": "F0 [m]",
-                        "unit": "m",
-
-                        },
-
-                        {
-                       "portId": "F1",
-                        "port_label": "F1 [m]",
+                            "portId": "F0",
+                            "port_label": "F0 [m]",
                             "unit": "m",
-                    },
-                          {
-                       "portId": "F3",
-                        "port_label": "F3 [Bool]",
+                        },
+                        {
+                            "portId": "F1",
+                            "port_label": "F1 [m]",
+                            "unit": "m",
+                        },
+                        {
+                            "portId": "F3",
+                            "port_label": "F3 [Bool]",
                             "unit": "Bool",
-                    },
+                        },
                     ],
-
                     "rightArray": []
                 },
                 {
                     "key": 4, "name": "unit Four", "loc": "138 351",
                     "leftArray": [{
-
-                       "portId": "F0",
+                        "portId": "F0",
                         "port_label": "F0 [m]",
                         "unit": "m",
-
                     }],
 
                     "rightArray": [
-                        {"portId": "R1",
+                        {
+                            "portId": "R1",
                             "port_label": "R1 [Bool]",
-                            "unit": "Bool"},
+                            "unit": "Bool"
+                        },
                         {
                             "portId": "R2",
                             "port_label": "R2 [s]",
@@ -301,15 +279,7 @@
                         }]
                 }
             ]
-            links = [
-                // {"from": 4, "to": 2, "fromPort": "top0", "toPort": "bottom0"},
-                // {"from": 4, "to": 2, "fromPort": "top0", "toPort": "bottom0"},
-                // {"from": 3, "to": 2, "fromPort": "top0", "toPort": "bottom1"},
-                // {"from": 4, "to": 3, "fromPort": "right0", "toPort": "left0"},
-                // {"from": 4, "to": 3, "fromPort": "right1", "toPort": "left2"},
-                // {"from": 1, "to": 2, "fromPort": "right0", "toPort": "left1"},
-                // {"from": 1, "to": 2, "fromPort": "right1", "toPort": "left2"}
-
+            links = [ 
             ]
             // create a few nodes and links
             myDiagram.model = $(go.GraphLinksModel, {
