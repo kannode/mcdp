@@ -125,7 +125,8 @@
                                 // contextMenu: portMenu
                             },
                             new go.Binding("portId", "portId"),
-                            $(go.TextBlock, {stroke: "green"}, new go.Binding("text", "port_label")),
+                            $(go.TextBlock, {stroke: "green"},
+                                new go.Binding("text", "port_label")),
                         )  // end itemTemplate
                 }
             );
@@ -148,40 +149,42 @@
                         )  // end itemTemplate
                 }
             );
+
+            TEXT = $(go.TextBlock,
+                            {
+                                margin: 10,
+                                textAlign: "center",
+                                font: "14px  Times",
+                                stroke: "black",
+                                editable: true,
+                                row: 0,
+                                column: 1,
+                            },
+                            new go.Binding("text", "name").makeTwoWay());
+
+
+            TABLE = $(go.Panel, "Table",
+                TEXT,
+                LEFT,
+                RIGHT,
+            )
             myDiagram.nodeTemplate =
-                $(go.Node, "Table",
-                    {
-                        locationObjectName: "BODY",
-                        locationSpot: go.Spot.Center,
-                        selectionObjectName: "BODY",
-                    },
-                    new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+                // $(go.Node, "Table",
+                //     {
+                //         locationObjectName: "BODY",
+                //         locationSpot: go.Spot.Center,
+                //         selectionObjectName: "BODY",
+                //     },
+                //     new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
                     // the body
-                    $(go.Panel, "Auto",
-                        {
-                            row: 1, column: 1, name: "BODY",
-                            stretch: go.GraphObject.Fill
-                        },
+                    $(go.Node, "Auto",
                         $(go.Shape, "RoundedRectangle",
                             {
                                 fill: "white", stroke: "black", strokeWidth: 2,
                                 minSize: new go.Size(56, 56)
                             }),
-                        $(go.TextBlock,
-                            {
-                                margin: 10,
-                                textAlign: "center",
-                                font: "14px  Segoe UI,sans-serif",
-                                stroke: "black",
-                                editable: true
-                            },
-                            new go.Binding("text", "name").makeTwoWay())
-                    ),  // end Auto Panel body
-                    LEFT,
+                        TABLE);
 
-
-                    RIGHT,
-                );
 
 
             function sameColor(fromnode, fromport, tonode, toport) {
@@ -195,6 +198,7 @@
             myDiagram.toolManager.relinkingTool.linkValidation = sameColor;
 
             nodes = [
+                {key: 0, isGroup: true},
                 {
                     "key": 1, "name": "unit One", "loc": "101 204",
                     "leftArray": [
@@ -279,7 +283,7 @@
                         }]
                 }
             ]
-            links = [ 
+            links = [
             ]
             // create a few nodes and links
             myDiagram.model = $(go.GraphLinksModel, {
