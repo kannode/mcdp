@@ -439,7 +439,7 @@ def check_ignore_resources1():
     
     """)
     rnames = ndp.get_rnames()
-    print rnames
+    print(rnames)
     assert rnames == ['mass']
 
 @comptest

@@ -101,6 +101,8 @@
                         relinkableTo: true,
                         reshapable: true,
                         resegmentable: true,
+                        fromEndSegmentLength: 30,
+                        toEndSegmentLength: 30,
 
                         routing: go.Link.AvoidsNodes,
                         corner: 10,
@@ -121,11 +123,15 @@
                             {
                                 _side: "left",  // internal property to make it easier to tell which side it's on
                                 fromSpot: go.Spot.Left, toSpot: go.Spot.Left,
+                                fromLinkableSelfNode: false, toLinkableSelfNode: true,
                                 fromLinkable: false, toLinkable: true, cursor: "pointer",
                                 // contextMenu: portMenu
                             },
                             new go.Binding("portId", "portId"),
-                            $(go.TextBlock, {stroke: "green"},
+                            $(go.TextBlock, {
+                                    stroke: "green",
+                                    textAlign: "left"
+                                },
                                 new go.Binding("text", "port_label")),
                         )  // end itemTemplate
                 }
@@ -141,50 +147,46 @@
                                 _side: "right",
                                 fromSpot: go.Spot.Right,
                                 toSpot: go.Spot.Right,
+                                fromLinkableSelfNode: true, toLinkableSelfNode: false,
                                 fromLinkable: true, toLinkable: false, cursor: "pointer",
                                 // contextMenu: portMenu
                             },
                             new go.Binding("portId", "portId"),
-                            $(go.TextBlock, {stroke: "red"}, new go.Binding("text", "port_label")),
+                            $(go.TextBlock, {
+                                stroke: "red",
+                                textAlign: "right"
+                            }, new go.Binding("text", "port_label")),
                         )  // end itemTemplate
                 }
             );
 
             TEXT = $(go.TextBlock,
-                            {
-                                margin: 10,
-                                textAlign: "center",
-                                font: "14px  Times",
-                                stroke: "black",
-                                editable: true,
-                                row: 0,
-                                column: 1,
-                            },
-                            new go.Binding("text", "name").makeTwoWay());
+                {
+                    margin: 10,
+                    textAlign: "center",
+                    font: "14px  Times",
+                    stroke: "black",
+                    editable: true,
+                    row: 0,
+                    column: 1,
+                },
+                new go.Binding("text", "name").makeTwoWay());
 
+            PIC = $(go.Picture, {
+                row: 1,
+                column: 1,
+                source: "https://placebear.com/128/128",
+            })
 
-            TABLE = $(go.Panel, "Table",
-                TEXT,
-                LEFT,
-                RIGHT,
-            )
+            TABLE = $(go.Panel, "Table", TEXT, LEFT, PIC, RIGHT);
             myDiagram.nodeTemplate =
-                // $(go.Node, "Table",
-                //     {
-                //         locationObjectName: "BODY",
-                //         locationSpot: go.Spot.Center,
-                //         selectionObjectName: "BODY",
-                //     },
-                //     new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-                    // the body
-                    $(go.Node, "Auto",
-                        $(go.Shape, "RoundedRectangle",
-                            {
-                                fill: "white", stroke: "black", strokeWidth: 2,
-                                minSize: new go.Size(56, 56)
-                            }),
-                        TABLE);
-
+                $(go.Node, "Auto",
+                    $(go.Shape, "RoundedRectangle",
+                        {
+                            fill: "white", stroke: "black", strokeWidth: 2,
+                            minSize: new go.Size(56, 56)
+                        }),
+                    TABLE);
 
 
             function sameColor(fromnode, fromport, tonode, toport) {
@@ -200,7 +202,7 @@
             nodes = [
                 {key: 0, isGroup: true},
                 {
-                    "key": 1, "name": "unit One", "loc": "101 204",
+                    key: 1, group: 0, "name": "unit One", "loc": "101 204",
                     "leftArray": [
                         {
                             "portId": "F0",
@@ -223,6 +225,7 @@
                         }]
                 },
                 {
+                    group: 0,
                     "key": 2, "name": "unit Two", "loc": "320 152",
                     "leftArray": [
                         {
@@ -239,9 +242,14 @@
                             "unit": "s",
                         }],
 
-                    "rightArray": []
+                    "rightArray": [{
+                        "portId": "R2",
+                        "port_label": "R2 [m]",
+                        "unit": "m",
+                    }]
                 },
                 {
+                    group: 0,
                     "key": 3, "name": "unit Three", "loc": "384 319",
                     "leftArray": [
                         {
@@ -263,6 +271,7 @@
                     "rightArray": []
                 },
                 {
+                    group: 0,
                     "key": 4, "name": "unit Four", "loc": "138 351",
                     "leftArray": [{
                         "portId": "F0",
@@ -283,8 +292,7 @@
                         }]
                 }
             ]
-            links = [
-            ]
+            links = []
             // create a few nodes and links
             myDiagram.model = $(go.GraphLinksModel, {
                 linkFromPortIdProperty: "fromPort",
