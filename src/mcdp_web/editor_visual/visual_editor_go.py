@@ -3,14 +3,17 @@ import cgi
 import json
 from collections import defaultdict
 
-from mcdp_web.editor_fancy import AppEditorFancyGeneric, ResourceThingViewEditorParse, ajax_parse, \
-    get_text_from_request2, ajax_error_catch
+from mocdp.comp.context import is_fun_node_name, is_res_node_name
 
 from mcdp import MCDPConstants
+from mcdp_posets import RcompUnits
+from mcdp_web.editor_fancy import ajax_parse, \
+    get_text_from_request2, ajax_error_catch
 from mcdp_web.environment import cr2e
 from mcdp_web.resource_tree import ResourceThingViewEditorVisual, ResourceThingViewEditorVisual_parse, \
     ResourceThingViewEditorVisual_save
 from mcdp_web.utils0 import add_std_vars_context
+from mocdp.comp import CompositeNamedDP
 
 Privileges = MCDPConstants.Privileges
 
@@ -23,19 +26,26 @@ class VisualEditor(object):
         self.last_processed2 = defaultdict(lambda: dict())
 
     def config(self, config):
-
         # print('configuring')
         config.add_view(self.view_visual_editor,
                         context=ResourceThingViewEditorVisual,
                         renderer='editor_visual/editor_form_visual.jinja2')
-        config.add_view(self.ajax_parse, context=ResourceThingViewEditorVisual_parse, renderer='json')
+        config.add_view(self.ajax_parse_visual, context=ResourceThingViewEditorVisual_parse, renderer='json')
         config.add_view(self.save, context=ResourceThingViewEditorVisual_save, renderer='json')
         # config.add_view(self.graph_generic, context=ResourceThingViewEditorGraph)
         # config.add_view(self.view_new_model_generic, context=ResourceThingsNew, permission=Privileges.WRITE)
 
     @cr2e
-    def ajax_parse(self, e):
-        return ajax_parse(e, self)
+    def ajax_parse_visual(self, e):
+        res = ajax_parse(e, self)
+
+        if 'thing' in res:
+            model = res.pop('thing')
+            res['gojs'] = add_gojs_diagram_info(model)
+        else:
+            res['gojs'] = None
+
+        return res
 
     @add_std_vars_context
     @cr2e
@@ -54,7 +64,6 @@ class VisualEditor(object):
             'url_part': e.spec.url_part,
         }
         return res
-
 
     @cr2e
     def save(self, e):
@@ -163,3 +172,108 @@ class VisualEditor(object):
     #         e.things[new_thing_name] = source
     #         raise HTTPFound(url_edit)
     #
+
+
+def add_gojs_diagram_info(model):
+    gojs = {}
+    gojs['nodes'] = nodes = []
+
+    assert isinstance(model, CompositeNamedDP)
+
+    for name, ndp in model.get_name2ndp().items():
+        it_is, fname = is_fun_node_name(name)
+        if it_is:
+            node = gojs_node_fun(name, ndp)
+            nodes.append(node)
+            continue
+
+        it_is, rname = is_res_node_name(name)
+        if it_is:
+            node = gojs_node_res(name, ndp)
+            nodes.append(node)
+            continue
+
+        node = gojs_node(name, ndp)
+        nodes.append(node)
+
+    links = []
+    for c in model.get_connections():
+        link = {'from': c.dp1, 'fromPort': c.s1, 'to': c.dp2, 'toPort': c.s2}
+        if is_fun_node_name(c.dp1)[0]:
+            link['category'] = 'f_link'
+        if is_res_node_name(c.dp2)[0]:
+            link['category'] = 'r_link'
+
+        links.append(link)
+
+    gojs['links'] = links
+
+    return gojs
+
+
+def gojs_node_fun(name, ndp):
+    node = gojs_node(name, ndp)
+    node['category'] = 'f_template'
+    return node
+
+
+def gojs_node_res(name, ndp):
+    node = gojs_node(name, ndp)
+    node['category'] = 'r_template'
+    return node
+
+
+def get_type_label(T):
+    if isinstance(T, RcompUnits):
+        return T.string
+    else:
+        return str(T)
+
+
+def gojs_node(name, ndp):
+    functions = []
+    for fname in ndp.get_fnames():
+
+        ftype = ndp.get_ftype(fname)
+        fport = {'portId': fname, 'port_label': "%s [%s]" % (fname, get_type_label(ftype)),
+                 'unit': str(ftype)}
+        functions.append(fport)
+
+    resources = []
+
+    for rname in ndp.get_rnames():
+        rtype = ndp.get_rtype(rname)
+        rport = {'portId': rname, 'port_label': "%s [%s]" % (rname, get_type_label(rtype)),
+                 'unit': str(rtype)}
+        resources.append(rport)
+
+    node = {'key': name, "name": name, "leftArray": functions,
+            "rightArray": resources}
+
+    return node
+
+    #
+    # {
+    #
+    # //         key: 1, group: 0, "name": "unit One", "loc": "101 204",
+    # //         "leftArray": [
+    # //             {
+    # //                 "portId": "F0",
+    # //                 "port_label": "F0 [m]",
+    # //                 "unit": "m",
+    # //             }
+    # //         ],
+    # //
+    # //         "rightArray": [
+    # //             {
+    # //                 "portId": "R0",
+    # //                 "port_label": "R0 [W]",
+    # //                 "unit": "W",
+    # //             },
+    # //             {
+    # //
+    # //                 "portId": "R1",
+    # //                 "port_label": "R1 [m]",
+    # //                 "unit": "m",
+    # //             }]
+    # //     },

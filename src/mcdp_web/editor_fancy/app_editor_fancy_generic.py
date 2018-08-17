@@ -59,7 +59,9 @@ class AppEditorFancyGeneric(object):
 
     @cr2e
     def ajax_parse(self, e):
-        return ajax_parse(e, self)
+        res = ajax_parse(e, self)
+        res.pop('thing', None)
+        return res
 
     @add_std_vars_context
     @cr2e
@@ -240,6 +242,7 @@ def process_parse_request(library, string, spec, key, cache, make_relative):
         'highlight': unicode(highlight, 'utf8'),
         'language_warnings': language_warnings_html, 
         'string_with_suggestions': string_with_suggestions,
+        'thing': thing,
     }
     return res
 

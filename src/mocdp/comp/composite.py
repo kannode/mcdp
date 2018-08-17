@@ -3,18 +3,15 @@ import sys
 
 from contracts import contract
 from contracts.utils import (format_dict_long, format_list_long, raise_desc,
-    raise_wrapped)
+                             raise_wrapped)
+from mcdp.constants import MCDPConstants
+from mcdp.exceptions import DPSemanticError
 from mcdp_dp import Mux
 from mcdp_posets import NotEqual, PosetProduct
 from mocdp.comp.context import Context, is_fun_node_name
-from mocdp.comp.wrap import SimpleWrap
-from mcdp.exceptions import DPSemanticError
-
-from .context import Connection  # @UnusedImport
-from .interfaces import NamedDP
 from mocdp.comp.interfaces import NotConnected
-from mcdp.constants import MCDPConstants
-
+from mocdp.comp.wrap import SimpleWrap
+from .interfaces import NamedDP
 
 __all__ = [
     'CompositeNamedDP',
@@ -22,8 +19,7 @@ __all__ = [
 
 
 class CompositeNamedDP(NamedDP):
-
-    """ 
+    """
         The only tricky thing is that if there is only one function,
         then F = F1
         but if there are two,
@@ -42,7 +38,6 @@ class CompositeNamedDP(NamedDP):
 
         check_consistent_data(self.context.names, self.context.fnames,
                               self.context.rnames, self.context.connections)
-
 
         self._rnames = list(self.context.rnames)
         self._fnames = list(self.context.fnames)
@@ -109,7 +104,7 @@ class CompositeNamedDP(NamedDP):
 
     def compact(self):
         """ Each set of edges that share both tail and head
-            are replaced by their product. """ 
+            are replaced by their product. """
         from mocdp.comp.composite_compact import compact_context
         context = compact_context(self.context)
         return CompositeNamedDP(context)
@@ -141,7 +136,7 @@ class CompositeNamedDP(NamedDP):
 
         assert res.get_fnames() == self.context.fnames
         assert res.get_rnames() == self.context.rnames
-        
+
         return res
 
     def get_dp(self):
@@ -155,8 +150,8 @@ class CompositeNamedDP(NamedDP):
         att = MCDPConstants.ATTR_LOAD_NAME
         if hasattr(self, att):
             s += '\n (loaded as %r)' % getattr(self, att)
-#         if hasattr(self, ATTRIBUTE_NDP_RECURSIVE_NAME):
-#             s += '\n (labeled as %s)' % getattr(self, ATTRIBUTE_NDP_RECURSIVE_NAME).__str__()
+        #         if hasattr(self, ATTRIBUTE_NDP_RECURSIVE_NAME):
+        #             s += '\n (labeled as %s)' % getattr(self, ATTRIBUTE_NDP_RECURSIVE_NAME).__str__()
         for f in self._fnames:
             s += '\n provides %s  [%s]' % (f, self.get_ftype(f))
         for r in self._rnames:
@@ -199,7 +194,7 @@ def check_consistent_data(names, fnames, rnames, connections):
                 msg = 'The name for the node seems to be the one for a resource.'
                 raise_desc(ValueError, msg, n=n, rnames=rnames)
 
-    for f in  fnames:
+    for f in fnames:
         fnode = get_name_for_fun_node(f)
         if not fnode in names:
             msg = 'Expecting to see a node with the name of the function.'
@@ -210,9 +205,9 @@ def check_consistent_data(names, fnames, rnames, connections):
             msg = ('Expecting to see the special function node have function '
                    'with function name.')
             raise_desc(ValueError, msg, f=f, fnode=fnode, fn=fn,
-                        fn_fnames=fn.get_fnames())
+                       fn_fnames=fn.get_fnames())
 
-    for r in  rnames:
+    for r in rnames:
         rnode = get_name_for_res_node(r)
         if not rnode in names:
             msg = 'Expecting to see a node with the name of the resource.'
@@ -225,7 +220,6 @@ def check_consistent_data(names, fnames, rnames, connections):
             raise_desc(ValueError, msg, r=r, rnode=rnode, rn=rn,
                        rn_rnames=rn.get_rnames())
 
-
     for c in connections:
         try:
             if not c.dp1 in names:
@@ -233,7 +227,7 @@ def check_consistent_data(names, fnames, rnames, connections):
                            available=list(names))
 
             if not c.s1 in names[c.dp1].get_rnames():
-                raise_desc(ValueError, 'Resource %r of first DP %r not found' %( c.s1, c.dp1),
+                raise_desc(ValueError, 'Resource %r of first DP %r not found' % (c.s1, c.dp1),
                            rname=c.s1, available=names[c.dp1].get_rnames())
 
             if not c.dp2 in names:
@@ -257,6 +251,7 @@ def check_consistent_data(names, fnames, rnames, connections):
             msg = 'Invalid connection %s.' % (c.__repr__())
             raise_wrapped(ValueError, e, msg, compact=True)
 
+
 @contract(cndp=CompositeNamedDP, returns='list(tuple(str, $NamedDP))')
 def cndp_iterate_res_nodes(cndp):
     res = []
@@ -277,7 +272,6 @@ def cndp_iterate_fun_nodes(cndp):
         if isitr:
             res.append((fname, ndp2))
     return res
-
 
 
 @contract(cndp=CompositeNamedDP, returns='list(tuple(str, $NamedDP))')

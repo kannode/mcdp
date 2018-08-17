@@ -1,8 +1,11 @@
-function create_diagram(nodes, links) {
+var DARK_RED = '#800400';
+var DARK_GREEN = '#096e19';
+
+function create_diagram(diagram_id, nodes, links) {
     var $ = go.GraphObject.make;
 
     myDiagram =
-        $(go.Diagram, "myDiagramDiv", // the ID of the DIV HTML element
+        $(go.Diagram, diagram_id, // the ID of the DIV HTML element
             {
                 initialContentAlignment: go.Spot.Center,
                 // layout: $(go.ForceDirectedLayout),
@@ -41,7 +44,7 @@ function create_diagram(nodes, links) {
 
     MultiColoredLink.prototype.makeGeometry = function () {
         var geo = go.Link.prototype.makeGeometry.call(this);
-        var colors = ["red", "green"];
+        var colors = [DARK_RED, DARK_GREEN];
 
         var paths = [];  // find all path Shapes
 
@@ -95,27 +98,44 @@ function create_diagram(nodes, links) {
         // more ContextMenuButtons would go here
     );  // end Adornment
 
+    link_properties = {
+        relinkableFrom: true,
+        relinkableTo: true,
+        reshapable: true,
+        resegmentable: true,
+        fromEndSegmentLength: 40,
+        toEndSegmentLength: 40,
 
-    myDiagram.linkTemplate =
+        routing: go.Link.AvoidsNodes,
+        corner: 10,
+        curve: go.Link.JumpOver,
+    };
+
+    regular_link =
 
         $(MultiColoredLink,
-            {
-                relinkableFrom: true,
-                relinkableTo: true,
-                reshapable: true,
-                resegmentable: true,
-                fromEndSegmentLength: 30,
-                toEndSegmentLength: 30,
-
-                routing: go.Link.AvoidsNodes,
-                corner: 10,
-                curve: go.Link.JumpOver,
-            },
+            link_properties,
             new go.Binding("points").makeTwoWay(),
-            $(go.Shape, {isPanelMain: true, strokeWidth: 3, strokeDashArray: [3, 3]}),
-            $(go.Shape, {isPanelMain: true, strokeWidth: 3}),
-            $(go.Shape, "Circle", {width: 20, height: 20, fill: "white", strokeWidth: 3})
+            $(go.Shape, {isPanelMain: true, strokeWidth: 2, strokeDashArray: [3, 3]}),
+            $(go.Shape, {isPanelMain: true, strokeWidth: 2}),
+            $(go.Shape, "Circle", {width: 20, height: 20, fill: "white", strokeWidth: 2})
         );
+
+    f_link =
+        $(go.Link,
+            link_properties,
+            new go.Binding("points").makeTwoWay(),
+            $(go.Shape, {isPanelMain: true, strokeWidth: 2, stroke: DARK_GREEN}),
+        );
+
+
+    r_link =
+        $(go.Link,
+            link_properties,
+            new go.Binding("points").makeTwoWay(),
+            $(go.Shape, {isPanelMain: true, strokeWidth: 2, stroke: DARK_RED}),
+        );
+
 
     LEFT = $(go.Panel, "Vertical",
         new go.Binding("itemArray", "leftArray"),
@@ -132,7 +152,7 @@ function create_diagram(nodes, links) {
                     },
                     new go.Binding("portId", "portId"),
                     $(go.TextBlock, {
-                            stroke: "green",
+                            stroke: DARK_GREEN,
                             textAlign: "right"
                         },
                         new go.Binding("text", "port_label")),
@@ -156,7 +176,7 @@ function create_diagram(nodes, links) {
                     },
                     new go.Binding("portId", "portId"),
                     $(go.TextBlock, {
-                        stroke: "red",
+                        stroke: DARK_RED,
                         textAlign: "right"
                     }, new go.Binding("text", "port_label")),
                 )  // end itemTemplate
@@ -199,7 +219,7 @@ function create_diagram(nodes, links) {
             margin: 10,
             textAlign: "right",
             font: "14px  Times",
-            stroke: "green",
+            stroke: DARK_GREEN,
             editable: true,
         },
         new go.Binding("text", "name").makeTwoWay())
@@ -209,8 +229,8 @@ function create_diagram(nodes, links) {
             new go.Binding("location", "location"),
             $(go.Shape, "RoundedRectangle",
                 {
-                    fill: "white", stroke: "black", strokeWidth: 2,
-                    // minSize: new go.Size(56, 56)
+                    fill: "#d0ffdc", stroke: "black", strokeWidth: 0,
+                    minSize: new go.Size(56, 56)
                 },
             ),
             $(go.Panel, "Vertical",
@@ -221,7 +241,7 @@ function create_diagram(nodes, links) {
                     itemTemplate:
                         $(go.Panel,
                             {
-                                _side: "right",
+                                _side: "left",
                                 fromSpot: go.Spot.Right,
                                 toSpot: go.Spot.Right,
                                 fromLinkableSelfNode: true, toLinkableSelfNode: false,
@@ -230,7 +250,7 @@ function create_diagram(nodes, links) {
                             },
                             new go.Binding("portId", "portId"),
                             $(go.TextBlock, {
-                                stroke: "red",
+                                stroke: DARK_GREEN,
                                 textAlign: "right"
                             }, new go.Binding("text", "port_label")),
                         )  // end itemTemplate
@@ -238,37 +258,39 @@ function create_diagram(nodes, links) {
             )
         );
 
-//  GROUP_LEFT = $(go.Panel, "Vertical",
-//     new go.Binding("itemArray", "leftArray"),
-//     {
-//
-//         itemTemplate:
-//             $(go.Panel,
-//                 {
-//                     _side: "left",  // internal property to make it easier to tell which side it's on
-//                     fromSpot: go.Spot.Left, toSpot: go.Spot.Left,
-//                     fromLinkableSelfNode: false, toLinkableSelfNode: true,
-//                     fromLinkable: false, toLinkable: true, cursor: "pointer",
-//                 },
-//                 new go.Binding("portId", "portId"),
-//                 $(go.TextBlock, {
-//                         stroke: "green",
-//                         textAlign: "left"
-//                     },
-//                     new go.Binding("text", "port_label")),
-//             )  // end itemTemplate
-//     }
-// );
-
-// group_template =
-//     $(go.Group, "Auto",
-//         GROUP_LEFT
-//         // $(go.Shape, "RoundedRectangle",
-//         //     {
-//         //         fill: "yellow", stroke: "black", strokeWidth: 2,
-//         //         // minSize: new go.Size(400, 400)
-//         //     }),
-//     );
+    r_template =
+        $(go.Node, "Auto", {},
+            new go.Binding("location", "location"),
+            $(go.Shape, "RoundedRectangle",
+                {
+                    fill: "#ffe6d7", stroke: "black", strokeWidth: 0,
+                    minSize: new go.Size(56, 56)
+                },
+            ),
+            $(go.Panel, "Vertical",
+                new go.Binding("itemArray", "rightArray"),
+                {
+                    row: 1,
+                    column: 0,
+                    itemTemplate:
+                        $(go.Panel,
+                            {
+                                _side: "left",
+                                fromSpot: go.Spot.Left,
+                                toSpot: go.Spot.Left,
+                                fromLinkableSelfNode: true, toLinkableSelfNode: false,
+                                fromLinkable: true, toLinkable: false, cursor: "pointer",
+                                contextMenu: contextMenu
+                            },
+                            new go.Binding("portId", "portId"),
+                            $(go.TextBlock, {
+                                stroke: DARK_RED,
+                                textAlign: "left"
+                            }, new go.Binding("text", "port_label")),
+                        )  // end itemTemplate
+                }
+            )
+        );
 
     function sameColor(fromnode, fromport, tonode, toport) {
         return fromport.data.unit === toport.data.unit;
@@ -283,10 +305,16 @@ function create_diagram(nodes, links) {
 
 // create the nodeTemplateMap, holding three node templates:
     var templmap = new go.Map("string", go.Node);
-
     templmap.add("", component_template);
     templmap.add("f_template", f_template);
+    templmap.add("r_template", r_template);
     myDiagram.nodeTemplateMap = templmap;
+
+    var link_template_map = new go.Map("string", go.Link);
+    link_template_map.add("", regular_link);
+    link_template_map.add("f_link", f_link);
+    link_template_map.add("r_link", r_link);
+    myDiagram.linkTemplateMap = link_template_map;
 
 // group_template_map = new go.Map("string", go.Node);
 // group_template_map.add("", group_template);

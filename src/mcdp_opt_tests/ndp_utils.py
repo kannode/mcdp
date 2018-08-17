@@ -32,10 +32,10 @@ def cndp_remove_one_child(cndp, to_remove):
     name2ndp_i = dict((k, v) for k, v in name2ndp.items() if k != to_remove)
     filter_c = lambda c: not c.involves_any_of_these_nodes([to_remove])
     connections_i = filter(filter_c, connections)
-    
+
     ndp2 = CompositeNamedDP.from_parts(name2ndp=name2ndp_i,
-                                        connections=connections_i,
-                                        fnames=fnames, rnames=rnames)
+                                       connections=connections_i,
+                                       fnames=fnames, rnames=rnames)
 
     unconnected_fun, unconnected_res = get_missing_connections(ndp2.context)
 
@@ -48,7 +48,6 @@ def cndp_remove_one_child(cndp, to_remove):
         ndp2.context.add_ndp(name, new_ndp)
         c = Connection(dp2=name, s2='limit', dp1=r.dp, s1=r.s)
         ndp2.context.add_connection(c)
-
 
     for f in [CFunction(*_) for _ in unconnected_fun]:
         F = ndp2.context.get_ftype(f)
@@ -64,4 +63,3 @@ def cndp_remove_one_child(cndp, to_remove):
     ndp2.check_fully_connected()
 
     return ndp2
-

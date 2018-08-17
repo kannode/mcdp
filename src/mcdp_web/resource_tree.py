@@ -659,7 +659,7 @@ class ResourceThingViewSolver0AxisAxis_reset(Resource): pass
 class ResourceThingViewEditorVisual(ResourceThingView):
     def getitem(self, key):
         subs = {
-            'ajax_parse': ResourceThingViewEditorVisual_parse(),
+            'ajax_parse_visual': ResourceThingViewEditorVisual_parse(),
             'save': ResourceThingViewEditorVisual_save(),
         }
         if key in subs:

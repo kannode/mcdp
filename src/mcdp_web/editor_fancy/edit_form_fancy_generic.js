@@ -16,6 +16,11 @@ var saved = true;
 var bg_color_parsing =  '#fee';
 var red_dot = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='
 
+
+var using_visual_editor = false;
+var ajax_parse_path = 'ajax_parse';
+
+
 function nodefault(event) {
     event.preventDefault();
 }
@@ -260,6 +265,7 @@ function multiple_selection() {
     return text.length > 0;
 }
 
+
 function try_to_parse(s) {
     function on_proc_failure(res) {
         $('#syntax_error').html(res['error']);
@@ -313,11 +319,13 @@ function try_to_parse(s) {
         }
 
         update_text_with_highlight(res_text, res['highlight']);
+
+        if(using_visual_editor)
+            update_diagram_after_successful_parse(res)
     }
 
     last_text_sent_to_server = s;
-    ajax_send("ajax_parse", {'text': s},
-        on_comm_failure, on_proc_failure, on_success);
+    ajax_send(ajax_parse_path, {'text': s}, on_comm_failure, on_proc_failure, on_success);
 }
 
 function click_button_discard(res) {
