@@ -10,7 +10,7 @@ from mcdp.exceptions import MCDPExceptionWithWhere, DPInternalError, DPSemanticE
 from mcdp_dp import PrimitiveDP
 from mcdp_posets import Poset
 
-from .namedtuple_tricks import recursive_print
+
 from .parse_actions import parse_wrap
 from .refinement import apply_refinement
 
@@ -25,11 +25,11 @@ __all__ = [
 
 
 def decorator_check_exception_where_is_string(f):
-    ''' Checks that if a DPSemanticError is thrown, it
+    """ Checks that if a DPSemanticError is thrown, it
         has a reference to the current string being parsed.
 
         f(string, context)
-    '''
+    """
 
     def parse(string, context=None):
         try:

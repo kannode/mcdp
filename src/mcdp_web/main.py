@@ -10,8 +10,6 @@ from collections import OrderedDict
 from wsgiref.simple_server import make_server
 
 import git.cmd  # @UnusedImport
-from contracts import contract
-from contracts.utils import indent, check_isinstance
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
@@ -20,8 +18,9 @@ from pyramid.renderers import JSONP, render_to_response
 from pyramid.response import Response
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.session import SignedCookieSessionFactory
-from quickapp import QuickAppBase
 
+from contracts import contract
+from contracts.utils import indent, check_isinstance
 from mcdp import MCDPConstants, logger
 from mcdp.exceptions import DPSemanticError, DPSyntaxError
 from mcdp_docs import render_complete
@@ -32,6 +31,8 @@ from mcdp_library import MCDPLibrary
 from mcdp_utils_misc import duration_compact, dir_from_package_name, format_list, yaml_load
 from mcdp_utils_misc.fileutils import create_tmpdir
 from mcdp_utils_misc.memoize_simple_imp import memoize_simple
+from mcdp_web.editor_visual.visual_editor_go import VisualEditor
+from quickapp import QuickAppBase
 from .auhtomatic_auth import get_authomatic_config_, view_authomatic_, view_confirm_bind_, \
     view_confirm_creation_similar_, view_confirm_creation_, \
     view_confirm_creation_create_, view_confirm_bind_bind_
@@ -53,7 +54,7 @@ from .resource_tree import MCDPResourceRoot, ResourceLibraries, ResourceLibrary,
     ResourceListUsersUser, ResourceUserPicture, ResourceConfirmBind, \
     ResourceConfirmCreationSimilar, ResourceConfirmCreation, \
     ResourceConfirmCreationCreate, ResourceConfirmBindBind, ResourceUserImpersonate, ResourceDBView, ResourceSearchPage, \
-    ResourceSearchPageQuery
+    ResourceSearchPageQuery, V_EDIT_VISUAL, V_EDIT_FANCY, V_SYNTAX
 from .search import AppSearch
 from .security import AppLogin, groupfinder
 from .sessions import Session
@@ -77,8 +78,10 @@ git.cmd.log.disabled = True
 
 class WebApp(AppVisualization, AppStatus,
              AppQR, AppSolver, AppInteractive,
-             AppSolver2, AppEditorFancyGeneric, WebAppImages,
-             AppLogin, AppSearch):
+             AppSolver2,
+             AppEditorFancyGeneric,
+             WebAppImages,
+             AppLogin, AppSearch, VisualEditor):
     singleton = None
 
     def __init__(self, options, settings):
@@ -114,13 +117,15 @@ class WebApp(AppVisualization, AppStatus,
         AppSolver2.__init__(self)
         AppEditorFancyGeneric.__init__(self)
         WebAppImages.__init__(self)
+        VisualEditor.__init__(self)
 
         # name -> dict(desc: )
         self.views = {}
         self.exceptions = []
 
-        self.add_model_view('syntax', 'Source code display')
-        self.add_model_view('edit_fancy', 'Editor')
+        self.add_model_view(V_SYNTAX, 'Source code display')
+        self.add_model_view(V_EDIT_FANCY, 'Editor')
+        self.add_model_view(V_EDIT_VISUAL, 'Visual editor')
         # self.add_model_view('edit', 'Simple editor for IE')
         self.add_model_view('solver2', desc='Solver interface')
         self.add_model_view('ndp_graph', 'NDP Graph representation')
@@ -573,6 +578,7 @@ class WebApp(AppVisualization, AppStatus,
         WebAppImages.config(self, config)
         AppLogin.config(self, config)
         AppSolver2.config(self, config)
+        VisualEditor.config(self, config)
 
         config.add_view(
                 self.view_dummy, context=ResourceAbout, renderer='about.jinja2')

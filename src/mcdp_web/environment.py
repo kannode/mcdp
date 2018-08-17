@@ -1,5 +1,5 @@
 from mcdp.constants import MCDPConstants
-
+from mcdp_library.specs_def import specs
 from .resource_tree import ResourceRepo, get_from_context, ResourceLibrary, ResourceShelf, ResourceThings, \
     ResourceThing, ResourceThingView
 
@@ -49,7 +49,8 @@ class Environment(object):
             self.library_name = rlibrary.name
             self.library = self.shelf.libraries[self.library_name]
 
-        from mcdp_web.editor_fancy.app_editor_fancy_generic import specs
+
+        # from mcdp_web.editor_fancy.app_editor_fancy_generic import specs
         rspec = get_from_context(ResourceThings, context)
         if rspec is None:
             self.spec_name = None

@@ -1,8 +1,8 @@
 import os
 
-from contracts.utils import indent
 from pyramid.security import Allow, Authenticated, Everyone
 
+from contracts.utils import indent
 from mcdp import MCDPConstants
 from mcdp.logs import logger as logger_main, logger_web_resource_tree as logger
 
@@ -193,13 +193,16 @@ class ResourceSearchPage(Resource):
         return r
 
 
-class ResourceSearchPageQuery(Resource): pass
+class ResourceSearchPageQuery(Resource):
+    pass
 
 
-class ResourceAbout(Resource): pass
+class ResourceAbout(Resource):
+    pass
 
 
-class ResourceTree(Resource): pass
+class ResourceTree(Resource):
+    pass
 
 
 class ResourceListUsers(Resource):
@@ -531,18 +534,30 @@ class ResourceThingRename(Resource):
     pass
 
 
+V_SYNTAX = 'syntax'
+V_EDIT_VISUAL = 'edit_visual'
+V_EDIT_FANCY = 'edit_fancy'
+
+
 class ResourceThingViews(Resource):
 
     def __iter__(self):
-        options = ['syntax', 'edit_fancy']
+        options = [V_SYNTAX, V_EDIT_FANCY]
         if self.__parent__.__parent__.specname == 'models':
-            options.extend(['dp_graph', 'dp_tree', 'ndp_graph', 'ndp_repr', 'solver2', 'images', 'solver'])
+            options.extend(['dp_graph',
+                            'dp_tree',
+                            'ndp_graph',
+                            'ndp_repr',
+                            'solver2',
+                            'images',
+                            'solver',
+                            V_EDIT_VISUAL])
         return options.__iter__()
 
     def getitem(self, key):
         subs = {
-            'syntax': ResourceThingViewSyntax(),
-            'edit_fancy': ResourceThingViewEditor(),
+            V_SYNTAX: ResourceThingViewSyntax(),
+            V_EDIT_FANCY: ResourceThingViewEditor(),
         }
         if self.__parent__.__parent__.specname == 'models':
             subs2 = {
@@ -552,6 +567,7 @@ class ResourceThingViews(Resource):
                 'ndp_repr': ResourceThingViewNDPRepr(),
                 'solver2': ResourceThingViewSolver(),
                 'images': ResourceThingViewImages(),
+                V_EDIT_VISUAL: ResourceThingViewEditorVisual(),
                 'solver': ResourceThingViewSolver0(),
             }
             subs.update(**subs2)
@@ -640,6 +656,25 @@ class ResourceThingViewSolver0AxisAxis_getdatasets(Resource): pass
 class ResourceThingViewSolver0AxisAxis_reset(Resource): pass
 
 
+class ResourceThingViewEditorVisual(ResourceThingView):
+    def getitem(self, key):
+        subs = {
+            'ajax_parse': ResourceThingViewEditorVisual_parse(),
+            'save': ResourceThingViewEditorVisual_save(),
+        }
+        if key in subs:
+            return subs[key]
+
+        if key.startswith('graph.'):
+            _, text_hash, data_format = key.split('.')
+            return ResourceThingViewEditorGraph(text_hash.encode('utf8'), data_format.encode('utf8'))
+
+class ResourceThingViewEditorVisual_parse(Resource):
+    pass
+
+class ResourceThingViewEditorVisual_save(Resource):
+    pass
+
 class ResourceThingViewEditor(ResourceThingView):
     def getitem(self, key):
         subs = {
@@ -674,7 +709,8 @@ class ResourceThingViewImagesOne(Resource):
         self.name = '%s.%s' % (which, data_format)
 
 
-class ResourceRobots(Resource): pass
+class ResourceRobots(Resource):
+    pass
 
 
 class ResourceAuthomatic(Resource):

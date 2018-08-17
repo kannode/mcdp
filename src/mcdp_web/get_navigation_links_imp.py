@@ -36,9 +36,13 @@ def get_navigation_links_context(e):
 
     if e.library is not None:
 
-        VIEW_EDITOR = 'views/edit_fancy/'
+        from mcdp_web.resource_tree import V_EDIT_FANCY
+        from mcdp_web.resource_tree import V_SYNTAX
+
+        VIEW_EDITOR = 'views/%s/' % V_EDIT_FANCY
         VIEW_DELETE = ':delete'
-        VIEW_SYNTAX = 'views/syntax/'
+
+        VIEW_SYNTAX = 'views/%s/' % V_SYNTAX
 
         p = '/repos/{repo_name}/shelves/{shelf_name}/libraries/{library_name}/'
         library_url = e.app.make_relative(e.request, p.format(**d))

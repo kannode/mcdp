@@ -8,199 +8,18 @@
     <!-- Copyright 1998-2018 by Northwoods Software Corporation. -->
     <meta charset="UTF-8">
     <script src="go-debug.js"></script>
+    <script src="go_mcdp.js"></script>
 
     <script id="code">
         function init() {
             if (window.goSamples) goSamples();  // init for these samples -- you don't need to call this
-            var $ = go.GraphObject.make;
-
-            myDiagram =
-                $(go.Diagram, "myDiagramDiv", // the ID of the DIV HTML element
-                    {
-                        initialContentAlignment: go.Spot.Center,
-                        layout: $(go.ForceDirectedLayout),
-                        "undoManager.isEnabled": true
-                    });
-
-            myDiagram.nodeTemplate =
-                $(go.Node, go.Panel.Auto,
-                    {locationSpot: go.Spot.Center},
-                    $(go.Shape,
-                        {
-                            figure: "RoundedRectangle",
-                            parameter1: 10,
-                            fill: "orange",  // default fill color
-                            portId: "",
-                            fromLinkable: true,
-                            fromSpot: go.Spot.AllSides,
-                            toLinkable: true,
-                            toSpot: go.Spot.AllSides,
-                            cursor: "pointer"
-                        },
-                        new go.Binding("fill", "color")),
-                    $(go.TextBlock,
-                        {margin: 10, font: "bold 12pt sans-serif"},
-                        new go.Binding("text"))
-                );
-
-            function MultiColoredLink() {
-
-                go.Link.call(this);
-
-            }
-
-            go.Diagram.inherit(MultiColoredLink, go.Link);
-
-
-            MultiColoredLink.prototype.makeGeometry = function () {
-                var geo = go.Link.prototype.makeGeometry.call(this);
-                var colors = ["red", "green"];
-
-                var paths = [];  // find all path Shapes
-
-                this.elements.each(function (elt) {
-                    if (elt.isPanelMain && elt instanceof go.Shape) {
-                        paths.push(elt);
-                    }
-                });
-
-                var numcolors = Math.min(colors.length, paths.length);
-
-                if (numcolors > 0) {
-
-                    var seclen = geo.flattenedTotalLength / numcolors;  // length of each color section
-
-                    for (var i = 0; i < paths.length; i++) {  // go through all path Shapes
-                        var shape = paths[i];
-                        if (i < numcolors) {
-                            shape.visible = true;  // make sure this Shape can be seen
-                            shape.stroke = colors[i];  // and assign a color
-
-                            if (i > 0) {  // and a stroke dash array so that it only draws the needed fraction
-                                shape.strokeDashArray = [0, i * seclen, seclen, 99999];
-                            }
-
-                        } else {  // unneeded Shapes are not visible
-                            shape.visible = false;
-                        }
-                    }
-                }
-
-
-                return geo;
-
-            }
-
-            var portSize = new go.Size(8, 8);
-
-            myDiagram.linkTemplate =
-
-                $(MultiColoredLink,
-                    {
-                        relinkableFrom: true,
-                        relinkableTo: true,
-                        reshapable: true,
-                        resegmentable: true,
-                        fromEndSegmentLength: 30,
-                        toEndSegmentLength: 30,
-
-                        routing: go.Link.AvoidsNodes,
-                        corner: 10,
-                        curve: go.Link.JumpOver,
-                    },
-                    new go.Binding("points").makeTwoWay(),
-                    $(go.Shape, {isPanelMain: true, strokeWidth: 3, strokeDashArray: [3, 3]}),
-                    $(go.Shape, {isPanelMain: true, strokeWidth: 3}),
-                    $(go.Shape, "Circle", {width: 20, height: 20, fill: "white", strokeWidth: 3})
-                );
-
-            LEFT = $(go.Panel, "Vertical",
-                new go.Binding("itemArray", "leftArray"),
-                {
-                    row: 1, column: 0,
-                    itemTemplate:
-                        $(go.Panel,
-                            {
-                                _side: "left",  // internal property to make it easier to tell which side it's on
-                                fromSpot: go.Spot.Left, toSpot: go.Spot.Left,
-                                fromLinkableSelfNode: false, toLinkableSelfNode: true,
-                                fromLinkable: false, toLinkable: true, cursor: "pointer",
-                                // contextMenu: portMenu
-                            },
-                            new go.Binding("portId", "portId"),
-                            $(go.TextBlock, {
-                                    stroke: "green",
-                                    textAlign: "left"
-                                },
-                                new go.Binding("text", "port_label")),
-                        )  // end itemTemplate
-                }
-            );
-            RIGHT = $(go.Panel, "Vertical",
-                new go.Binding("itemArray", "rightArray"),
-                {
-                    row: 1,
-                    column: 2,
-                    itemTemplate:
-                        $(go.Panel,
-                            {
-                                _side: "right",
-                                fromSpot: go.Spot.Right,
-                                toSpot: go.Spot.Right,
-                                fromLinkableSelfNode: true, toLinkableSelfNode: false,
-                                fromLinkable: true, toLinkable: false, cursor: "pointer",
-                                // contextMenu: portMenu
-                            },
-                            new go.Binding("portId", "portId"),
-                            $(go.TextBlock, {
-                                stroke: "red",
-                                textAlign: "right"
-                            }, new go.Binding("text", "port_label")),
-                        )  // end itemTemplate
-                }
-            );
-
-            TEXT = $(go.TextBlock,
-                {
-                    margin: 10,
-                    textAlign: "center",
-                    font: "14px  Times",
-                    stroke: "black",
-                    editable: true,
-                    row: 0,
-                    column: 1,
-                },
-                new go.Binding("text", "name").makeTwoWay());
-
-            PIC = $(go.Picture, {
-                row: 1,
-                column: 1,
-                source: "https://placebear.com/128/128",
-            })
-
-            TABLE = $(go.Panel, "Table", TEXT, LEFT, PIC, RIGHT);
-            myDiagram.nodeTemplate =
-                $(go.Node, "Auto",
-                    $(go.Shape, "RoundedRectangle",
-                        {
-                            fill: "white", stroke: "black", strokeWidth: 2,
-                            minSize: new go.Size(56, 56)
-                        }),
-                    TABLE);
-
-
-            function sameColor(fromnode, fromport, tonode, toport) {
-                return fromport.data.unit === toport.data.unit;
-            }
-
-            // only allow new links between ports of the same color
-            myDiagram.toolManager.linkingTool.linkValidation = sameColor;
-
-            // only allow reconnecting an existing link to a port of the same color
-            myDiagram.toolManager.relinkingTool.linkValidation = sameColor;
 
             nodes = [
-                {key: 0, isGroup: true},
+                // {key: 0, isGroup: true,  text: "component",
+                // "leftArray": [
+                //          {key: "f_1", group: 0, "name": "F1", category: "f_template", "unit": "m"},
+                //     ],},
+
                 {
                     key: 1, group: 0, "name": "unit One", "loc": "101 204",
                     "leftArray": [
@@ -279,6 +98,8 @@
                         "unit": "m",
                     }],
 
+                    source: "https://placebear.com/128/128",
+
                     "rightArray": [
                         {
                             "portId": "R1",
@@ -290,16 +111,39 @@
                             "port_label": "R2 [s]",
                             "unit": "s",
                         }]
+                },
+                {
+                    group: 0,
+                    category: "f_template",
+                    "key": "f", "name": "f", "loc": "138 351",
+                    location: new go.Point(-200,100),
+                    "rightArray": [
+                        {
+                            "portId": "R2",
+                            "port_label": "R2 [s]",
+                            "unit": "s",
+                        }]
+                },
+                {
+                    group: 0,
+                    category: "f_template",
+                    "key": "f", "name": "f", "loc": "138 351",
+                    location: new go.Point(-200,-100),
+                    "rightArray": [
+                        {
+                            "portId": "R2",
+                            "port_label": "another",
+                            "unit": "s",
+                        }],
+
+
+
+
                 }
             ]
             links = []
-            // create a few nodes and links
-            myDiagram.model = $(go.GraphLinksModel, {
-                linkFromPortIdProperty: "fromPort",
-                linkToPortIdProperty: "toPort",
-                nodeDataArray: nodes,
-                linkDataArray: links
-            });
+
+            myDiagram = create_diagram(nodes, links);
 
         }
 
