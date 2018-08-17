@@ -596,63 +596,48 @@ class WebApp(AppVisualization, AppStatus,
         config.add_view(self.view_dummy, context=ResourceThings,
                         renderer='library_index.jinja2', permission=Privileges.READ)  # same as above
 
-        config.add_view(
-                self.view_dummy, context=ResourceRepo, renderer='shelves_index.jinja2')
-        config.add_view(self.view_dummy, context=ResourceShelves,
-                        renderer='shelves_index.jinja2')  # same as above
-        config.add_view(self.view_dummy, context=ResourceAllShelves,
-                        renderer='shelves_index.jinja2')  # same as above
-        config.add_view(
-                self.view_changes, context=ResourceChanges, renderer='changes.jinja2')
-        config.add_view(
-                self.view_tree, context=ResourceTree, renderer='tree.jinja2')
+        config.add_view(self.view_dummy, context=ResourceRepo, renderer='shelves_index.jinja2')
+        config.add_view(self.view_dummy, context=ResourceShelves, renderer='shelves_index.jinja2')  # same as above
+        config.add_view(self.view_dummy, context=ResourceAllShelves, renderer='shelves_index.jinja2')  # same as above
+        config.add_view(self.view_changes, context=ResourceChanges, renderer='changes.jinja2')
+        config.add_view(self.view_tree, context=ResourceTree, renderer='tree.jinja2')
         config.add_view(self.view_not_found_generic, context=ResourceNotFoundGeneric,
                         renderer='not_found_generic.jinja2', permission=NO_PERMISSION_REQUIRED)
-        config.add_view(self.view_shelf_library_new,
-                        context=ResourceLibrariesNewLibname, permission=Privileges.WRITE)
-        config.add_view(self.view_shelf, context=ResourceShelf,
-                        renderer='shelf.jinja2', permission=Privileges.DISCOVER)
-        config.add_view(self.view_shelves_subscribe,
-                        context=ResourceShelvesShelfSubscribe, permission=Privileges.SUBSCRIBE)
-        config.add_view(self.view_shelves_unsubscribe,
-                        context=ResourceShelvesShelfUnsubscribe, permission=Privileges.SUBSCRIBE)
+        config.add_view(self.view_shelf_library_new, context=ResourceLibrariesNewLibname, permission=Privileges.WRITE)
+        config.add_view(self.view_shelf, context=ResourceShelf, renderer='shelf.jinja2', permission=Privileges.DISCOVER)
+        config.add_view(self.view_shelves_subscribe, context=ResourceShelvesShelfSubscribe,
+                        permission=Privileges.SUBSCRIBE)
+        config.add_view(self.view_shelves_unsubscribe, context=ResourceShelvesShelfUnsubscribe,
+                        permission=Privileges.SUBSCRIBE)
         config.add_view(self.view_library_doc, context=ResourceLibraryDocRender,
                         renderer='library_doc.jinja2', permission=Privileges.READ)
         config.add_view(self.view_library_doc_not_found, context=ResourceLibraryDocNotFound,
                         renderer='library_doc_not_found.jinja2', permission=Privileges.READ)
         config.add_view(self.view_library_asset_not_found, context=ResourceLibraryAssetNotFound,
                         renderer='asset_not_found.jinja2', permission=Privileges.READ)
-        config.add_view(
-                self.view_library_asset, context=ResourceLibraryAsset, permission=Privileges.READ)
+        config.add_view(self.view_library_asset, context=ResourceLibraryAsset, permission=Privileges.READ)
         config.add_view(self.view_refresh_library,
                         context=ResourceLibraryRefresh, permission=Privileges.READ)
         config.add_view(self.view_refresh, context=ResourceRefresh)
-        config.add_view(self.view_users, context=ResourceListUsers,
-                        renderer='users.jinja2', permission=Privileges.VIEW_USER_LIST)
+        config.add_view(self.view_users, context=ResourceListUsers, renderer='users.jinja2',
+                        permission=Privileges.VIEW_USER_LIST)
         config.add_view(self.view_users_user, context=ResourceListUsersUser, renderer='user_page.jinja2',
                         permission=Privileges.VIEW_USER_PROFILE_PUBLIC)
 
-        config.add_view(self.view_impersonate, context=ResourceUserImpersonate,
-                        permission=Privileges.IMPERSONATE_USER)
+        config.add_view(self.view_impersonate, context=ResourceUserImpersonate, permission=Privileges.IMPERSONATE_USER)
 
-        config.add_view(
-                self.view_exception, context=Exception, renderer='exception.jinja2')
-        config.add_view(self.exit, context=ResourceExit,
-                        renderer='json', permission=NO_PERMISSION_REQUIRED)
+        config.add_view(self.view_exception, context=Exception, renderer='exception.jinja2')
+        config.add_view(self.exit, context=ResourceExit, renderer='json', permission=NO_PERMISSION_REQUIRED)
 
-        config.add_view(self.view_exceptions_occurred_json, context=ResourceExceptionsJSON,
-                        renderer='json', permission=NO_PERMISSION_REQUIRED)
+        config.add_view(self.view_exceptions_occurred_json, context=ResourceExceptionsJSON, renderer='json',
+                        permission=NO_PERMISSION_REQUIRED)
         config.add_view(self.view_exceptions_occurred, context=ResourceExceptionsFormatted,
                         renderer='exceptions_formatted.jinja2', permission=NO_PERMISSION_REQUIRED)
 
-        config.add_view(
-                self.view_dummy, context=ResourceShelfNotFound, renderer='shelf_not_found.jinja2')
-        config.add_view(
-                self.view_dummy, context=ResourceShelfForbidden, renderer='shelf_forbidden.jinja2')
-        config.add_view(
-                self.view_dummy, context=ResourceShelfInactive, renderer='shelf_inactive.jinja2')
-        config.add_view(self.view_resource_not_found,
-                        context=ResourceRepoNotFound, renderer='repo_not_found.jinja2')
+        config.add_view(self.view_dummy, context=ResourceShelfNotFound, renderer='shelf_not_found.jinja2')
+        config.add_view(self.view_dummy, context=ResourceShelfForbidden, renderer='shelf_forbidden.jinja2')
+        config.add_view(self.view_dummy, context=ResourceShelfInactive, renderer='shelf_inactive.jinja2')
+        config.add_view(self.view_resource_not_found, context=ResourceRepoNotFound, renderer='repo_not_found.jinja2')
         config.add_view(self.view_thing_delete, context=ResourceThingDelete)
         config.add_view(self.view_thing_rename, context=ResourceThingRename)
         config.add_view(self.view_thing, context=ResourceThing)
@@ -676,22 +661,20 @@ class WebApp(AppVisualization, AppStatus,
         config.add_view(self.view_db_view, http_cache=0,
                         context=ResourceDBView, renderer='db_view.jinja2')
 
-        config.add_view(
-                serve_robots, context=ResourceRobots, permission=NO_PERMISSION_REQUIRED)
+        config.add_view(serve_robots, context=ResourceRobots, permission=NO_PERMISSION_REQUIRED)
         config.add_notfound_view(self.view_not_found, renderer='404.jinja2')
         config.scan()
 
-        config.add_view(
-                self.view_authomatic, context=ResourceAuthomaticProvider, permission=NO_PERMISSION_REQUIRED)
+        config.add_view(self.view_authomatic, context=ResourceAuthomaticProvider, permission=NO_PERMISSION_REQUIRED)
         self.get_authomatic_config()
         app = config.make_wsgi_app()
         return app
 
     def show_error(self, e, msg, status=500):
-        ''' Redirects the user to an error page with the message specified. 
+        """ Redirects the user to an error page with the message specified.
 
             return self.show_error(e, 'invalid session')
-        '''
+        """
         res = {
             'error': msg,
         }
@@ -966,8 +949,7 @@ class MCDPWeb(QuickAppBase):
             settings = dict((k, parser.get(s, k)) for k in parser.options(s))
 
             prefix = 'mcdp_web.'
-            mcdp_web_settings = get_only_prefixed(
-                    settings, prefix, delete=True)
+            mcdp_web_settings = get_only_prefixed(settings, prefix, delete=True)
             #             mcdp_web_settings = {}
             #             for k,v in list(settings.items()):
             #                 if k.startswith(prefix):

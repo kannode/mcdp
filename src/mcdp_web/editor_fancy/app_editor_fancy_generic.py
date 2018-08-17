@@ -74,7 +74,7 @@ class AppEditorFancyGeneric(object):
         res = {
             'source_code': unicode(source_code, 'utf-8'),
             'source_code_json': unicode(json.dumps(source_code), 'utf-8'),
-#             'realpath': realpath, 
+            #             'realpath': realpath,
             'rows': nrows,
             'ajax_parse': e.spec.url_part + '_ajax_parse',
             'error': None,
@@ -238,9 +238,9 @@ def process_parse_request(library, string, spec, key, cache, make_relative):
     #     highlight2 = add_html_links(highlight, library_name, get_link)
     #     print highlight2
     res = {
-        'ok': True, 
+        'ok': True,
         'highlight': unicode(highlight, 'utf8'),
-        'language_warnings': language_warnings_html, 
+        'language_warnings': language_warnings_html,
         'string_with_suggestions': string_with_suggestions,
         'thing': thing,
     }

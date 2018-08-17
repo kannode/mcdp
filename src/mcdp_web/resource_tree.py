@@ -243,19 +243,24 @@ class ResourceUserPicture(Resource):
         self.data_format = data_format
 
 
-class ResourceExit(Resource): pass
+class ResourceExit(Resource):
+    pass
 
 
-class ResourceLogin(Resource): pass
+class ResourceLogin(Resource):
+    pass
 
 
-class ResourceLogout(Resource): pass
+class ResourceLogout(Resource):
+    pass
 
 
-class ResourceChanges(Resource): pass
+class ResourceChanges(Resource):
+    pass
 
 
-class ResourceAllShelves(Resource): pass
+class ResourceAllShelves(Resource):
+    pass
 
 
 class ResourceShelves(Resource):
@@ -294,34 +299,44 @@ class ResourceShelves(Resource):
                 yield id_shelf
 
 
-class ResourceShelfForbidden(ResourceEndOfTheLine): pass
+class ResourceShelfForbidden(ResourceEndOfTheLine):
+    pass
 
 
-class ResourceShelfNotFound(ResourceEndOfTheLine): pass
+class ResourceShelfNotFound(ResourceEndOfTheLine):
+    pass
 
 
-class ResourceThingNotFound(ResourceEndOfTheLine): pass
+class ResourceThingNotFound(ResourceEndOfTheLine):
+    pass
 
 
-class ResourceLibraryDocNotFound(ResourceEndOfTheLine): pass
+class ResourceLibraryDocNotFound(ResourceEndOfTheLine):
+    pass
 
 
-class ResourceLibraryAssetNotFound(ResourceEndOfTheLine): pass
+class ResourceLibraryAssetNotFound(ResourceEndOfTheLine):
+    pass
 
 
-class ResourceShelvesShelfSubscribe(Resource): pass
+class ResourceShelvesShelfSubscribe(Resource):
+    pass
 
 
-class ResourceShelvesShelfUnsubscribe(Resource): pass
+class ResourceShelvesShelfUnsubscribe(Resource):
+    pass
 
 
-class ResourceExceptionsFormatted(Resource): pass
+class ResourceExceptionsFormatted(Resource):
+    pass
 
 
-class ResourceExceptionsJSON(Resource): pass
+class ResourceExceptionsJSON(Resource):
+    pass
 
 
-class ResourceRefresh(Resource): pass
+class ResourceRefresh(Resource):
+    pass
 
 
 class ResourceLibrariesNew(Resource):
@@ -330,7 +345,8 @@ class ResourceLibrariesNew(Resource):
         return ResourceLibrariesNewLibname(key)
 
 
-class ResourceLibrariesNewLibname(Resource): pass
+class ResourceLibrariesNewLibname(Resource):
+    pass
 
 
 class ResourceLibraries(Resource):
@@ -446,10 +462,12 @@ class ResourceLibrary(Resource):
         return ResourceThings(key)
 
 
-class ResourceLibraryDocRender(Resource): pass
+class ResourceLibraryDocRender(Resource):
+    pass
 
 
-class ResourceLibraryAsset(Resource): pass
+class ResourceLibraryAsset(Resource):
+    pass
 
 
 class ResourceLibraryInteractive(Resource):
@@ -464,10 +482,12 @@ class ResourceLibraryInteractiveValue(Resource):
             return ResourceLibraryInteractiveValueParse()
 
 
-class ResourceLibraryInteractiveValueParse(Resource): pass
+class ResourceLibraryInteractiveValueParse(Resource):
+    pass
 
 
-class ResourceLibraryRefresh(Resource): pass
+class ResourceLibraryRefresh(Resource):
+    pass
 
 
 class ResourceThings(Resource):
@@ -509,7 +529,8 @@ class ResourceThingsNewBase(Resource):
         return ResourceThingsNew(key)
 
 
-class ResourceThingsNew(Resource): pass
+class ResourceThingsNew(Resource):
+    pass
 
 
 class ResourceThing(Resource):
@@ -581,22 +602,28 @@ class ResourceThingViewImages(Resource):
         return ResourceThingViewImagesOne(which.encode('utf8'), data_format.encode('utf8'))
 
 
-class ResourceThingView(Resource): pass
+class ResourceThingView(Resource):
+    pass
 
 
-class ResourceThingViewSyntax(ResourceThingView): pass
+class ResourceThingViewSyntax(ResourceThingView):
+    pass
 
 
-class ResourceThingViewDPGraph(ResourceThingView): pass
+class ResourceThingViewDPGraph(ResourceThingView):
+    pass
 
 
-class ResourceThingViewDPTree(ResourceThingView): pass
+class ResourceThingViewDPTree(ResourceThingView):
+    pass
 
 
-class ResourceThingViewNDPGraph(ResourceThingView): pass
+class ResourceThingViewNDPGraph(ResourceThingView):
+    pass
 
 
-class ResourceThingViewNDPRepr(ResourceThingView): pass
+class ResourceThingViewNDPRepr(ResourceThingView):
+    pass
 
 
 class ResourceThingViewSolver(ResourceThingView):
@@ -610,16 +637,20 @@ class ResourceThingViewSolver(ResourceThingView):
         return subs.get(key, None)
 
 
-class ResourceThingViewSolver_submit(Resource): pass
+class ResourceThingViewSolver_submit(Resource):
+    pass
 
 
-class ResourceThingViewSolver_display_png(Resource): pass
+class ResourceThingViewSolver_display_png(Resource):
+    pass
 
 
-class ResourceThingViewSolver_display1u(Resource): pass
+class ResourceThingViewSolver_display1u(Resource):
+    pass
 
 
-class ResourceThingViewSolver_display1u_png(Resource): pass
+class ResourceThingViewSolver_display1u_png(Resource):
+    pass
 
 
 class ResourceThingViewSolver0(ResourceThingView):
@@ -647,13 +678,16 @@ class ResourceThingViewSolver0AxisAxis(ResourceThingView):
         return subs.get(key, None)
 
 
-class ResourceThingViewSolver0AxisAxis_addpoint(Resource): pass
+class ResourceThingViewSolver0AxisAxis_addpoint(Resource):
+    pass
 
 
-class ResourceThingViewSolver0AxisAxis_getdatasets(Resource): pass
+class ResourceThingViewSolver0AxisAxis_getdatasets(Resource):
+    pass
 
 
-class ResourceThingViewSolver0AxisAxis_reset(Resource): pass
+class ResourceThingViewSolver0AxisAxis_reset(Resource):
+    pass
 
 
 class ResourceThingViewEditorVisual(ResourceThingView):
@@ -665,15 +699,28 @@ class ResourceThingViewEditorVisual(ResourceThingView):
         if key in subs:
             return subs[key]
 
-        if key.startswith('graph.'):
-            _, text_hash, data_format = key.split('.')
-            return ResourceThingViewEditorGraph(text_hash.encode('utf8'), data_format.encode('utf8'))
+        # if key.startswith('node_image.'):
+        #     _, component, data_format = key.split('.')
+        #     return ResourceThingViewEditorVisual_component_image(component.encode('utf8'), data_format.encode('utf8'))
+
+        if key.startswith('resource.'):
+            _, rid = key.split('.')
+            return ResourceThingViewEditorVisual_resource(rid)
+
 
 class ResourceThingViewEditorVisual_parse(Resource):
     pass
 
+
 class ResourceThingViewEditorVisual_save(Resource):
     pass
+
+class ResourceThingViewEditorVisual_resource(Resource):
+    def __init__(self, rid):
+        self.rid = rid
+        self.name = 'resource.%s' % rid
+
+
 
 class ResourceThingViewEditor(ResourceThingView):
     def getitem(self, key):
@@ -689,10 +736,12 @@ class ResourceThingViewEditor(ResourceThingView):
             return ResourceThingViewEditorGraph(text_hash.encode('utf8'), data_format.encode('utf8'))
 
 
-class ResourceThingViewEditorParse(Resource): pass
+class ResourceThingViewEditorParse(Resource):
+    pass
 
 
-class ResourceThingViewEditorSave(Resource): pass
+class ResourceThingViewEditorSave(Resource):
+    pass
 
 
 class ResourceThingViewEditorGraph(Resource):
@@ -796,7 +845,7 @@ def context_get_library_name(context):
 
 
 def context_get_spec(context):
-    from mcdp_web.editor_fancy.app_editor_fancy_generic import specs
+    from mcdp_library.specs_def import specs
     specname = get_from_context(ResourceThings, context).specname
     spec = specs[specname]
     return spec

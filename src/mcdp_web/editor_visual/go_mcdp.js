@@ -70,6 +70,9 @@ function create_diagram(diagram_id, nodes, links) {
                         shape.strokeDashArray = [0, i * seclen, seclen, 99999];
                     }
 
+                    // shape.toArrow = "Standard"
+                    // shape.fromArrow = "Standard"
+
                 } else {  // unneeded Shapes are not visible
                     shape.visible = false;
                 }
@@ -91,7 +94,6 @@ function create_diagram(diagram_id, nodes, links) {
         myDiagram.commitTransaction("delete_component");
     }
 
-
     contextMenu = $(go.Adornment, "Vertical",  // that has one button
         $("ContextMenuButton", $(go.TextBlock, "Delete"), {click: delete_component}),
 
@@ -103,12 +105,13 @@ function create_diagram(diagram_id, nodes, links) {
         relinkableTo: true,
         reshapable: true,
         resegmentable: true,
-        fromEndSegmentLength: 40,
-        toEndSegmentLength: 40,
+        fromEndSegmentLength: 10,
+        toEndSegmentLength: 10,
 
         routing: go.Link.AvoidsNodes,
         corner: 10,
         curve: go.Link.JumpOver,
+
     };
 
     regular_link =
@@ -118,7 +121,7 @@ function create_diagram(diagram_id, nodes, links) {
             new go.Binding("points").makeTwoWay(),
             $(go.Shape, {isPanelMain: true, strokeWidth: 2, strokeDashArray: [3, 3]}),
             $(go.Shape, {isPanelMain: true, strokeWidth: 2}),
-            $(go.Shape, "Circle", {width: 20, height: 20, fill: "white", strokeWidth: 2})
+            $(go.Shape, "Circle", {width: 10, height: 10, fill: "white", strokeWidth: 1.5})
         );
 
     f_link =
@@ -133,7 +136,7 @@ function create_diagram(diagram_id, nodes, links) {
         $(go.Link,
             link_properties,
             new go.Binding("points").makeTwoWay(),
-            $(go.Shape, {isPanelMain: true, strokeWidth: 2, stroke: DARK_RED}),
+            $(go.Shape, {isPanelMain: true, strokeWidth: 2, stroke: DARK_RED, strokeDashArray: [3, 3]}),
         );
 
 
@@ -183,17 +186,17 @@ function create_diagram(diagram_id, nodes, links) {
         }
     );
 
-    TEXT = $(go.TextBlock,
-        {
-            margin: 10,
-            textAlign: "center",
-            font: "14px  Times",
-            stroke: "black",
-            editable: true,
-            row: 0,
-            column: 1,
-        },
-        new go.Binding("text", "name").makeTwoWay());
+    text_properties = {
+        // margin: 10,
+        textAlign: "center",
+        font: "14px  Times",
+        stroke: "black",
+        row: 0,
+        column: 1,
+    };
+
+    TEXT = $(go.TextBlock, text_properties,
+        new go.Binding("text", "name"));
 
     PIC = $(go.Picture, {
             row: 1,
@@ -204,15 +207,14 @@ function create_diagram(diagram_id, nodes, links) {
     )
 
     TABLE = $(go.Panel, "Table", TEXT, LEFT, PIC, RIGHT);
-    component_template =
-        $(go.Node, "Auto",
-            $(go.Shape, "RoundedRectangle",
-                {
-                    fill: "white", stroke: "black", strokeWidth: 2,
-                    minSize: new go.Size(56, 56)
-                }),
-            TABLE
-        );
+    component_template = $(go.Node, "Auto",
+        $(go.Shape, "RoundedRectangle",
+            {
+                fill: "white", stroke: "black", strokeWidth: 2,
+                minSize: new go.Size(56, 32),
+            }),
+        TABLE
+    );
 
     t_template_text = $(go.TextBlock,
         {
@@ -230,7 +232,7 @@ function create_diagram(diagram_id, nodes, links) {
             $(go.Shape, "RoundedRectangle",
                 {
                     fill: "#d0ffdc", stroke: "black", strokeWidth: 0,
-                    minSize: new go.Size(56, 56)
+                    minSize: new go.Size(56, 32),
                 },
             ),
             $(go.Panel, "Vertical",
@@ -258,13 +260,35 @@ function create_diagram(diagram_id, nodes, links) {
             )
         );
 
+    special =
+        $(go.Node, "Auto", {},
+            new go.Binding("location", "location"),
+            $(go.Picture, {
+                    maxSize: new go.Size(32, 32)
+                },
+                new go.Binding("source", "source")
+            )
+        );
+
+    simple =
+        $(go.Node, "Auto", {},
+            new go.Binding("location", "location"),
+            $(go.Shape, "RoundedRectangle",
+                {
+                    fill: "white", stroke: "black", strokeWidth: 2,
+                    minSize: new go.Size(56, 32),
+                },
+            ),
+            $(go.TextBlock, text_properties,
+                new go.Binding("text", "name")));
+
     r_template =
         $(go.Node, "Auto", {},
             new go.Binding("location", "location"),
             $(go.Shape, "RoundedRectangle",
                 {
                     fill: "#ffe6d7", stroke: "black", strokeWidth: 0,
-                    minSize: new go.Size(56, 56)
+                    minSize: new go.Size(56, 32)
                 },
             ),
             $(go.Panel, "Vertical",
@@ -308,6 +332,8 @@ function create_diagram(diagram_id, nodes, links) {
     templmap.add("", component_template);
     templmap.add("f_template", f_template);
     templmap.add("r_template", r_template);
+    templmap.add("special", special);
+    templmap.add("simple", simple);
     myDiagram.nodeTemplateMap = templmap;
 
     var link_template_map = new go.Map("string", go.Link);

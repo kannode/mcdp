@@ -49,7 +49,6 @@ class Environment(object):
             self.library_name = rlibrary.name
             self.library = self.shelf.libraries[self.library_name]
 
-
         # from mcdp_web.editor_fancy.app_editor_fancy_generic import specs
         rspec = get_from_context(ResourceThings, context)
         if rspec is None:

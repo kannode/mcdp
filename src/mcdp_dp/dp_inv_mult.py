@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 from contracts import contract
 from contracts.utils import raise_desc, check_isinstance
+from mcdp import MCDPConstants
+from mcdp.exceptions import mcdp_dev_warning
 from mcdp_maps.repr_map import repr_map_product
 from mcdp_posets import Nat, Poset, PosetProduct, is_top
 from mcdp_posets.nat import Nat_mult_lowersets_continuous
 from mcdp_posets.rcomp import Rcomp_multiply_upper_topology_seq
-from mcdp.exceptions import mcdp_dev_warning
-
 from .primitive import ApproximableDP, NotSolvableNeedsApprox, PrimitiveDP
 from .repr_strings import repr_h_map_invmult
 from .sequences_invplus import Nat_mult_antichain_Min, invmultL_solve_options, invmultU_solve_options
-from mcdp import MCDPConstants
-
 
 _ = Nat, Poset
 
@@ -21,10 +19,9 @@ __all__ = [
     'InvMult2L',
     'InvMult2Nat',
 ]
- 
+
 
 class InvMult2(ApproximableDP):
-
     ALGO_UNIFORM = 'uniform'
     ALGO_VAN_DER_CORPUT = 'van_der_corput'
     ALGO = ALGO_VAN_DER_CORPUT
@@ -42,17 +39,17 @@ class InvMult2(ApproximableDP):
 
     def solve(self, f):
         raise NotSolvableNeedsApprox(type(self))
-    
+
     def solve_r(self, r):
         mcdp_dev_warning('this is not coherent with solve()')
         fmax = Rcomp_multiply_upper_topology_seq(self.Rs, r, self.F)
         return self.F.L(fmax)
-    
+
     def repr_h_map(self):
         return repr_h_map_invmult(len(self.Rs))
-    
+
     def repr_hd_map(self):
-        return repr_map_product('r', len(self.Rs))    
+        return repr_map_product('r', len(self.Rs))
 
     def get_lower_bound(self, n):
         return InvMult2L(self.F, self.Rs, n)
@@ -92,15 +89,15 @@ class InvMult2U(PrimitiveDP):
         algo = InvMult2.ALGO
         options = invmultU_solve_options(F=self.F, R=self.R, f=f, n=self.n, algo=algo)
         return self.R.Us(options)
-    
+
     def solve_r(self, r):
         mcdp_dev_warning('this is not coherent with solve()')
-        fmax =  Rcomp_multiply_upper_topology_seq(self.Rs, r, self.F)
+        fmax = Rcomp_multiply_upper_topology_seq(self.Rs, r, self.F)
         return self.F.L(fmax)
 
     def repr_h_map(self):
         return repr_h_map_invmult(len(self.Rs))
-    
+
     def repr_hd_map(self):
         return repr_map_product('r', len(self.Rs)) + ' (approx)'
 
@@ -132,17 +129,18 @@ class InvMult2L(PrimitiveDP):
         mcdp_dev_warning('This might not be correct')
         fmax = Rcomp_multiply_upper_topology_seq(self.Rs, r, self.F)
         return self.F.L(fmax)
-    
+
     def solve(self, f):
         algo = InvMult2.ALGO
         options = invmultL_solve_options(F=self.F, R=self.R, f=f, n=self.n, algo=algo)
         return self.R.Us(options)
-        
+
     def repr_h_map(self):
         return repr_h_map_invmult(len(self.Rs))
-    
+
     def repr_hd_map(self):
-        return repr_map_product('r', len(self.Rs)) + ' (approx)'    
+        return repr_map_product('r', len(self.Rs)) + ' (approx)'
+
 
 class InvMult2Nat(ApproximableDP):
     """
@@ -153,8 +151,7 @@ class InvMult2Nat(ApproximableDP):
         with f,r₁,r₂ ∈ ℕ.
         
     """
-    
-    
+
     @contract(Rs='tuple[2],seq[2]($Nat)', F=Nat)
     def __init__(self, F, Rs):
         if not len(Rs) == 2:
@@ -175,25 +172,25 @@ class InvMult2Nat(ApproximableDP):
     def solve(self, f):
         if is_top(self.F, f):
             top = f
-            elements = set([(top, 1), (1, top)]) # XXX: to check
-            return self.R.Us(elements) 
-        
+            elements = set([(top, 1), (1, top)])  # XXX: to check
+            return self.R.Us(elements)
+
         if f > MCDPConstants.InvMult2Nat_memory_limit:
-            msg = ('InvMult2Nat:solve(%s): This would produce' 
-                   ' an antichain of length %s.') % (f,f)
+            msg = ('InvMult2Nat:solve(%s): This would produce'
+                   ' an antichain of length %s.') % (f, f)
             raise NotSolvableNeedsApprox(msg)
-            
+
         options = Nat_mult_antichain_Min(f)
         return self.R.Us(options)
-    
+
     def get_lower_bound(self, n):  # @UnusedVariable
         msg = 'InvMult2Nat:get_lower_bound() not implemented yet'
         raise_desc(NotImplementedError, msg)
-    
+
     def get_upper_bound(self, n):  # @UnusedVariable
         msg = 'InvMult2Nat:get_upper_bound() not implemented yet'
         raise_desc(NotImplementedError, msg)
-        
+
     def solve_r(self, r):
         r1, r2 = r
         f_max = Nat_mult_lowersets_continuous(r1, r2)
@@ -204,11 +201,9 @@ class InvMult2Nat(ApproximableDP):
 
     def __repr__(self):
         return 'InvMult2Nat(%s -> %s)' % (self.F, self.R)
-    
+
     def repr_h_map(self):
         return repr_h_map_invmult(len(self.R))
-    
+
     def repr_hd_map(self):
         return repr_map_product('r', len(self.R))
-
-    

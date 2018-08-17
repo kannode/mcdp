@@ -2,7 +2,6 @@ import os
 from collections import OrderedDict
 
 from contracts import contract
-
 from mcdp import MCDPConstants, logger
 from mcdp_hdb_mcdp.main_db_schema import DB
 from mcdp_library import Librarian
@@ -15,13 +14,13 @@ _ = Shelf
 
 
 class NoSuchLibrary(Exception):
-    ''' Raised by get_repo_shelf_for_library '''
+    """ Raised by get_repo_shelf_for_library """
 
 
 class Session(object):
 
     def __init__(self, app, request):
-        ''' dirnames: list of directories where to find shelves '''
+        """ dirnames: list of directories where to find shelves """
         self.app = app
         self.shelves_all = {}
         self.request = request
@@ -49,12 +48,12 @@ class Session(object):
 
     #     @contract(returns='isinstance(UserInfo)')
     def get_user_struct(self, username=None):
-        ''' 
-        
+        """
+
              It is the user 'anonymous' if no login was given.
-        
+
             self.request.authenticated_userid == None == get_user().info.username == 'anonymous'
-        '''
+        """
         app = self.app
         user_db = app.hi.db_view.user_db
 
@@ -80,7 +79,7 @@ class Session(object):
             return user_db.users[MCDPConstants.USER_ANONYMOUS]
 
     def notify_created_library(self, shelf_name, library_name):  # @UnusedVariable
-        ''' Called when we just created the library. '''
+        """ Called when we just created the library. """
         self.get_shelf(shelf_name).update_libraries()
         self.recompute_available()
 
@@ -142,7 +141,7 @@ class Session(object):
                            (shelf_name, repo_name, o))
 
                     for r in [o, repo_name]:
-                        msg += '\n Shelves for %r: %s' % (r, format_list(sorted(self.repos[r].shelves)))
+                        msg += '\n Shelves for %r: %s' % (r, format_list(sorted(repos[r].shelves)))
 
                     raise ValueError(msg)
                 self.shelfname2reponame[shelf_name] = repo_name
@@ -170,7 +169,7 @@ class Session(object):
         return rname, sname
 
     def get_shelf_for_libname(self, libname):
-        ''' Returns the name of the shelf for the given libname. '''
+        """ Returns the name of the shelf for the given libname. """
         if not libname in self.libname2shelfname:
             msg = 'Could not find library %r.' % libname
             msg += '\n Available: %s' % sorted(self.libname2shelfname)
@@ -211,9 +210,9 @@ class Session(object):
     #         return res
 
     def get_shelves_used(self):
-        ''' Returns an ordered dict of shelves '''
+        """ Returns an ordered dict of shelves """
         return self.shelves_used
 
     def get_shelves_available(self):
-        ''' Returns an ordered dict of shelves '''
+        """ Returns an ordered dict of shelves """
         return self.shelves_available

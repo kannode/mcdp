@@ -5,7 +5,6 @@
 from pyramid.compat import is_unbound_method
 
 
-
 def is_unbound_method_cython(f):
     return False
 
@@ -13,7 +12,5 @@ def is_unbound_method_cython(f):
 import pyramid
 
 pyramid.compat.is_unbound_method = is_unbound_method_cython
-
-
 
 from .main import *

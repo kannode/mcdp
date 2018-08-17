@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from .response import response_data
-from PIL import ImageFont
 import os
+
+from PIL import ImageFont
+
 from mcdp import logger
+from .response import response_data
 
 
 def break_lines(s, maxwidth):
@@ -11,22 +13,23 @@ def break_lines(s, maxwidth):
     for l in lines:
         while len(l) > maxwidth:
             part = l[:maxwidth] + '->'
-            lines2.append(part) 
+            lines2.append(part)
             l = '->' + l[maxwidth:]
         lines2.append(l)
     return "\n".join(lines2)
-    
-def response_image(request, s, size=(1024, 1024), color=(255,0,0), fontsize=10):
+
+
+def response_image(request, s, size=(1024, 1024), color=(255, 0, 0), fontsize=10):
     # only use the
     maxwidth = 100
     s = break_lines(s, maxwidth)
-    
+
     maxlines = 30
     lines = s.split("\n")
     if len(lines) > maxlines:
         lines = lines[-maxlines:]
     s = "\n".join(lines)
-    
+
     data = create_image_with_string(s, size=size, color=color, fontsize=fontsize)
     return response_data(request=request, data=data, content_type='image/png')
 
@@ -39,7 +42,7 @@ def create_image_with_string(s, size, color, fontsize=10):
     img = Image.new("RGB", size, "white")
 
     draw = ImageDraw.Draw(img)
-#     font = ImageFont.truetype('FreeMono', 10)
+    #     font = ImageFont.truetype('FreeMono', 10)
     options = [
         '/usr/local/texlive/2015/texmf-dist/fonts/truetype/public/gnu-freefont/FreeMono.ttf',
         '/usr/share/fonts/truetype/freefont/FreeMono.ttf']
@@ -50,7 +53,7 @@ def create_image_with_string(s, size, color, fontsize=10):
             break
     else:
         logger.info('Could not find any font in %r' % options)
-     
+
     draw.text((0, 0), s, color, font=font)
     data = get_png(img)
     return data

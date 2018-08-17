@@ -1,5 +1,5 @@
 def library_from_env(e):
-    ''' Creates a suitable MCDPLibrary from the environment '''
+    """ Creates a suitable MCDPLibrary from the environment """
     from mcdp_hdb_mcdp.library_view import TheContext
     db_view = e.db_view
     host_cache = e.app.hi.host_cache

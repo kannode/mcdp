@@ -4,12 +4,12 @@ import datetime
 from authomatic import Authomatic
 from authomatic.adapters import WebObAdapter
 from authomatic.providers import oauth2
-from contracts.utils import check_isinstance
 from pyramid.httpexceptions import HTTPFound
 from pyramid.response import Response
 from pyramid.security import remember
 from system_cmd import system_cmd_result
 
+from contracts.utils import check_isinstance
 from mcdp import logger
 from mcdp_hdb_mcdp.main_db_schema import DB
 from mcdp_user_db.user import User
@@ -268,7 +268,7 @@ def view_confirm_creation_(self, e):
     res = {
         'candidate_user': u,
     }
-    return res;
+    return res
 
 
 def view_confirm_creation_create_(self, e):

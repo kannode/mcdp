@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
+import os
 from contextlib import contextmanager
+from tempfile import mkdtemp, NamedTemporaryFile
+
+from system_cmd import CmdException, system_cmd_result
+
 from contracts import contract
+from contracts.utils import check_isinstance, indent
 from mcdp import MCDPConstants
 from mcdp.exceptions import mcdp_dev_warning
 from mcdp_utils_misc import dir_from_package_name, get_mcdp_tmp_dir, locate_files, memoize_simple
-import os
-from system_cmd import CmdException, system_cmd_result
-from tempfile import mkdtemp, NamedTemporaryFile
-
-from contracts.utils import check_isinstance, indent
-
 from .gg_utils import check_not_lfs_pointer
 from .image_source import ImagesSource, ImagesFromPaths, TryMany, NoImageFound
 from .utils import safe_makedirs
-
 
 __all__ = [
     'GraphDrawingContext',
@@ -25,7 +24,6 @@ COLOR_DARKGREEN = 'darkgreen'
 COLOR_DARKRED = '#861109'
 
 
-
 class GraphDrawingContext(object):
     @contract(image_source=ImagesSource)
     def __init__(self, gg, parent, yourname, level=0,
@@ -35,7 +33,7 @@ class GraphDrawingContext(object):
         self.parent = parent
         self.yourname = yourname
         self.level = level
-#         self.library = library
+        #         self.library = library
 
         if tmppath is None:
             d = get_mcdp_tmp_dir()
@@ -54,7 +52,6 @@ class GraphDrawingContext(object):
     def child_context(self, parent, yourname):
         c = GraphDrawingContext(gg=self.gg,
                                 parent=parent,
-#                                 library=self.library,
                                 yourname=yourname,
                                 level=self.level + 1,
                                 tmppath=self.tmppath,
@@ -62,7 +59,6 @@ class GraphDrawingContext(object):
                                 image_source=self.image_source,
                                 skip_initial=self.skip_initial)
         return c
-
 
     def get_all_nodes(self):
         return self.all_nodes
@@ -75,7 +71,6 @@ class GraphDrawingContext(object):
         self.all_nodes.append(n)
         return n
 
-  
     @contextmanager
     def child_context_yield(self, parent, yourname):
         c = self.child_context(parent=parent, yourname=yourname)
@@ -160,27 +155,27 @@ class GraphDrawingContext(object):
         if not os.path.exists(imagepath):
             raise ValueError('Icons path does not exist: %r' % imagepath)
         return imagepath
-    
+
     @contract(options='seq(str|None)')
-    def get_icon(self, options, raise_if_not_found=False): 
+    def get_icon(self, options, raise_if_not_found=False):
         imagepaths = []
         imagepaths.append(self._get_default_imagepath())
 
         libraries = os.path.join(dir_from_package_name('mcdp_data'), 'libraries')
-        imagepaths.append(os.path.join(libraries, 'FDM.' + MCDPConstants.shelf_extension, 
+        imagepaths.append(os.path.join(libraries, 'FDM.' + MCDPConstants.shelf_extension,
                                        'fdm.' + MCDPConstants.library_extension))
-        imagepaths.append(os.path.join(libraries, 'FDM.' +  MCDPConstants.shelf_extension, 
+        imagepaths.append(os.path.join(libraries, 'FDM.' + MCDPConstants.shelf_extension,
                                        'mechanisms.' + MCDPConstants.library_extension))
         sources = []
         sources.append(self.image_source)
         sources.append(ImagesFromPaths(imagepaths))
-        image_source = TryMany(sources) 
+        image_source = TryMany(sources)
 
         try:
             best = choose_best_icon(options, image_source)
         except NoImageFound:
             if raise_if_not_found:
-                raise 
+                raise
             return None
         resized = resize_icon(best, MCDPConstants.gdc_image_size_pixels)
         return resized
@@ -200,7 +195,6 @@ class GraphDrawingContext(object):
             propertyAppend(l1, 'arrowhead', 'dot')
             propertyAppend(l1, 'arrowtail', 'none')
             propertyAppend(l1, 'dir', 'both')
-        
 
         mcdp_dev_warning('this above has no effect')
         propertyAppend(l1, 'fontcolor', COLOR_DARKGREEN)
@@ -225,21 +219,17 @@ class GraphDrawingContext(object):
             propertyAppend(l2, 'dir', 'both')
 
         propertyAppend(l2, 'style', 'dashed')
-            
-
 
     def decorate_resource_name(self, n):
         propertyAppend = self.gg.propertyAppend
 
-        if self.style in  [STYLE_GREENRED, STYLE_GREENREDSYM]:
+        if self.style in [STYLE_GREENRED, STYLE_GREENREDSYM]:
             propertyAppend(n, 'fontcolor', COLOR_DARKRED)
 
     def decorate_function_name(self, n):
         propertyAppend = self.gg.propertyAppend
-        if self.style in  [STYLE_GREENRED, STYLE_GREENREDSYM]:
+        if self.style in [STYLE_GREENRED, STYLE_GREENREDSYM]:
             propertyAppend(n, 'fontcolor', COLOR_DARKGREEN)
-
-
 
 
 # reset with: get_images.cache = {}
@@ -247,9 +237,9 @@ class GraphDrawingContext(object):
 def get_images(dirname, exts=None):
     if exts is None:
         exts = MCDPConstants.exts_for_icons
-        
+
     """ Returns a dict from lowercase basename to realpath """
-    
+
     pattern = ['*.%s' % ext for ext in exts]
     allfiles = {}
     files = locate_files(dirname, pattern, followlinks=True, normalize=False)
@@ -259,10 +249,11 @@ def get_images(dirname, exts=None):
         allfiles[basename] = f
     return allfiles
 
+
 @contract(image_source=ImagesSource)
 def choose_best_icon(iconoptions, image_source):
     """ Returns the name of a file, or raise exception KeyError. """
-#     logger.debug('Looking for %s in %s.' % (str(iconoptions), imagepaths))
+    #     logger.debug('Looking for %s in %s.' % (str(iconoptions), imagepaths))
     exts = MCDPConstants.exts_for_icons
     iconoptions = [_ for _ in iconoptions if _ is not None]
     errors = []
@@ -271,15 +262,15 @@ def choose_best_icon(iconoptions, image_source):
             continue
 
         for ext in exts:
-            try: 
+            try:
                 data = image_source.get_image(option, ext)
             except NoImageFound as e:
                 errors.append(e)
             else:
-                temp_file = NamedTemporaryFile(suffix='.'+ext,delete=False)
+                temp_file = NamedTemporaryFile(suffix='.' + ext, delete=False)
                 with open(temp_file.name, 'wb') as f:
                     f.write(data)
-                return temp_file.name  
+                return temp_file.name
     if len(errors) == 1:
         raise errors[0]
     else:
@@ -288,33 +279,32 @@ def choose_best_icon(iconoptions, image_source):
             msg += '\n' + indent(str(e), ' %s > ' % option)
         raise NoImageFound(msg)
 
+
 def resize_icon(filename, size):
     check_isinstance(filename, str)
     contents = open(filename).read()
     check_not_lfs_pointer(filename, contents)
-    
+
     tmppath = get_mcdp_tmp_dir()
     res = os.path.join(tmppath, 'resized', str(size))
 
     safe_makedirs(res)
     resized = os.path.join(res, os.path.basename(filename))
     if not os.path.exists(resized):
-        cmd = ['convert', 
-               filename, 
-               '-resize', '%s' % size, 
+        cmd = ['convert',
+               filename,
+               '-resize', '%s' % size,
                # remove alpha - otherwise lulu complains
                '-background', 'white',
-                '-alpha','remove',
-                '-alpha','off', 
+               '-alpha', 'remove',
+               '-alpha', 'off',
                resized]
         try:
-
             system_cmd_result(cwd='.', cmd=cmd,
-                     display_stdout=False,
-                     display_stderr=False,
-                     raise_on_error=True)
+                              display_stdout=False,
+                              display_stderr=False,
+                              raise_on_error=True)
 
         except CmdException:
             raise
     return resized
-

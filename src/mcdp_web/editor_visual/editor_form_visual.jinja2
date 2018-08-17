@@ -35,8 +35,6 @@
             <td colspan=1>
                 <div id='commands'>
                     <button id='save'><span class='unicode-icons' title='💾'>💾</span>save</button>
-                    <!-- <button id='close'><span class='unicode-icons'>×</span> save and close</button>  -->
-                    <!-- <button id='discard'><span class='unicode-icons' title='🗑'>🗑</span>discard and close</button>  -->
                     <button id='revert'><span class='unicode-icons'>🗑</span>revert</button>
 
                     {% import 'font_control.jinja2' as font_control %}
@@ -49,22 +47,13 @@
                 </div>
             </td>
             <td style='border: solid 0px gray;  position:fixed; ' width='49%' rowspan=2>
-                <div style='height: 100%; margin: 0; width: 100%; text-align: center;'>
-                    <a id='graph' href="{{ static }}/white.png">
-                        <img src='{{ static }}/white.png' style='max-height: 95vh; max-width: 100%'/>
-                    </a>
-                    <script type='text/javascript'>
-                        $(document).ready(function () {
-                            $('#graph').imageZoom();
-                        });
-                    </script>
-                </div>
+                <div id="myDiagramDiv" style="border: solid 1px black; width:100%; height: 80vh"></div>
             </td>
 
         </tr>
 
-        <tr style=''>
-            <td style='' width="50%">
+        <tr>
+            <td width="50%">
                 <!-- do not add spaces between div and pre because we
                      are doing tricks with html()-->
                 <div id='around_editor'><pre><code contenteditable="true" id='editor'>{{ source_code|safe }}</code></pre>
@@ -84,7 +73,16 @@
     </table>
 </div>
 
-<div id="myDiagramDiv" style="border: solid 1px black; width:100%; height:700px; min-width: 200px"></div>
+<!--<div style='height: 100%; margin: 0; width: 100%; text-align: center;'>
+    <a id='graph' href="{{ static }}/white.png">
+        <img src='{{ static }}/white.png' style='max-height: 95vh; max-width: 100%'/>
+    </a>
+    <script type='text/javascript'>
+        $(document).ready(function () {
+            $('#graph').imageZoom();
+        });
+    </script>
+</div>  -->
 
 </body>
 </html>
