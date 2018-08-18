@@ -11,27 +11,28 @@ function create_diagram(diagram_id, nodes, links) {
                 // layout: $(go.ForceDirectedLayout),
                 "undoManager.isEnabled": true
             });
-
-    myDiagram.nodeTemplate =
-        $(go.Node, go.Panel.Auto,
-            {locationSpot: go.Spot.Center},
-            $(go.Shape,
-                {
-                    figure: "RoundedRectangle",
-                    parameter1: 10,
-                    fill: "orange",  // default fill color
-                    portId: "",
-                    fromLinkable: true,
-                    fromSpot: go.Spot.AllSides,
-                    toLinkable: true,
-                    toSpot: go.Spot.AllSides,
-                    cursor: "pointer"
-                },
-                new go.Binding("fill", "color")),
-            $(go.TextBlock,
-                {margin: 10, font: "bold 12pt sans-serif"},
-                new go.Binding("text"))
-        );
+    //
+    // regular_template =
+    //     $(go.Node, go.Panel.Auto,
+    //         {locationSpot: go.Spot.Center},
+    //         new go.Binding("location", "location").makeTwoWay(),
+    //         $(go.Shape,
+    //             {
+    //                 figure: "RoundedRectangle",
+    //                 parameter1: 10,
+    //                 fill: "orange",  // default fill color
+    //                 portId: "",
+    //                 fromLinkable: true,
+    //                 fromSpot: go.Spot.AllSides,
+    //                 toLinkable: true,
+    //                 toSpot: go.Spot.AllSides,
+    //                 cursor: "pointer"
+    //             },
+    //             new go.Binding("fill", "color")),
+    //         $(go.TextBlock,
+    //             {margin: 10, font: "bold 12pt sans-serif"},
+    //             new go.Binding("text"))
+    //     );
 
     function MultiColoredLink() {
 
@@ -210,6 +211,7 @@ function create_diagram(diagram_id, nodes, links) {
 
     TABLE = $(go.Panel, "Table", TEXT, LEFT, PIC, RIGHT);
     component_template = $(go.Node, "Auto",
+        new go.Binding("location", "location").makeTwoWay(),
         $(go.Shape, "RoundedRectangle",
             {
                 fill: "white", stroke: "black", strokeWidth: 2,
@@ -230,7 +232,7 @@ function create_diagram(diagram_id, nodes, links) {
 
     f_template =
         $(go.Node, "Auto", {},
-            new go.Binding("location", "location"),
+            new go.Binding("location", "location").makeTwoWay(),
             $(go.Shape, "RoundedRectangle",
                 {
                     fill: "#d0ffdc", stroke: "black", strokeWidth: 0,
@@ -264,7 +266,7 @@ function create_diagram(diagram_id, nodes, links) {
 
     special =
         $(go.Node, "Auto", {},
-            new go.Binding("location", "location"),
+            new go.Binding("location", "location").makeTwoWay(),
             $(go.Picture, {
                     maxSize: new go.Size(32, 32)
                 },
@@ -274,7 +276,7 @@ function create_diagram(diagram_id, nodes, links) {
 
     simple =
         $(go.Node, "Auto", {},
-            new go.Binding("location", "location"),
+            new go.Binding("location", "location").makeTwoWay(),
             $(go.Shape, "RoundedRectangle",
                 {
                     fill: "white", stroke: "black", strokeWidth: 2,
@@ -286,7 +288,7 @@ function create_diagram(diagram_id, nodes, links) {
 
     r_template =
         $(go.Node, "Auto", {},
-            new go.Binding("location", "location"),
+            new go.Binding("location", "location").makeTwoWay(),
             $(go.Shape, "RoundedRectangle",
                 {
                     fill: "#ffe6d7", stroke: "black", strokeWidth: 0,
@@ -304,8 +306,8 @@ function create_diagram(diagram_id, nodes, links) {
                                 _side: "left",
                                 fromSpot: go.Spot.Left,
                                 toSpot: go.Spot.Left,
-                                fromLinkableSelfNode: true, toLinkableSelfNode: false,
-                                fromLinkable: true, toLinkable: false, cursor: "pointer",
+                                fromLinkableSelfNode: false, toLinkableSelfNode: true,
+                                fromLinkable: false, toLinkable: true, cursor: "pointer",
                                 contextMenu: contextMenu
                             },
                             new go.Binding("portId", "portId"),
@@ -352,7 +354,8 @@ function create_diagram(diagram_id, nodes, links) {
         linkFromPortIdProperty: "fromPort",
         linkToPortIdProperty: "toPort",
         nodeDataArray: nodes,
-        linkDataArray: links
+        linkDataArray: links,
+        linkKeyProperty: 'key',
     });
 
     return myDiagram;

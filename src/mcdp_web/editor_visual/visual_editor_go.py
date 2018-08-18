@@ -10,14 +10,14 @@ from mcdp_report.gdc import GraphDrawingContext
 from mcdp_report.gg_ndp import is_special_dp, is_simple_dp, get_best_icon
 from mcdp_utils_misc import get_md5
 from mcdp_web.editor_fancy import ajax_parse, \
-    get_text_from_request2, ajax_error_catch, image_source_from_env, response_data
+    ajax_error_catch, image_source_from_env, response_data
 from mcdp_web.environment import cr2e
 from mcdp_web.resource_tree import ResourceThingViewEditorVisual, ResourceThingViewEditorVisual_parse, \
     ResourceThingViewEditorVisual_save, \
     ResourceThingViewEditorVisual_resource, ResourceThingViewEditorVisual_save_gojs_graph
 from mcdp_web.utils0 import add_std_vars_context
 from mocdp.comp import CompositeNamedDP, SimpleWrap
-from mocdp.comp.context import is_fun_node_name, is_res_node_name
+from mocdp.comp.context import is_fun_node_name, is_res_node_name, get_name_for_res_node, get_name_for_fun_node
 from mocdp.ndp import NamedDPCoproduct
 
 Privileges = MCDPConstants.Privileges
@@ -97,15 +97,30 @@ class VisualEditor(object):
         nrows = min(nrows, 25)
 
         source_code = cgi.escape(source_code)
+
+        db_view = e.app.hi.db_view
+        library = db_view.repos[e.repo_name].shelves[e.shelf_name].libraries[e.library_name]
+        gojs_models = library.gojs.models
+        if e.thing_name in gojs_models:
+            gojs_graph_json = gojs_models[e.thing_name].gojs_graph_json
+            if gojs_graph_json is not None:
+                gojs_graph_json = json.dumps(gojs_graph_json)
+            else:
+                gojs_graph_json = '"null"'
+        else:
+            gojs_graph_json = '"null"'
+
         res = {
             'source_code': unicode(source_code, 'utf-8'),
             'source_code_json': unicode(json.dumps(source_code), 'utf-8'),
             'rows': nrows,
-            'ajax_parse': e.spec.url_part + '_ajax_parse',
+            'ajax_parse': e.spec.url_part + '_ajax_parse',  # XXX: not sure it is used
             'error': None,
             'url_part': e.spec.url_part,
+            'gojs_graph_json': gojs_graph_json,
         }
         return res
+
     #
     # @cr2e
     # def save(self, e):
@@ -266,12 +281,36 @@ def get_gojs_diagram(gdc, rs, model):
         node = gojs_node(gdc, rs, name, ndp)
         nodes.append(node)
 
+    def is_special_or_simple(dpname):
+        ndp = model.context.names[dpname]
+        if isinstance(ndp, SimpleWrap):
+            is_special = is_special_dp(ndp.dp)
+            is_simple = is_simple_dp(ndp.dp)
+            return is_special or is_simple
+        else:
+            return False
+
     links = []
     for c in model.get_connections():
-        link = {'from': c.dp1, 'fromPort': c.s1, 'to': c.dp2, 'toPort': c.s2}
-        if is_fun_node_name(c.dp1)[0]:
+        key = '%s_%s_%s_%s' % (c.dp1, c.s1, c.dp2, c.s2)
+
+        link = {'from': c.dp1,
+                'to': c.dp2,
+                'key': key}
+
+        if not is_special_or_simple(c.dp1):
+            link['fromPort'] = get_name_for_res_node(c.s1)
+
+        if not is_special_or_simple(c.dp2):
+            link['toPort'] = get_name_for_fun_node(c.s2)
+
+
+        isf = is_fun_node_name(c.dp1)[0]
+        isr = is_res_node_name(c.dp2)[0]
+
+        if isf and not isr:
             link['category'] = 'f_link'
-        if is_res_node_name(c.dp2)[0]:
+        if isr and not isf:
             link['category'] = 'r_link'
 
         links.append(link)
@@ -303,7 +342,8 @@ def gojs_node_generic(gdc, rs, name, ndp):
     functions = []
     for fname in ndp.get_fnames():
         ftype = ndp.get_ftype(fname)
-        fport = {'portId': fname, 'port_label': "%s [%s]" % (fname, get_type_label(ftype)),
+        portId = get_name_for_fun_node(fname)
+        fport = {'portId': portId, 'port_label': "%s [%s]" % (fname, get_type_label(ftype)),
                  'unit': str(ftype)}
         functions.append(fport)
 
@@ -311,7 +351,8 @@ def gojs_node_generic(gdc, rs, name, ndp):
 
     for rname in ndp.get_rnames():
         rtype = ndp.get_rtype(rname)
-        rport = {'portId': rname, 'port_label': "%s [%s]" % (rname, get_type_label(rtype)),
+        portId = get_name_for_res_node(rname)
+        rport = {'portId': portId, 'port_label': "%s [%s]" % (rname, get_type_label(rtype)),
                  'unit': str(rtype)}
         resources.append(rport)
 

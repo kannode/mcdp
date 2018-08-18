@@ -1,11 +1,26 @@
 mcdp {
-    a = 2
     provides f₁[m]
     provides f₂[m]
     requires r₀[m]
-    
+
     provided f₁ + 10 cm ≼ 10 m
-    # hello hello because    
+    # hello hello because     
+     
+    provides x[m]
+    requires y[m]
+    provided x ≼ required y
      
     provided f₁ + provided f₂ ≼ required r₀
+    provided x ≼ 100 m
+    
+    a = instance mcdp {
+        provides ff[m]
+        requires ff = provided ff · 2
+        requires x[m]
+    }
+requires x for a
+#    x required by a ≼ ff provided by a
+    
+    provides ff using a
+    requires ff for a
 }
