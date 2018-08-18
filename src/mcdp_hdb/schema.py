@@ -14,7 +14,7 @@ from contracts.utils import indent, check_isinstance, raise_desc, raise_wrapped
 
 
 class NotValid(Exception):
-    ''' Raised by SchemaBase::validate() ''' 
+    """ Raised by SchemaBase::validate() """
     
  
 class SchemaBase(object):
@@ -28,7 +28,7 @@ class SchemaBase(object):
     
     @abstractmethod
     def generate(self):
-        ''' Generate random data compatible with this schema. '''
+        """ Generate random data compatible with this schema. """
       
     def add_acl_rules(self, acl_rules):
         self._acl_rules_self.extend(acl_rules)
@@ -56,22 +56,22 @@ class SchemaBase(object):
     
     @abstractmethod
     def validate(self, data):
-        ''' Raises NotValid '''
+        """ Raises NotValid """
 
 class SchemaRecursive(SchemaBase):
     
     @abstractmethod
     @contract(prefix='seq(str)', returns=SchemaBase)
     def get_descendant(self, prefix):
-        ''' Returns the schema for a descendant. '''
+        """ Returns the schema for a descendant. """
 
     @abstractmethod
     def generate_empty(self):
-        ''' Generate the simplest data compatible with this schema. '''
+        """ Generate the simplest data compatible with this schema. """
     
 
 class SchemaSimple(SchemaBase):
-    ''' Base class for simple data types '''
+    """ Base class for simple data types """
     @contract(prefix='seq(str)', returns=SchemaBase)
     def get_descendant(self, prefix):
         if not prefix:
@@ -93,7 +93,7 @@ class SchemaHash(SchemaRecursive):
         SchemaBase.__init__(self)
     
     def get_descendant(self, prefix):
-        ''' Returns the schema for a descendant. '''
+        """ Returns the schema for a descendant. """
         if prefix:
             return self.prototype.get_descendant(prefix[1:])
         else:
@@ -149,7 +149,7 @@ class SchemaContext(SchemaRecursive):
         return child
         
     def get_descendant(self, prefix):
-        ''' Returns the schema for a descendant. '''
+        """ Returns the schema for a descendant. """
         if prefix:
             first = prefix[0]
             child = self.child(first)
@@ -162,6 +162,9 @@ class SchemaContext(SchemaRecursive):
             return self
         
     def validate(self, data):
+        # XXX: not sure
+        # if self.can_be_none and data is None:
+        #     return
         if not isinstance(data, dict):
             msg = 'Expected a dictionary object.'
             raise_desc(NotValid, msg, data=describe_value(data))
@@ -306,7 +309,7 @@ class SchemaList(SchemaRecursive):
     def generate_empty(self):
         return []
     def get_descendant(self, prefix):
-        ''' Returns the schema for a descendant. '''
+        """ Returns the schema for a descendant. """
         if prefix:
             return self.prototype.get_descendant(prefix[1:])
         else:
@@ -379,7 +382,7 @@ class SchemaString(SchemaSimple):
      
     @contract(returns=bytes, s='str|None')
     def encode(self, s):
-        ''' encode from memory to disk '''
+        """ encode from memory to disk """
         if s is None:
             return SchemaString.NONE_TAG
         else:
@@ -441,6 +444,5 @@ def data_hash_code(s):
     else:
         msg = 'Invalid type %s' % describe_type(s)
         raise ValueError(msg)
-    
     
     

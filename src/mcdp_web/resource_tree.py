@@ -695,6 +695,7 @@ class ResourceThingViewEditorVisual(ResourceThingView):
         subs = {
             'ajax_parse_visual': ResourceThingViewEditorVisual_parse(),
             'save': ResourceThingViewEditorVisual_save(),
+            'save_gojs_graph': ResourceThingViewEditorVisual_save_gojs_graph(),
         }
         if key in subs:
             return subs[key]
@@ -715,6 +716,9 @@ class ResourceThingViewEditorVisual_parse(Resource):
 class ResourceThingViewEditorVisual_save(Resource):
     pass
 
+class ResourceThingViewEditorVisual_save_gojs_graph(Resource):
+    pass
+
 class ResourceThingViewEditorVisual_resource(Resource):
     def __init__(self, rid):
         self.rid = rid
@@ -727,6 +731,7 @@ class ResourceThingViewEditor(ResourceThingView):
         subs = {
             'ajax_parse': ResourceThingViewEditorParse(),
             'save': ResourceThingViewEditorSave(),
+
         }
         if key in subs:
             return subs[key]

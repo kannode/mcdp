@@ -23,18 +23,21 @@ __all__ = [
 ]
 
 
-
 class NotFeasible(Exception):
     pass
+
 
 class Feasible(Exception):
     pass
 
+
 class NotSolvableNeedsApprox(Exception):
     pass
 
+
 class WrongUseOfUncertain(Exception):
     pass
+
 
 class PrimitiveDP(WithInternalLog):
     """ 
@@ -68,12 +71,12 @@ class PrimitiveDP(WithInternalLog):
         '''
             Given one f point, returns an UpperSet of resources.
         '''
-        
+
     @contract(returns=LowerSet)
     def solve_r(self, r):  # @UnusedVariable
         """ Dual of solve. Given a resource, returns a LowerSet
             of functionality. """
-        msg = 'Function solve_r() not implemented.' 
+        msg = 'Function solve_r() not implemented.'
         raise_desc(NotImplementedError, msg, type=type(self), dp=self)
 
     @contract(returns=LowerSet)
@@ -99,30 +102,30 @@ class PrimitiveDP(WithInternalLog):
 
         raise NotImplementedError(type(self).__name__)
 
-#     def evaluate_f_m(self, func, m):
-#         """ Returns the minimal resources needed
-#             by the particular implementation m 
-#         
-#             raises NotFeasible
-#         """
-#         M = self.get_imp_space_mod_res()
-#         if do_extra_checks():
-#             self.F.belongs(func)
-#             M.belongs(m)
-#         if isinstance(M, SpaceProduct) and m == ():
-#             rs = self.solve(func)
-#             minimals = list(rs.minimals)
-#             if len(minimals) == 1:
-#                 return minimals[0]
-#             else:
-#                 msg = 'Cannot use default evaluate_f_m() because multiple miminals.'
-#                 raise_desc(NotImplementedError, msg,
-#                            classname=type(self),
-#                            func=func, M=M, m=m, minimals=rs.minimals)
-#         else:
-#             msg = 'Cannot use default evaluate_f_m()'
-#             raise_desc(NotImplementedError, msg,
-#                        classname=type(self), func=func, M=M, m=m,)
+    #     def evaluate_f_m(self, func, m):
+    #         """ Returns the minimal resources needed
+    #             by the particular implementation m
+    #
+    #             raises NotFeasible
+    #         """
+    #         M = self.get_imp_space_mod_res()
+    #         if do_extra_checks():
+    #             self.F.belongs(func)
+    #             M.belongs(m)
+    #         if isinstance(M, SpaceProduct) and m == ():
+    #             rs = self.solve(func)
+    #             minimals = list(rs.minimals)
+    #             if len(minimals) == 1:
+    #                 return minimals[0]
+    #             else:
+    #                 msg = 'Cannot use default evaluate_f_m() because multiple miminals.'
+    #                 raise_desc(NotImplementedError, msg,
+    #                            classname=type(self),
+    #                            func=func, M=M, m=m, minimals=rs.minimals)
+    #         else:
+    #             msg = 'Cannot use default evaluate_f_m()'
+    #             raise_desc(NotImplementedError, msg,
+    #                        classname=type(self), func=func, M=M, m=m,)
 
     def _assert_inited(self):
         if not '_inited' in self.__dict__:
@@ -191,7 +194,7 @@ class PrimitiveDP(WithInternalLog):
         if do_extra_checks():
             UF = UpperSets(self.get_fun_space())
             UF.belongs(ufunc)
-        
+
         res = set([])
         for m in ufunc.minimals:
             u = self.solve(m)
@@ -200,53 +203,53 @@ class PrimitiveDP(WithInternalLog):
         minima = poset_minima(res, ressp.leq)
         return ressp.Us(minima)
 
-#     def get_normal_form(self):
-#         """
-#             S is a Poset
-#             alpha: U(F) x S ⟶ U(R)
-#             beta:  U(F) x S ⟶ S 
-#         """
-#         One = PosetProduct(())
-#         S = One
-# 
-#         class DefaultAlphaMap(Map):
-#             def __init__(self, dp):
-#                 self.dp = dp
-#                 F = dp.get_fun_space()
-#                 R = dp.get_res_space()
-#                 UF = UpperSets(F)
-#                 dom = PosetProduct((UF, S))
-#                 cod = UpperSets(R)
-#                 Map.__init__(self, dom, cod)
-# 
-#             def _call(self, x):
-#                 F, _s = x
-#                 Res = self.dp.solveU(F)
-#                 return Res
-# 
-#         class DefaultBeta(Map):
-#             def __init__(self, dp):
-#                 self.dp = dp
-#                 F = dp.get_fun_space()
-#                 UF = UpperSets(F)
-#                 dom = PosetProduct((UF, S))
-#                 cod = S
-#                 Map.__init__(self, dom, cod)
-# 
-#             def _call(self, x):
-#                 _F, s = x
-#                 return s
-# 
-#         alpha = DefaultAlphaMap(self)
-#         beta = DefaultBeta(self)
-# 
-#         return NormalForm(S=S, alpha=alpha, beta=beta)
+    #     def get_normal_form(self):
+    #         """
+    #             S is a Poset
+    #             alpha: U(F) x S ⟶ U(R)
+    #             beta:  U(F) x S ⟶ S
+    #         """
+    #         One = PosetProduct(())
+    #         S = One
+    #
+    #         class DefaultAlphaMap(Map):
+    #             def __init__(self, dp):
+    #                 self.dp = dp
+    #                 F = dp.get_fun_space()
+    #                 R = dp.get_res_space()
+    #                 UF = UpperSets(F)
+    #                 dom = PosetProduct((UF, S))
+    #                 cod = UpperSets(R)
+    #                 Map.__init__(self, dom, cod)
+    #
+    #             def _call(self, x):
+    #                 F, _s = x
+    #                 Res = self.dp.solveU(F)
+    #                 return Res
+    #
+    #         class DefaultBeta(Map):
+    #             def __init__(self, dp):
+    #                 self.dp = dp
+    #                 F = dp.get_fun_space()
+    #                 UF = UpperSets(F)
+    #                 dom = PosetProduct((UF, S))
+    #                 cod = S
+    #                 Map.__init__(self, dom, cod)
+    #
+    #             def _call(self, x):
+    #                 _F, s = x
+    #                 return s
+    #
+    #         alpha = DefaultAlphaMap(self)
+    #         beta = DefaultBeta(self)
+    #
+    #         return NormalForm(S=S, alpha=alpha, beta=beta)
 
-#     def get_normal_form_approx(self):
-#         gamma = DefaultGamma(self)
-#         delta = DefaultDelta(self)
-#         S = PosetProduct(())
-#         return NormalFormApprox(S=S, gamma=gamma, delta=delta)
+    #     def get_normal_form_approx(self):
+    #         gamma = DefaultGamma(self)
+    #         delta = DefaultDelta(self)
+    #         S = PosetProduct(())
+    #         return NormalFormApprox(S=S, gamma=gamma, delta=delta)
 
     def __repr__(self):
         return '%s(%s→%s)' % (type(self).__name__, self.F, self.R)
@@ -258,34 +261,35 @@ class PrimitiveDP(WithInternalLog):
     @abstractmethod
     def repr_h_map(self):
         """ Returns a string of the type "f |-> P(f)" """
-#         return '(undefined for %s)' %  type(self).__name__
 
-    @abstractmethod    
+    #         return '(undefined for %s)' %  type(self).__name__
+
+    @abstractmethod
     def repr_hd_map(self):
-        """ Returns a string of the type "f |-> P(f)" """  
-#         return '(undefined for %s)' %  type(self).__name__
+        """ Returns a string of the type "f |-> P(f)" """
 
-#     def _add_extra_info(self):
-#         if False:
-#             s = ""
-# 
-#             if hasattr(self, ATTRIBUTE_NDP_RECURSIVE_NAME):
-#                 x = getattr(self, ATTRIBUTE_NDP_RECURSIVE_NAME)
-#                 s += ' named: ' + x.__str__()
-# 
-#             s3 = self.get_imp_space().__repr__()
-#             s += ' I = %s' % s3
-# 
-#             from mocdp.comp.recursive_name_labeling import get_names_used
-#             if isinstance(self.I, SpaceProduct):
-#                 names = get_names_used(self.I)
-#                 # names = filter(None, names)
-#                 if names:
-#                     s += ' names: %s' % names
-#         else:
-#             return ""
+    #         return '(undefined for %s)' %  type(self).__name__
 
-    
+    #     def _add_extra_info(self):
+    #         if False:
+    #             s = ""
+    #
+    #             if hasattr(self, ATTRIBUTE_NDP_RECURSIVE_NAME):
+    #                 x = getattr(self, ATTRIBUTE_NDP_RECURSIVE_NAME)
+    #                 s += ' named: ' + x.__str__()
+    #
+    #             s3 = self.get_imp_space().__repr__()
+    #             s += ' I = %s' % s3
+    #
+    #             from mocdp.comp.recursive_name_labeling import get_names_used
+    #             if isinstance(self.I, SpaceProduct):
+    #                 names = get_names_used(self.I)
+    #                 # names = filter(None, names)
+    #                 if names:
+    #                     s += ' names: %s' % names
+    #         else:
+    #             return ""
+
     def _children(self):  # XXX: is this still used?
         l = []
         if hasattr(self, 'dp1'):
@@ -300,18 +304,18 @@ class PrimitiveDP(WithInternalLog):
 
         u = lambda x: x.decode('utf-8')
         ulen = lambda x: len(u(x))
-# 
-#         def clip(x, n):
-#             s = str(x)
-#             unicode_string = s.decode("utf-8")
-#             l = len(unicode_string)
-#             s = s + ' ' * (n - l)
-#             if len(u(s)) > n:
-#                 x = u(s)
-#                 x = x[:n - 3] + '...'
-#                 s = x.encode('utf-8')
-#             return s
- 
+        #
+        #         def clip(x, n):
+        #             s = str(x)
+        #             unicode_string = s.decode("utf-8")
+        #             l = len(unicode_string)
+        #             s = s + ' ' * (n - l)
+        #             if len(u(s)) > n:
+        #                 x = u(s)
+        #                 x = x[:n - 3] + '...'
+        #                 s = x.encode('utf-8')
+        #             return s
+
         s2 = ""
 
         head = s + ' ' * (n - ulen(s) - ulen(s2)) + s2
@@ -357,7 +361,6 @@ class ApproximableDP(PrimitiveDP):
     @contract(n='int,>=0', returns=PrimitiveDP)
     def get_upper_bound(self, n):
         pass
-
 
 # NormalForm = namedtuple('NormalForm', ['S', 'alpha', 'beta'])
 

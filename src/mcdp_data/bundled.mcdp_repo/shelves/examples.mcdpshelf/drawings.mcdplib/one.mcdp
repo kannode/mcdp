@@ -1,0 +1,11 @@
+mcdp {
+    a = 2
+    provides f₁[m]
+    provides f₂[m]
+    requires r₀[m]
+    
+    provided f₁ + 10 cm ≼ 10 m
+    # hello hello because    
+     
+    provided f₁ + provided f₂ ≼ required r₀
+}

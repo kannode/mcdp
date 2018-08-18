@@ -14,7 +14,7 @@ from mcdp_web.editor_fancy import ajax_parse, \
 from mcdp_web.environment import cr2e
 from mcdp_web.resource_tree import ResourceThingViewEditorVisual, ResourceThingViewEditorVisual_parse, \
     ResourceThingViewEditorVisual_save, \
-    ResourceThingViewEditorVisual_resource
+    ResourceThingViewEditorVisual_resource, ResourceThingViewEditorVisual_save_gojs_graph
 from mcdp_web.utils0 import add_std_vars_context
 from mocdp.comp import CompositeNamedDP, SimpleWrap
 from mocdp.comp.context import is_fun_node_name, is_res_node_name
@@ -60,6 +60,7 @@ class VisualEditor(object):
                         renderer='editor_visual/editor_form_visual.jinja2')
         config.add_view(self.ajax_parse_visual, context=ResourceThingViewEditorVisual_parse, renderer='json')
         config.add_view(self.save, context=ResourceThingViewEditorVisual_save, renderer='json')
+        config.add_view(self.save_gojs_graph, context=ResourceThingViewEditorVisual_save_gojs_graph, renderer='json')
         # config.add_view(self.component_image, context=ResourceThingViewEditorVisual_component_image)
         config.add_view(self.serve_resource, context=ResourceThingViewEditorVisual_resource)
         # config.add_view(self.view_new_model_generic, context=ResourceThingsNew, permission=Privileges.WRITE)
@@ -105,17 +106,36 @@ class VisualEditor(object):
             'url_part': e.spec.url_part,
         }
         return res
+    #
+    # @cr2e
+    # def save(self, e):
+    #     string = get_text_from_request2(e.request)
+    #
+    #     def go():
+    #         db_view = e.app.hi.db_view
+    #         library = db_view.repos[e.repo_name].shelves[e.shelf_name].libraries[e.library_name]
+    #         things = library.things.child(e.spec_name)
+    #         things[e.thing_name] = string
+    #         return {'ok': True, 'saved_string': string}
+    #
+    #     return ajax_error_catch(go, environment=e)
 
     @cr2e
-    def save(self, e):
-        string = get_text_from_request2(e.request)
+    def save_gojs_graph(self, e):
+
+        gojs_graph = e.request.json_body['gojs_graph']
+        gojs_graph = gojs_graph.encode('utf8')
 
         def go():
             db_view = e.app.hi.db_view
             library = db_view.repos[e.repo_name].shelves[e.shelf_name].libraries[e.library_name]
-            things = library.things.child(e.spec_name)
-            things[e.thing_name] = string
-            return {'ok': True, 'saved_string': string}
+            gojs_models = library.gojs.models
+
+            if e.thing_name not in gojs_models:
+                gojs_models[e.thing_name] = {'gojs_graph_json': gojs_graph}
+
+            gojs_models[e.thing_name].gojs_graph_json = gojs_graph
+            return {'ok': True}
 
         return ajax_error_catch(go, environment=e)
 

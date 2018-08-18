@@ -27,6 +27,13 @@ class DB(object):
             thing = SchemaString()
             things.hash(spec_name, thing)
 
+    with library.context_e('gojs') as gojs:
+        # gojs.can_be_none = True
+        gojs_for_model = Schema()
+        gojs_for_model.string('gojs_graph_json', can_be_none=True)
+
+        gojs.hash('models', gojs_for_model)
+
     shelf = Schema()
     shelf._add_child('acl', acl)
 
@@ -81,8 +88,12 @@ class DB(object):
     dm.hint_directory(user, translations={'info':'user.yaml', 'images':None})
     dm.hint_file_yaml(user['info'])
     dm.hint_directory(user_db,translations={'users':None})
-                      
-    dm.hint_directory(library, translations={'images': None, 'documents': None, 'things': None})
+
+    dm.hint_directory(library, translations={'images': None, 'documents': None, 'things': None,
+                                             'gojs': 'gojs'},
+                      allow_children_missing=('gojs'))
+    dm.hint_directory(library['gojs'])
+
     dm.hint_extensions(library['images'], image_extensions)
     dm.hint_extensions(user['images'], image_extensions)
     dm.hint_directory(library['documents'], pattern='%.md')

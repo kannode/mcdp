@@ -20,11 +20,12 @@ class HintFile(object):
             
 class HintDir(object):
     
-    def __init__(self, pattern='%', translations=None):
+    def __init__(self, pattern='%', translations=None, allow_children_missing=()):
         self.pattern = pattern
         if translations is None:
             translations = {}
         self.translations = translations
+        self.allow_children_missing = allow_children_missing
  
     def __repr__(self):
         return 'HintDir(%r, %r)' % (self.pattern, self.translations)
@@ -62,4 +63,3 @@ class HintFileYAML(object):
         
     def __repr__(self):
         return 'HintFileYAML()'
-        

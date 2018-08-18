@@ -187,7 +187,9 @@ function create_diagram(diagram_id, nodes, links) {
     );
 
     text_properties = {
-        // margin: 10,
+        margin: 5,
+        editable: true,
+        // padding: 10,
         textAlign: "center",
         font: "14px  Times",
         stroke: "black",

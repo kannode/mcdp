@@ -14,6 +14,11 @@ function update_diagram_after_successful_parse(res) {
 
     if (diagram == null) {
         diagram = create_diagram(diagram_id, nodes, links);
+         // notice whenever a transaction or undo/redo has occurred
+          diagram.addModelChangedListener(function(evt) {
+            if (evt.isTransactionFinished) model_was_modified(evt.model);
+          });
+
     } else {
         diagram.startTransaction("update");
 
@@ -41,15 +46,17 @@ function update_diagram_after_successful_parse(res) {
 
     var png = myDiagram.makeImage();
     console.log(png)
-    console.log(png.html())
-    var svg = myDiagram.makeSvg({
-        // document: newDocument,  // create SVG DOM in new document context
-        //     scale: 9,
-        // maxSize: new go.Size(600, NaN)
-    });
-    console.log(svg);
+    // console.log(png.html())
+    // var svg = myDiagram.makeSvg({
+    //     // document: newDocument,  // create SVG DOM in new document context
+    //     //     scale: 9,
+    //     // maxSize: new go.Size(600, NaN)
+    // });
+    // console.log(svg);
     // svg_string = svg.toString()
     // console.log(svg_string)
+
+
 }
 
 
@@ -60,3 +67,27 @@ function init_go_diagram() {
 }
 
 $(document).ready(init_go_diagram);
+
+
+function model_was_modified(model) {
+    json = diagram.model.toJson();
+    save_gojs_json(json);
+}
+
+
+function save_gojs_json(json) {
+    function on_proc_failure(res) {
+        // $('#syntax_error').html(res['error']);
+        // $('#syntax_error').show();
+        // $('#language_warnings').html(); /* XXX */
+        // $('#around_editor').css('background-color', bg_color_parsing);
+
+        console.log(res['error']);
+    }
+
+    function on_success(res) {
+        console.log('success');
+    }
+
+    ajax_send('save_gojs_graph', {'gojs_graph': json}, on_comm_failure, on_proc_failure, on_success);
+}

@@ -1,0 +1,20 @@
+{ "class": "go.GraphLinksModel",
+  "linkFromPortIdProperty": "fromPort",
+  "linkToPortIdProperty": "toPort",
+  "nodeDataArray": [ 
+{"category":"f_template", "rightArray":[ {"port_label":"f_1 [m]", "portId":"f_1", "unit":"R[m]"} ], "name":"_fun_f_1", "key":"_fun_f_1", "leftArray":[ {"port_label":"f_1 [m]", "portId":"f_1", "unit":"R[m]"} ]},
+{"category":"special", "name":null, "leftArray":[ {"port_label":"_a [m]", "portId":"_a", "unit":"R[m]"} ], "source":"resource.d4cb6d77700b041552566c38a6ef3853", "key":"_join_fname1", "rightArray":[ {"port_label":"_f_1_0 [m]", "portId":"_f_1_0", "unit":"R[m]"},{"port_label":"_f_1_1 [m]", "portId":"_f_1_1", "unit":"R[m]"} ]},
+{"category":"special", "name":null, "leftArray":[ {"port_label":"_term0 [m]", "portId":"_term0", "unit":"R[m]"},{"port_label":"_term1 [m]", "portId":"_term1", "unit":"R[m]"} ], "source":"resource.88c0a6df1385291ab1dd2f953667d683", "key":"_sum1", "rightArray":[ {"port_label":"_result [m]", "portId":"_result", "unit":"R[m]"} ]},
+{"category":"simple", "rightArray":[ {"port_label":"_res [m]", "portId":"_res", "unit":"R[m]"} ], "name":"+ 10 cm", "key":"_plus1", "leftArray":[ {"port_label":"_op0 [m]", "portId":"_op0", "unit":"R[m]"} ]},
+{"category":"f_template", "rightArray":[ {"port_label":"f_2 [m]", "portId":"f_2", "unit":"R[m]"} ], "name":"_fun_f_2", "key":"_fun_f_2", "leftArray":[ {"port_label":"f_2 [m]", "portId":"f_2", "unit":"R[m]"} ]},
+{"category":"r_template", "rightArray":[ {"port_label":"r_0 [m]", "portId":"r_0", "unit":"R[m]"} ], "name":"_res_r_0", "key":"_res_r_0", "leftArray":[ {"port_label":"r_0 [m]", "portId":"r_0", "unit":"R[m]"} ]},
+{"category":"", "rightArray":[], "name":"", "key":"_lim1", "leftArray":[ {"port_label":"_l [m]", "portId":"_l", "unit":"R[m]"} ]}
+ ],
+  "linkDataArray": [ 
+{"toPort":"_term1", "fromPort":"f_2", "category":"f_link", "from":"_fun_f_2", "to":"_sum1", "points":[-15.60996500169206,-108,-5.609965001692061,-108,88.69501749915395,-108,88.69501749915395,-109,182.99999999999994,-109,192.99999999999994,-109]},
+{"toPort":"_term0", "fromPort":"_f_1_1", "from":"_join_fname1", "to":"_sum1", "points":[91.99999999999999,0,91.99999999999999,-10,91.99999999999999,-46.5,208.99999999999994,-46.5,208.99999999999994,-83,208.99999999999994,-93]},
+{"toPort":"_l", "fromPort":"_res", "from":"_plus1", "to":"_lim1", "points":[202.52187093580795,13,212.52187093580795,13,214.81525675696648,13,214.81525675696648,14.983054608528972,217.108642578125,14.983054608528972,227.108642578125,14.983054608528972]},
+{"toPort":"_op0", "fromPort":"_f_1_0", "from":"_join_fname1", "to":"_plus1", "points":[107.99999999999999,16,117.99999999999999,16,123.5,16,123.5,13,129,13,139,13]},
+{"toPort":"r_0", "fromPort":"_result", "category":"r_link", "from":"_sum1", "to":"_res_r_0", "points":[224.99999999999994,-109,234.99999999999994,-109,254.14753214759148,-109,254.14753214759148,-107.99999999999999,273.295064295183,-107.99999999999999,283.295064295183,-107.99999999999999]},
+{"toPort":"_a", "fromPort":"f_1", "category":"f_link", "from":"_fun_f_1", "to":"_join_fname1", "points":[-30.1318359375,-55.00000000000001,-20.1318359375,-55.00000000000001,22.934082031249993,-55.00000000000001,22.934082031249993,16,65.99999999999999,16,75.99999999999999,16]}
+ ]}

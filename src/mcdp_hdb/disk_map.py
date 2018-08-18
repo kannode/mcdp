@@ -51,12 +51,12 @@ class DiskMap(object):
         raise ValueError(msg)
  
     @contract(s=SchemaBase,pattern=str,translations='None|dict(str:(str|None))')
-    def hint_directory(self, s, pattern='%', translations=None):
+    def hint_directory(self, s, pattern='%', translations=None, allow_children_missing=()):
         if isinstance(s, SchemaHash):
             if translations:
                 msg = 'Cannot specify translations with SchemaHash'
                 raise ValueError(msg)
-        self.hints[s] = HintDir(pattern=pattern, translations=translations)
+        self.hints[s] = HintDir(pattern=pattern, translations=translations, allow_children_missing=allow_children_missing)
 
     def hint_extensions(self, s, extensions):
         self.hints[s] = HintExtensions(extensions)
@@ -201,30 +201,36 @@ class DiskMap(object):
                     return read_SchemaHash_SER_DIR(self, schema, fh)
                 if isinstance(hint, HintExtensions):
                     return read_SchemaHash_Extensions(self, schema, fh)
+                assert False, hint
 
             if isinstance(schema, SchemaContext):
                 if isinstance(hint, HintDir):
                     return read_SchemaContext_SER_DIR(self, schema, fh) 
                 if isinstance(hint, HintFileYAML):
                     return read_SchemaContext_SER_FILE_YAML(self, schema, fh)
+                assert False, hint
 
             if isinstance(schema, SchemaList):
                 if isinstance(hint, HintDir):
                     return interpret_SchemaList_SER_DIR(self, schema, fh) 
                 if isinstance(hint, HintFileYAML):
                     return read_SchemaList_SER_FILE_YAML(self, schema, fh)
+                assert False, hint
 
             if isinstance(schema, SchemaBytes):
                 if isinstance(hint, HintFile):
                     return fh.contents
+                assert False, hint
 
             if isinstance(schema, SchemaString):
                 if isinstance(hint, HintFile):
                     return schema.decode(fh.contents) # todo: encode to UTF-8
+                assert False, hint
 
             if isinstance(schema, SchemaDate):
                 if isinstance(hint, HintFile): 
                     return yaml_load(fh)
+                assert False, hint
 
             msg = 'NotImplemented'
             raise_desc(NotImplementedError, msg, schema=type(schema), hint=hint)
@@ -419,7 +425,7 @@ def write_SchemaHash_Extensions(self, schema, data):
     return res 
 
 def fill_in_none(schema, data):
-    ''' Fills in the fields not passed and that can be None '''
+    """ Fills in the fields not passed and that can be None """
     if isinstance(schema, SchemaString):
         if isinstance(data, unicode):
             return data.encode('utf8')
@@ -497,16 +503,17 @@ def read_SchemaContext_SER_DIR(self, schema, fh):
         if filename is None:
             # skip directory
             res[k] = self.interpret_hierarchy_(schema_child, fh)
-            
         else:
             if not filename in fh:
-                
-                if schema_child.can_be_none:
+                if k in hint.allow_children_missing:
+                    res[k] = schema_child.generate_empty() # XXX
+                elif schema_child.can_be_none:
                     res[k] = None
 #                     logger.debug('Using default for key %s' % k)
                 else:
                     msg = 'Expected filename "%s".' % filename
                     msg += '\n available: %s' % format_list(fh)
+                    msg += '\n\nWhile interpreting for child %r: \n %s' % (k, indent(schema_child, 'schema_child: '))
                     raise_incorrect_format(msg, schema, fh.tree())
             else:
                 try:
