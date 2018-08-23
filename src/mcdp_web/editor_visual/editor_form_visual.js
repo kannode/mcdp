@@ -28,9 +28,6 @@ function update_diagram_after_successful_parse(res) {
             console.log('need to have ' + key);
             key2nodes.set(key, node);
 
-            if (!key2nodes.has(key)) {
-                throw "error";
-            }
         }
 
 

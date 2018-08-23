@@ -68,7 +68,7 @@ class CompositeNamedDP(NamedDP):
         """ Returns the map from name to nodes """
         return self.context.names
 
-    @contract(returns='set($Connection)')
+    # @contract(returns='set($Connection)')
     def get_connections(self):
         return set(self.context.connections)
 
