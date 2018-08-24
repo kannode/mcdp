@@ -55,7 +55,7 @@ docker-clean:
 	-docker rm $(shell docker ps -q -f status=exited)
 
 	# Delete all images
-	-docker rmi $(shell docker images -q)
+	-docker rm $(shell docker images -q)
 
 
 docker-bash:

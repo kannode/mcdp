@@ -1,33 +1,33 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 from comptests.registrar import comptest, run_module_tests, comptest_fails
 from contracts.utils import raise_desc, indent
-from mcdp_docs.make_figures import make_figure_from_figureid_attr
-
-from mcdp_utils_xml import bs, to_html_stripping_fragment
-
 from mcdp_docs.location import LocationUnknown
+from mcdp_docs.make_figures import make_figure_from_figureid_attr
 from mcdp_docs.mark.markd import render_markdown
 from mcdp_docs.mark.markdown_transform import censor_markdown_code_blocks
 from mcdp_docs.minimal_doc import get_minimal_document
 from mcdp_docs.pipeline import render_complete
 from mcdp_docs.prerender_math import TAG_DOLLAR
 from mcdp_library.library import MCDPLibrary
-from mcdp_utils_misc import AugmentedResult
+from mcdp_utils_misc import AugmentedResult, write_data_to_file
 from mcdp_utils_misc.string_repr import indent_plus_invisibles
+from mcdp_utils_xml import bs, to_html_stripping_fragment
 
 
-def tryit(s, write_to=None, forbid=[]):
+def tryit(s, write_to=None, forbid=None):
+    if forbid is None:
+        forbid = []
     library = MCDPLibrary()
     raise_errors = True
     realpath = 'transformations.py'
     s2 = render_complete(library, s, raise_errors, realpath, generate_pdf=False)
 
-    if False:
+    if True:
         if write_to is not None:
             doc = get_minimal_document(s2, add_manual_css=True)
-            with open(write_to, 'wb') as f:
-                f.write(doc)
-            print('written to %s' % write_to)
+            write_data_to_file(doc, write_to)
 
     tests = {
         'doctype': not 'DOCTYPE' in s2,
@@ -57,7 +57,7 @@ def tryit(s, write_to=None, forbid=[]):
             msg += '\n\n' + indent(s2, '> ')
 
         if write_to is not None:
-            msg += '\nSee output in %s' % (write_to)
+            msg += '\nSee output in %s' % write_to
         raise_desc(Exception, msg)
 
     return s2
@@ -145,7 +145,7 @@ syntax ``instance `Name``. The backtick means "load symbols from the library".
 """
     s2 = tryit(s, 'out-transformation.html')
 
-    print s2
+    print(s2)
 
 
 @comptest
@@ -439,7 +439,7 @@ This is the case of unreasonable demands (1 kg of extra payload):
     $ mcdp-solve -d src/mcdp_data/libraries/examples/example-battery.mcdplib battery "<1 hour, 1.0 kg, 1 W>"
     """
     s2 = tryit(s)
-    print indent(s2, 's2: ')
+    print(indent(s2, 's2: '))
     assert '1<span class="space"> </span>hour' in s2
     # assert '1 hour' in s2
 
@@ -469,9 +469,9 @@ plus completeness is sufficient to ensure existence.
     s2 = censor_markdown_code_blocks(s, res, location)
 
     print('original:')
-    print indent_plus_invisibles(s)
+    print(indent_plus_invisibles(s))
     print('later:')
-    print indent_plus_invisibles(s2)
+    print(indent_plus_invisibles(s2))
 
     assert not 'censored-code' in s
 
@@ -509,7 +509,7 @@ href="mailto:censi@mit.edu">censi@mit.edu</a>.
 
 """
     s2 = tryit(s)
-    print s2
+    print(s2)
 
     sub = r"""<p>Please send any comments, suggestions, or bug reports to <a href="mailto:censi@mit.edu">censi@mit.edu.</p>"""
     assert sub in s2
@@ -517,7 +517,7 @@ href="mailto:censi@mit.edu">censi@mit.edu</a>.
 
 @comptest_fails
 def markdown_inside():
-    ''' Markdown inside the latex '''
+    """ Markdown inside the latex """
     s = r"""
 
 \begin{definition}
@@ -562,7 +562,6 @@ def codeblocks_in_quote():
     assert '<pre><code>' in s3
 
 
-
 @comptest
 def figures_new1():
     s = r"""
@@ -588,11 +587,96 @@ def figures_new1():
 
     # nfigs = len(list(soup.select('figure')))
     o = to_html_stripping_fragment(soup)
-    print o
+    print(o)
 
     # assert_equal(o, e)
     #
 
+
+@comptest
+def test_escape_amp():
+    s = r"""
+
+Run this:
+
+    $ cd a && foo
+
+"""
+    s2 = tryit(s, forbid=['&&'])
+    assert '&amp;&amp;' in s2
+    # print(s2)
+
+
+
+@comptest_fails
+def test_escape_amp2():
+    s = r"""
+
+Run this:
+
+```
+$ cd a && foo
+```
+
+"""
+    s2 = tryit(s, forbid=['&&'])
+    assert '&amp;&amp;' in s2
+    # print(s2)
+
+@comptest
+def test_escape_concat():
+    s = r"""
+
+Run this:
+
+    $ echo >> Dockerfile
+
+"""
+    s2 = tryit(s)
+    assert "&gt;&gt;" in s2
+
+@comptest
+def test_escape_concat3():
+    s = r"""
+
+Run this:
+
+```
+$ echo >> Dockerfile
+```
+
+"""
+    s2 = tryit(s, write_to='test_escape_concat3.html')
+    # print(s2)
+    assert "&gt;&gt;" in s2
+
+@comptest
+def test_escape_concat4():
+    s = r"""
+
+Run this:
+
+~~~
+$ echo >> Dockerfile
+~~~
+
+"""
+    s2 = tryit(s,  write_to='test_escape_concat4.html')
+    # print(s2)
+    assert "&gt;&gt;" in s2
+
+@comptest
+def test_escape_concat2():
+    s = r"""
+
+Run this:
+
+    $ echo &gt;&gt; Dockerfile
+
+"""
+    s2 = tryit(s)
+    # print(s2)
+    assert '&gt;&gt;' in s2
 
 
 if __name__ == '__main__':

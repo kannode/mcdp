@@ -2353,7 +2353,8 @@ p.last-modified a {
   text-decoration: none;
 }
 @media print {
-  .like_buttons {
+  .like_buttons,
+  .questions-prompt {
     display: none;
   }
 }
@@ -2364,7 +2365,7 @@ p.last-modified a {
 body {
   page: normal;
 }
-h1:not(#booktitle) {
+h1:not([id^=book]) {
   prince-page-group: start;
   string-set: current-header content();
 }

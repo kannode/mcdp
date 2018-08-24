@@ -2353,7 +2353,8 @@ p.last-modified a {
   text-decoration: none;
 }
 @media print {
-  .like_buttons {
+  .like_buttons,
+  .questions-prompt {
     display: none;
   }
 }
@@ -2388,7 +2389,7 @@ p.last-modified a {
     transform-origin: top center;
   }
   /** add space for h1, in place of page breaks **/
-  h1:not(#booktitle) {
+  h1:not([id^=book]) {
     margin-top: 1.5em;
   }
 }

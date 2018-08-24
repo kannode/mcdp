@@ -134,8 +134,8 @@ RUN find mcdp/src -name '*.c' -delete
 
 # TODO: reactivate this
 
-# RUN . deploy/bin/activate && cd mcdp && make -f Makefile.cython -j3
-# RUN . deploy/bin/activate && cd mcdp && make -f Makefile.cython delete-python-files
+RUN . deploy/bin/activate && cd mcdp && make -f Makefile.cython -j3
+RUN . deploy/bin/activate && cd mcdp && make -f Makefile.cython delete-python-files
 
 #   --no-deps should avoid downloading dependencies
 RUN . deploy/bin/activate && cd mcdp && python setup.py develop   --no-deps

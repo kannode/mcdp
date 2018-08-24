@@ -26,6 +26,7 @@ def do_preliminary_checks_and_fixes(s, res, location0):
             s = s.replace('\t', ' ' * MCDPConstants.tabsize)
     else:
         check_no_tabs(s)
+
     check_no_forbidden(s, res, location0)
 
     s = remove_comments(s)
@@ -75,7 +76,7 @@ def check_no_forbidden(s, res, location0):
     forbidden = {
         '>=': ['≥'],
         '<=': ['≤'],
-        '>>': ['?']  # added by mistake by Atom autocompletion
+        # '>>': ['?']  # added by mistake by Atom autocompletion
     }
     for f in forbidden:
         if f in s:
@@ -86,6 +87,15 @@ def check_no_forbidden(s, res, location0):
             where = Where(s, c, c + len(f))
             res.note_error(msg, LocationInString(where, location0))
             # raise DPSyntaxError(msg, where=where)
+
+    if False:
+        for i, line in enumerate(s.split('\n')):
+            if line.startswith(' '*4):
+                if '<' in line:
+                    msg = 'I found the character `<` in this code block. Unfortunately this is not allowed.'
+                    char = find_location(i, line.index('<'), s)
+                    where = Where(s, char, char+1)
+                    res.note_error(msg, LocationInString(where, location0))
 
 
 def remove_comments(s):

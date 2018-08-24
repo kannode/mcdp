@@ -8,7 +8,7 @@ from mcdp import logger, MCDPConstants
 from mcdp.exceptions import DPSemanticError, MCDPExceptionWithWhere,\
     DPInternalError
 from mcdp_lang import parse_ndp, parse_poset
-from mcdp_utils_misc import assert_good_plain_identifier, format_list, get_mcdp_tmp_dir, memo_disk_cache2, locate_files
+from mcdp_utils_misc import assert_good_plain_identifier, format_list, get_mcdp_tmp_dir, memo_disk_cache2, locate_files_memoized
 from mocdp.comp.context import Context
 import os
 import shutil
@@ -409,10 +409,9 @@ class MCDPLibrary(object):
     @contract(d=str)
     def _add_search_dir(self, d):
         """ Adds the directory to the search directory list. """
-        pattern = ['*.' + ext for ext in MCDPLibrary.all_extensions]
+        pattern = tuple(['*.' + ext for ext in MCDPLibrary.all_extensions])
             
-        files_mcdp = list(locate_files(directory=d, pattern=pattern,
-                                  followlinks=True))
+        files_mcdp = list(locate_files_memoized(directory=d, pattern=pattern, followlinks=True))
 
         # logger.debug('add_search_dir(%s, %s) = %s' % (d, pattern, files_mcdp))
 

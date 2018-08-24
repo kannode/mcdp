@@ -161,7 +161,8 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, bookshor
                       add_toc_if_not_existing=True,
                       output_crossref=None,
                       permalink_prefix=None,
-                      only_refs=False):
+                      only_refs=False,
+                      reveal=True):
     data = data_aug.get_result()
     if nworkers == 0:
         nworkers = max(1, cpu_count() - 2)
@@ -196,7 +197,10 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, bookshor
         if only_refs:
             break
 
-    reveal_download = context.comp(download_reveal, output_dir)
+    if reveal:
+        reveal_download = context.comp(download_reveal, output_dir)
+    else:
+        reveal_download = None
 
     return context.comp(notification, res, jobs, reveal_download, output_dir)
 
@@ -263,6 +267,9 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
         from .source_info_imp import get_main_header
         actual_id = get_main_header(contents)
 
+        if not ':' in actual_id:
+            msg = 'Weird main ID: %s' % actual_id
+            raise Exception(msg)
         i = actual_id.index(':')
         sec = actual_id[i+1:] + ':section' # TODO: add util for this
         main_headers.append(actual_id)

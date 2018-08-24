@@ -54,3 +54,32 @@ def stag(name, text, _class=None, _id=None, href=None):
     if href is not None:
         t['href'] = href
     return t
+
+def get_minimal_html_document(title=None, stylesheet=None):
+    html = Tag(name='html')
+    html.append('\n')
+    head = Tag(name='head')
+    head.append('\n')
+    if stylesheet:
+        link = Tag(name='link')
+        link.attrs['type'] = 'text/css'
+        link.attrs['rel'] = 'stylesheet'
+        link.attrs['href'] = stylesheet
+        head.append(link)
+        head.append('\n')
+
+    meta = Tag(name='meta', attrs={'http-equiv': "Content-Type",
+                                        'content': "application/xhtml+xml; charset=utf-8"})
+    head.append(meta)
+    head.append('\n')
+    if title:
+        title_t = Tag(name='title')
+        title_t.append(title)
+        head.append(title_t)
+    head.append('\n')
+    html.append(head)
+
+    body = Tag(name='body')
+    body.append('\n')
+    html.append(body)
+    return html

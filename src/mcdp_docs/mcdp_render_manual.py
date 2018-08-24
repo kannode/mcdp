@@ -852,7 +852,7 @@ def add_related_(soup, res, resources_dirs):
         p = Tag(name='p')
         p.attrs['class'] = 'questions-prompt'
         a = Tag(name='a')
-        a.attrs['href'] = 'http://www2.duckietown.org/questions/ask/?pred=%s' % short
+        a.attrs['href'] = 'https://www.duckietown.org/questions/ask/?pred=%s' % short
         if nfound == 0:
             p.append("No questions found. You can ask a question ")
             a.append("on the website")
@@ -1044,10 +1044,9 @@ def prerender(joined_aug, symbols):
 def render_pdf(data_aug):
     data = data_aug.get_result()
     prefix = 'prince_render'
-    with tmpdir(prefix=prefix) as d:
+    with tmpdir(prefix=prefix, erase=True) as d:
         f_html = os.path.join(d, 'file.html')
-        with open(f_html, 'w') as f:
-            f.write(data)
+        write_data_to_file(data, f_html, quiet=True)
 
         f_out = os.path.join(d, 'out.pdf')
         cmd = ['prince', '--javascript', '-o', f_out, f_html]

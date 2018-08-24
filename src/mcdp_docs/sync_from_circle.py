@@ -143,7 +143,7 @@ def read_build(client, username, project, token, r, d0):
                     tf = tarfile.open(f, 'r:gz')
                     tf.extractall(d_build)
                     print('extracting files')
-                    os.unlink(f)
+                    # os.unlink(f)
                 else:
                     print('could not find %r  ' % PACK)
         else:
@@ -270,7 +270,7 @@ def get_branch2status(builds):
     return branch2status
 
 
-def go():
+def sync_from_circle_main():
     # print client.projects.list_projects()
     # print client.build.recent_all_projects()
 
@@ -284,10 +284,10 @@ def go():
     print('d0: %s' % d0)
     print('fn: %s' % fn)
 
-    go_(username, project, d0, fn)
+    sync_from_circle_main_actual(username, project, d0, fn)
 
 
-def go_(username, project, d0, fn, repo=None):
+def sync_from_circle_main_actual(username, project, d0, fn, repo=None, limit=10):
     # print('circle token: %s' % token)
     now = datetime.datetime.now(tz=pytz.utc)
     token = os.environ['CIRCLE_TOKEN']
@@ -311,7 +311,7 @@ def go_(username, project, d0, fn, repo=None):
             active_branches = None
 
     print('active branches: %s' % active_branches)
-    res = client.build.recent(username, project, limit=50, offset=0)
+    res = client.build.recent(username, project, limit=limit, offset=0)
 
     builds = OrderedDict()
 
@@ -359,6 +359,8 @@ def go_(username, project, d0, fn, repo=None):
 
     print('Created ' + fn)
 
+    return builds
+
 
 def get_branch_table(d0, project, builds, active_branches):
     branch2status = get_branch2status(builds)
@@ -402,7 +404,7 @@ def get_branch_table(d0, project, builds, active_branches):
         if status.last_success is not None:
             build = status.last_success
 
-            d_build = os.path.join(d0, project, 'builds', str(build.get_build_num()))
+            # d_build = os.path.join(d0, project, 'builds', str(build.get_build_num()))
 
             d_branches = os.path.join(d0, project, 'branch')
             if not os.path.exists(d_branches):
@@ -413,7 +415,10 @@ def get_branch_table(d0, project, builds, active_branches):
             if os.path.lexists(d_branch):
                 os.unlink(d_branch)
 
-            os.symlink(os.path.realpath(d_build), d_branch)
+            # os.symlink(os.path.realpath(d_build), d_branch)
+
+            d_build_rel = os.path.join('..', 'builds', str(build.get_build_num()))
+            os.symlink(d_build_rel, d_branch)
 
             links = Tag(name='td')
             links.attrs['class'] = 'links'
@@ -924,4 +929,4 @@ $(document).ready(function() {
 """.replace('CSS', css)
 
 if __name__ == '__main__':
-    go()
+    sync_from_circle_main()

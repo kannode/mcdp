@@ -4,17 +4,24 @@ import os
 import time
 from collections import defaultdict
 
+from mcdp_utils_misc import memoize_simple
+
 from contracts import contract
 from contracts.utils import check_isinstance
 from mcdp import MCDPConstants, logger
 
 __all__ = [
     'locate_files',
+    'locate_files_memoized',
 ]
+
+@memoize_simple
+def locate_files_memoized(*args, **kwargs):
+    return locate_files(*args, **kwargs)
 
 
 @contract(returns='list(str)', directory='str',
-          pattern='str|list(str)', followlinks='bool')
+          pattern='str|seq(str)', followlinks='bool')
 def locate_files(directory, pattern, followlinks=True,
                  include_directories=False,
                  include_files=True,
@@ -38,8 +45,8 @@ def locate_files(directory, pattern, followlinks=True,
             check_isinstance(p, str)
 
     # directories visited
-    visited = set()
-    visited_basename = set()
+    # visited = set()
+    # visited_basename = set()
     # print('locate_files %r %r' % (directory, pattern))
     filenames = []
 

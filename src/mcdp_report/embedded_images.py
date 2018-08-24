@@ -256,10 +256,7 @@ def embed_img_data(soup, resolve, raise_on_error,
 
         return True
 
-
-#<link rel="icon" href="https://www2.duckietown.org/wp-content/uploads/2018/05/cropped-duckie2-192x192.png" sizes="192x192" />
     for tag in soup.select('link[rel=icon]'):
-        print tag
         href = tag.attrs['href']
         if not accept_href(tag, href):
             continue

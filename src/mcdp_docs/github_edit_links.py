@@ -7,7 +7,7 @@ from datetime import datetime
 from bs4 import Tag
 from contracts.utils import raise_wrapped
 from git.repo.base import Repo
-from system_cmd import system_cmd_result
+from system_cmd import system_cmd_result, CmdException
 
 from mcdp_docs.check_missing_links import get_id2element, MultipleMatches, match_ref, NoMatches
 from mcdp_docs.manual_constants import MCDPManualConstants
@@ -32,9 +32,14 @@ def get_repo_gitdir(fn):
 
 @memoize_simple
 def get_repo_toplevel(fn):
+    """ Raise NoRootRepo """
     cmd = "git rev-parse --show-toplevel"
     cwd = os.path.dirname(fn)
-    res = system_cmd_result(cwd, cmd, raise_on_error=True)
+    try:
+        res = system_cmd_result(cwd, cmd, raise_on_error=True)
+    except CmdException as e:
+        msg = 'Could not get the top level dir'
+        raise_wrapped(NoRootRepo, e, msg)
     gitdir = res.stdout.strip()
     # logger.debug('toplevel for %s is %s' % (fn, gitdir))
     return gitdir

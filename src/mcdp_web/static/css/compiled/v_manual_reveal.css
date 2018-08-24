@@ -84,7 +84,7 @@ body[type=slides] h1::before {
   margin: 1em;
   padding: 0.3em;
 }
-.reveal .slides p.last-modified,
+.reveal .slides .last-modified,
 .reveal .slides .like_buttons,
 .reveal .slides .github-etc-links,
 .reveal .slides .questions-prompt {
