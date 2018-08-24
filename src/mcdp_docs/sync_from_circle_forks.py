@@ -80,7 +80,8 @@ td { padding: 5px; }
             d = os.path.join(d0, repo, username)
             fn = os.path.join(d, 'index.html')
 
-            builds = sync_from_circle_main_actual(username, repo, d, fn, repo=res[repo][username], limit=5)
+            ci = sync_from_circle_main_actual(username, repo, d, fn, repo=res[repo][username], limit=5)
+            builds = ci.builds
 
             print('\n%s - %s\n' % (repo, username))
 

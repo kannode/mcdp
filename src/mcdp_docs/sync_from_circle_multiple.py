@@ -164,11 +164,14 @@ def sync_circle_multiple_main():
 
                 if not parsed.dry:
 
-                    builds = sync_from_circle_main_actual(username, project,
+                    ci = sync_from_circle_main_actual(username, project,
                                                           os.path.join(downloads_base, bk_id),
                                                           fn, repo=None, limit=limit)
+                    builds = ci.builds
+                    active_branches = ci.active_branches
                 else:
                     builds = {}
+                    active_branches = None
 
                 tr = Tag(name='tr')
                 tr.append('\n')
@@ -225,7 +228,8 @@ def sync_circle_multiple_main():
 
                     t = Tag(name='table')
                     for branch, status in branch2status.items():
-
+                        if active_branches and not branch in active_branches:
+                            continue
                         last_build = status.builds[0]
                         t_tr = Tag(name='tr')
 

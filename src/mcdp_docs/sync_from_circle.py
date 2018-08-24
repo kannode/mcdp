@@ -287,12 +287,7 @@ def sync_from_circle_main():
     sync_from_circle_main_actual(username, project, d0, fn)
 
 
-def sync_from_circle_main_actual(username, project, d0, fn, repo=None, limit=10):
-    # print('circle token: %s' % token)
-    now = datetime.datetime.now(tz=pytz.utc)
-    token = os.environ['CIRCLE_TOKEN']
-    client = circleclient.CircleClient(token)
-
+def get_active_branches(username, project, repo=None):
     from github import Github
     if not 'GITHUB_TOKEN' in os.environ:
         print('Set GITHUB_TOKEN for me to be smarter')
@@ -309,6 +304,17 @@ def sync_from_circle_main_actual(username, project, d0, fn, repo=None, limit=10)
         except ssl.SSLError as e:
             print('error: %s' % e)
             active_branches = None
+    return active_branches
+
+CIStatus = namedtuple('CIStatus', 'builds active_branches')
+
+def sync_from_circle_main_actual(username, project, d0, fn, repo=None, limit=10):
+    # print('circle token: %s' % token)
+    now = datetime.datetime.now(tz=pytz.utc)
+    token = os.environ['CIRCLE_TOKEN']
+    client = circleclient.CircleClient(token)
+
+    active_branches = get_active_branches(username, project, repo)
 
     print('active branches: %s' % active_branches)
     res = client.build.recent(username, project, limit=limit, offset=0)
@@ -359,7 +365,8 @@ def sync_from_circle_main_actual(username, project, d0, fn, repo=None, limit=10)
 
     print('Created ' + fn)
 
-    return builds
+    return CIStatus(builds=builds, active_branches=active_branches)
+
 
 
 def get_branch_table(d0, project, builds, active_branches):
