@@ -45,9 +45,10 @@ setup(name=name,
         'pint',
         'watchdog',
         'decorator',
-        'networkx',
+        'networkx>=1.11',
+
         'pygments',
-          'pyramid',
+        'pyramid',
         'pyramid_jinja2',
         #'pyramid_chameleon',
         'pyramid_debugtoolbar',
@@ -82,8 +83,8 @@ setup(name=name,
       # This avoids creating the egg file, which is a zip file, which makes our data
       # inaccessible by dir_from_package_name()
       zip_safe=False,
-        # without this, the stuff is included but not installed
-        include_package_data=True,
+    # without this, the stuff is included but not installed
+    include_package_data=True,
 
       dependency_links=[
           # 'https://github.com/AndreaCensi/contracts/archive/env_mcdp.zip#egg=PyContracts',
