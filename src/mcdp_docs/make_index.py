@@ -95,7 +95,7 @@ def go():
                 res.merge(resi)
             else:
                 msg = 'Path does not exist: %s' % errors_and_warnings
-                logger.error(msg)
+                # logger.error(msg)
 
             artefacts = get_artefacts(d0, d)
 
@@ -140,7 +140,8 @@ def go():
                     all_crossrefs.append('\n\n')
                     all_crossrefs.append(e.__copy__())
             else:
-                logger.error('File does not exist %s' % crossrefs)
+                pass
+                #logger.error('File does not exist %s' % crossrefs)
 
             divgroup.append(div)
         divgroups.append(divgroup)
