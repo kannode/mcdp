@@ -68,6 +68,8 @@ setup(name='PyMCDP',
           'ruamel.yaml',
           'pygments_markdown_lexer',
           'circleclient',
+          'PyYAML',
+          'pytz',
       ],
 
       tests_require=[

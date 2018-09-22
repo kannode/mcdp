@@ -5,12 +5,12 @@ from collections import OrderedDict, namedtuple
 import pytz
 import ruamel.yaml as yaml
 from bs4 import Tag
-
 from contracts import check_isinstance
+
 from mcdp_cli import mkdirs_thread_safe
-from mcdp_docs.sync_from_circle import sync_from_circle_main_actual, date_tag, get_branch2status, path_frag_from_branch
 from mcdp_utils_misc import write_data_to_file
 from mcdp_utils_xml import bs
+from .sync_from_circle import sync_from_circle_main_actual, date_tag, get_branch2status, path_frag_from_branch
 
 RepoRef = namedtuple('RepoRef', 'org name')
 
@@ -165,8 +165,8 @@ def sync_circle_multiple_main():
                 if not parsed.dry:
 
                     ci = sync_from_circle_main_actual(username, project,
-                                                          os.path.join(downloads_base, bk_id),
-                                                          fn, repo=None, limit=limit)
+                                                      os.path.join(downloads_base, bk_id),
+                                                      fn, repo=None, limit=limit)
                     builds = ci.builds
                     active_branches = ci.active_branches
                 else:
@@ -210,7 +210,7 @@ def sync_circle_multiple_main():
                 td.attrs['class'] = 'builds'
 
                 a = Tag(name='a')
-                 
+
                 a.attrs['href'] = fn_rel
                 # a.attrs['class'] = 'fa fa-fw fa-history'
                 # a.append(u'⚙')

@@ -42,3 +42,4 @@ ConfTools==1.9.4 # AC
 DecentLogs==1.1.2 # AC
 
 piprot==0.9.10
+PyYAML

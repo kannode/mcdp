@@ -306,7 +306,9 @@ def get_active_branches(username, project, repo=None):
             active_branches = None
     return active_branches
 
+
 CIStatus = namedtuple('CIStatus', 'builds active_branches')
+
 
 def sync_from_circle_main_actual(username, project, d0, fn, repo=None, limit=10):
     # print('circle token: %s' % token)
@@ -325,6 +327,7 @@ def sync_from_circle_main_actual(username, project, d0, fn, repo=None, limit=10)
         #        print yaml.dump(r)
         if not r['all_commit_details']:
             print('skipping %s' % r['build_num'])
+            print(yaml.dump(r))
             continue
         build = read_build(client, username, project, token, r, d0)
         builds[build.get_build_num()] = build
@@ -366,7 +369,6 @@ def sync_from_circle_main_actual(username, project, d0, fn, repo=None, limit=10)
     print('Created ' + fn)
 
     return CIStatus(builds=builds, active_branches=active_branches)
-
 
 
 def get_branch_table(d0, project, builds, active_branches):
