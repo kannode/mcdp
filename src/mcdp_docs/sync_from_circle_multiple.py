@@ -9,7 +9,8 @@ from contracts import check_isinstance
 
 from mcdp_cli import mkdirs_thread_safe
 from mcdp_utils_misc import write_data_to_file
-from mcdp_utils_xml import bs
+from mcdp_utils_xml import bs, stag
+from . import logger
 from .sync_from_circle import sync_from_circle_main_actual, date_tag, get_branch2status, path_frag_from_branch
 
 RepoRef = namedtuple('RepoRef', 'org name')
@@ -114,6 +115,8 @@ import os
 def sync_circle_multiple_main():
     parser = argparse.ArgumentParser(description='Ping the swarm')
     parser.add_argument('--books', type=str, help='books.yaml', required=True)
+    parser.add_argument('--preferred-branches', dest='preferred_branches',
+                        default="master", help="Preferred branches, colon separated.")
     parser.add_argument('--base', type=str, required=True)
     parser.add_argument('--limit', type=int, default=3)
     parser.add_argument('--dry', action='store_true')
@@ -134,6 +137,9 @@ def sync_circle_multiple_main():
     section = Tag(name='section')
     section.append(table)
 
+    preferred_branches = parsed.preferred_branches.split(':')
+    logger.info('Preferred branches: %s' % preferred_branches)
+
     for bg_id, bg in bshelf.groups.items():
         if not bg.books:
             continue
@@ -153,17 +159,7 @@ def sync_circle_multiple_main():
                 fn_rel = os.path.join('downloads', bk_id, 'branches.html')
                 fn = os.path.join(base, fn_rel)
 
-                outd = os.path.join(base, bk_id)
-                outd_target = os.path.join('downloads', bk_id, project, 'branch', 'master', bk_id)
-                # print('%r %r' % (outd, outd_target))
-                if os.path.lexists(outd):
-                    os.unlink(outd)
-                    # os.chdir(os.path.join(base, bk_id))
-                    # print('creating link  in %s' % os.getcwd())
-                os.symlink(outd_target, outd)
-
                 if not parsed.dry:
-
                     ci = sync_from_circle_main_actual(username, project,
                                                       os.path.join(downloads_base, bk_id),
                                                       fn, repo=None, limit=limit)
@@ -172,6 +168,26 @@ def sync_circle_multiple_main():
                 else:
                     builds = {}
                     active_branches = None
+
+
+                outd = os.path.join(base, bk_id)
+
+                for preferred_branch in preferred_branches:
+                    outd_target = os.path.join('downloads', bk_id, project, 'branch', preferred_branch, bk_id)
+                    outd_target_abs = os.path.join(base, outd_target)
+                    if not os.path.exists(outd_target_abs):
+                        msg = "Could not find preferred branch %r at %s" % (preferred_branch, outd_target)
+                        logger.warning(msg)
+                    else:
+                        logger.info('Using branch %s' % preferred_branch)
+                        if os.path.lexists(outd):
+                            os.unlink(outd)
+                            # os.chdir(os.path.join(base, bk_id))
+                            # print('creating link  in %s' % os.getcwd())
+                        os.symlink(outd_target, outd)
+                        break
+                else:
+                    preferred_branch = None
 
                 tr = Tag(name='tr')
                 tr.append('\n')
@@ -185,10 +201,17 @@ def sync_circle_multiple_main():
                 td.attrs['class'] = 'title'
                 a = Tag(name='a')
 
-                a.attrs['href'] = os.path.join(bk_id, 'out', 'index.html')
+                if preferred_branch:
+                    a.attrs['href'] = os.path.join(bk_id, 'out', 'index.html')
 
                 a.append(bk.title or "???")
 
+                if preferred_branch:
+                    a.append(' (')
+                    a.append(stag('code', preferred_branch))
+                    a.append(')')
+                else:
+                    a.append(' (no suitable branch found among %s)' % preferred_branches)
                 td.append(a)
                 tr.append(td)
                 tr.append('\n')
@@ -268,7 +291,8 @@ def sync_circle_multiple_main():
 
                         t_tr_td = Tag(name='td')
                         when = last_build.get_stop_time()
-                        t_tr_td.append(date_tag(when))
+                        if when is not None:
+                            t_tr_td.append(date_tag(when))
                         t_tr.append(t_tr_td)
 
                         t.append(t_tr)

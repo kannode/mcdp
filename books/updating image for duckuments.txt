@@ -1,0 +1,18 @@
+
+
+1) In this repo, do
+
+    make docker-build docker-push
+
+You want andreacensi/mcdp_books:duckuments
+
+ andreacensi/mcdp_books:duckuments@sha256:5e149f33837f999e0aa5233a77f8610baf3c3fc1a2f1bfb500756b427cf52dbe
+
+
+2) In doc-template/.circle/circle.yml put the new hash
+
+
+3) in duckietown-shell-commands put the new hash
+
+
+4) also in duckuments for downloading

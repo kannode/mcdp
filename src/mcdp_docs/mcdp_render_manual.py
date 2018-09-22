@@ -10,12 +10,11 @@ import yaml
 from bs4 import Tag
 from compmake import UserError
 from compmake.utils.friendly_path_imp import friendly_path
-from contracts import contract, indent, check_isinstance
-from contracts.utils import raise_wrapped
-from quickapp import QuickApp
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
 
+from contracts import contract, indent, check_isinstance
+from contracts.utils import raise_wrapped
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
@@ -24,7 +23,9 @@ from mcdp_library.stdlib import get_test_librarian
 from mcdp_report.embedded_images import embed_img_data
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
     html_list_of_notes, mark_in_html, read_data_from_file
+from mcdp_utils_misc.my_yaml import read_and_interpret_yaml_file
 from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs, br
+from quickapp import QuickApp
 from .check_bad_input_files import check_bad_input_file_presence
 from .composing.cli import compose_go2, ComposeConfig
 from .embed_css import embed_css_files
@@ -104,7 +105,7 @@ class RenderManual(QuickApp):
         remove = options.remove
         stylesheet = options.stylesheet
         stylesheet_pdf = options.stylesheet_pdf
-        symbols = options.symbols
+        # symbols = options.symbols
         do_last_modified = options.last_modified
         permalink_prefix = options.permalink_prefix
         compose_config = options.compose
@@ -117,7 +118,6 @@ class RenderManual(QuickApp):
         extra_crossrefs = options.extra_crossrefs
         resolve_external = options.resolve_external
         use_mathjax = True if options.mathjax else False
-
 
         logger.info('use mathjax: %s' % use_mathjax)
 
@@ -182,10 +182,49 @@ def get_bib_files(src_dirs):
 import requests
 
 
+def get_cross_refs_from_files(dirs):
+    """
+
+    Looks for files called "*.crossrefs.yaml".
+
+    Each is in the format:
+
+        software_reference: http://docs.duckietown.org/software_reference/crossref.html
+        software_devel:     http://docs.duckietown.org/software_devel/crossref.html
+
+
+    """
+    filenames = []
+    for rd in dirs:
+        filenames.extend(locate_files(rd, '*.crossrefs.yaml'))
+
+    if filenames:
+        logger.info('found crossrefs yaml:\n%s' % "\n".join(filenames))
+    else:
+        logger.info('No *.crossrefs.yaml files found')
+
+    prefix2url = OrderedDict()
+
+    def interpret(f, data):
+        logger.info('reading %s' % f)
+        if not isinstance(data, dict):
+            msg = 'Expected a dict prefix -> url'
+            raise ValueError(msg)
+        for k, v in data.items():
+            prefix2url[k] = v
+
+    for f in filenames:
+        read_and_interpret_yaml_file(f, interpret)
+    return prefix2url
+import urlparse
+
 def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignore=()):
     res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
     id2file = {}
+
+    prefix2url = get_cross_refs_from_files(src_dirs)
+
     soup = Tag(name='div')
 
     def add_from_soup(s, f, ignore_alread_present, ignore_if_conflict):
@@ -195,10 +234,11 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
         for e in s.select('[base_url]'):
             e['external_crossref_file'] = f
 
-        # Remove the ones with the same base_url
-        for e in list(s.select('[base_url]')):
-            if e.attrs['base_url'] == permalink_prefix:
-                e.extract()
+        # # Remove the ones with the same base_url
+        # # XXX: not needed anymore
+        # for e in list(s.select('[base_url]')):
+        #     if e.attrs['base_url'] == permalink_prefix:
+        #         e.extract()
 
         for e in s.select('[id]'):
             id_ = e.attrs['id']
@@ -223,6 +263,18 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
                 e2 = e.__copy__()
                 if ignore_if_conflict:
                     e2.attrs['ignore_if_conflict'] = '1'
+
+                if not 'url-relative' in e2.attrs:
+                    msg = 'Could not find url-relative in element for %s %s' % (f, id_)
+                    logger.warning(msg)
+                    continue
+                else:
+                    url_relative = e2.attrs['url-relative']
+
+                    url = urlparse.urljoin(f, url_relative)
+                    e2.attrs['url'] = url
+                    logger.debug('found %s -> %s' % (id_, url))
+
                 soup.append(e2)
                 soup.append('\n')
 
@@ -242,28 +294,70 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
         add_from_soup(s, _f, ignore_alread_present=False, ignore_if_conflict=False)
 
     if extra_crossrefs is not None:
-        logger.info('Reading external refs\n%s' % extra_crossrefs)
+        msg = ('extra-crossref not supported')
+        logger.error(msg)
+
+        # logger.info('Reading external refs\n%s' % extra_crossrefs)
+        # try:
+        #     r = requests.get(extra_crossrefs)
+        # except Exception as ex:
+        #     msg = 'Could not read external cross reference links'
+        #     msg += '\n  %s' % extra_crossrefs
+        #     msg += '\n\n' + indent(str(ex), ' > ')
+        #     res.note_error(msg)
+        # else:
+        #     logger.debug('%s %s' % (r.status_code, extra_crossrefs))
+        #     if r.status_code == 404:
+        #         msg = 'Could not read external cross refs: %s' % r.status_code
+        #         msg += '\n url: ' + extra_crossrefs
+        #         msg += '\n This is normal if you have not pushed this branch yet.'
+        #         res.note_warning(msg)
+        #         # logger.error(msg)
+        #     s = bs(r.text)
+        #     add_from_soup(s, extra_crossrefs, ignore_alread_present=True, ignore_if_conflict=True)
+
+    for prefix, url in prefix2url.items():
+        logger.debug('%s -> %s' % (prefix, url))
+
         try:
-            r = requests.get(extra_crossrefs)
-        except Exception as ex:
+            data = load_url(url)
+        except NotFound as ex:
             msg = 'Could not read external cross reference links'
-            msg += '\n  %s' % extra_crossrefs
+            msg += '\n  %s' % url
             msg += '\n\n' + indent(str(ex), ' > ')
             res.note_error(msg)
         else:
-            logger.debug('%s %s' % (r.status_code, extra_crossrefs))
-            if r.status_code == 404:
-                msg = 'Could not read external cross refs: %s' % r.status_code
-                msg += '\n url: ' + extra_crossrefs
-                msg += '\n This is normal if you have not pushed this branch yet.'
-                res.note_warning(msg)
-                # logger.error(msg)
-            s = bs(r.text)
-            add_from_soup(s, extra_crossrefs, ignore_alread_present=True, ignore_if_conflict=True)
+            s = bs(data)
+            add_from_soup(s, url, ignore_alread_present=True, ignore_if_conflict=True)
 
     # print soup
     res.set_result(str(soup))
     return res
+
+
+class NotFound(Exception):
+    pass
+
+
+def load_url(url):
+    if url.startswith('file://'):
+        fname = url.replace('file://', '')
+        if not os.path.exists(fname):
+            raise NotFound(fname)
+
+        return open(fname).read()
+    else:
+        try:
+            r = requests.get(url)
+        except Exception as ex:
+            raise_wrapped(NotFound, ex, 'could not read')
+        else:
+            if r.status_code == 404:
+                msg = 'Could not read external cross refs: %s' % r.status_code
+                msg += '\n url: ' + url
+                msg += '\n This is normal if you have not pushed this branch yet.'
+                raise NotFound(msg)
+            return r.text
 
 
 @contract(src_dirs='seq(str)', returns='list(str)')
@@ -510,11 +604,15 @@ def write_crossref_info(data, id2filename, output_crossref, permalink_prefix, bo
             basename = id2filename[id_]
 
             base = '%s/%s' % (permalink_prefix, basename)
+            REL_BASE = 'out/'  # XXX
             if id_ in main_headers:
                 url = base
+                url_relative = REL_BASE + basename
             else:
                 url = base + '#' + id_
+                url_relative = REL_BASE + basename + '#' + id_
             e2.attrs['url'] = url
+            e2.attrs['url-relative'] = url_relative
             e2.attrs['bookshort'] = bookshort
 
             # print e2.attrs['url']
