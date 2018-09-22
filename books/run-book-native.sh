@@ -105,13 +105,13 @@ echo DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
 DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     --src "${src}" \
     --bookshort "${short}" \
-    --resources ${resources}:${dist} \
+    --resources "${resources}:${dist}" \
     --stylesheet v_manual_split \
     --stylesheet_pdf v_manual_blurb_ready \
     --wordpress_integration \
-    --output_crossref ${dist}/${short}/crossref.html \
-    -o out/${short} \
-    --permalink_prefix ${permalink_prefix} \
+    --output_crossref "${dist}/${short}/crossref.html" \
+    -o "out/${short}" \
+    --permalink_prefix "${permalink_prefix}" \
     ${options1} \
     ${options2} \
     ${EXTRA_MCDP_RENDER_OPTIONS} \

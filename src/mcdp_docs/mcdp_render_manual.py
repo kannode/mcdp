@@ -10,21 +10,21 @@ import yaml
 from bs4 import Tag
 from compmake import UserError
 from compmake.utils.friendly_path_imp import friendly_path
-from mcdp_report.embedded_images import embed_img_data
+from contracts import contract, indent, check_isinstance
+from contracts.utils import raise_wrapped
+from quickapp import QuickApp
 from reprep.utils import natsorted
 from system_cmd import system_cmd_result
 
-from contracts import contract, indent, check_isinstance
-from contracts.utils import raise_wrapped
 from mcdp import logger
 from mcdp.constants import MCDPConstants
 from mcdp.exceptions import DPSyntaxError
 from mcdp_library import MCDPLibrary
 from mcdp_library.stdlib import get_test_librarian
+from mcdp_report.embedded_images import embed_img_data
 from mcdp_utils_misc import expand_all, locate_files, get_md5, write_data_to_file, AugmentedResult, tmpdir, \
     html_list_of_notes, mark_in_html, read_data_from_file
 from mcdp_utils_xml import to_html_entire_document, bs_entire_document, add_class, stag, bs, br
-from quickapp import QuickApp
 from .check_bad_input_files import check_bad_input_file_presence
 from .composing.cli import compose_go2, ComposeConfig
 from .embed_css import embed_css_files
@@ -118,11 +118,27 @@ class RenderManual(QuickApp):
         resolve_external = options.resolve_external
         use_mathjax = True if options.mathjax else False
 
-        logger.info('use mathjax: %s' % use_mathjax)
-        logger.info('use symbols: %s' % symbols)
 
-        if symbols is not None:
-            symbols = open(symbols).read()
+        logger.info('use mathjax: %s' % use_mathjax)
+
+        # Read the symbols
+        if options.symbols is not None:
+            msg = 'The --symbols option is deprecated. Just use files called *.symbols.tex anywhere.'
+            logger.error(msg)
+
+        filenames = []
+        for rd in (src_dirs + resources_dirs):
+            filenames.extend(locate_files(rd, '*.symbols.tex'))
+
+        if filenames:
+            logger.info('found symbols:\n%s' % "\n".join(filenames))
+        else:
+            logger.info('No *.symbols.tex files found')
+        symbols = ""
+        for f in filenames:
+            content = open(f).read()
+            symbols += "\n%% From %s" % f
+            symbols += "\n\n" + content
 
         for s in src_dirs:
             check_bad_input_file_presence(s)
@@ -1190,17 +1206,18 @@ def get_main_template(root_dir, resources_dirs):
     for d in resources_dirs:
         fns = locate_files(d, MCDPManualConstants.main_template)
         for fn in fns:
-            logger.debug('Found %s' % fn )
+            logger.debug('Found %s' % fn)
             template = parse_main_template(fn)
             soup = bs_entire_document(template)
             location = LocationUnknown()
+
             def resolve(href):
                 r = os.path.join(os.path.dirname(fn), href)
 
                 data = open(r).read()
 
                 res = dict(data=data, realpath=r)
-                logger.debug('resolved %s to %s' %(href, r))
+                logger.debug('resolved %s to %s' % (href, r))
                 return res
 
             embed_img_data(soup, resolve, raise_on_error=False,
