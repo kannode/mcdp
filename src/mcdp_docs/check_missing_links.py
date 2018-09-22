@@ -152,16 +152,21 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
                     res.note_warning(msg, location)
 
             else:
+                location = HTMLIDLocation.for_element(a, location0)
+
                 if has_class(a, MCDPConstants.CLASS_IGNORE_IF_NOT_EXISTENT):
                     del a.attrs['href']
                     # logger.warning('ignoring link %s' % a)
+                elif ignore_ref_errors and 'external' in a.attrs:
+                    msg = 'Ignoring external ref %s' % a.attrs['external']
+                    res.note_warning(msg, location)
                 else:
                     msg = 'I do not know what is indicated by the link %r.' % href
                     marker = Tag(name='span')
                     marker.attrs['class'] = 'inside-unknown-link'
                     marker.append(' (unknown ref %s)' % core)
                     a.append(marker)
-                    location = HTMLIDLocation.for_element(a, location0)
+
                     if ignore_ref_errors:
                         msg2 = 'I will ignore this error because this is the first pass:'
                         msg2 += '\n\n' + indent(msg, ' > ')

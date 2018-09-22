@@ -419,9 +419,11 @@ def downcast_external(soup):
 
         if href.startswith('+'):
             s = href.index('#')
-            href2 = href[s:]
+            frag = href[s+1:]
+            book = href[1:s]
+            href2 = '#external:%s/%s' % (book, frag)
             a.attrs['href'] = href2
-
+            # a.attrs['external'] = href # XXX
             logger.debug('changing remote href %s to %s' % (href, href2))
 
 @contract(raise_errors=bool)

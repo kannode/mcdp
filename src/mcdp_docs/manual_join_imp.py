@@ -60,6 +60,7 @@ def manual_join(template, files_contents,
                 hook_before_toc=None,
                 references=None,
                 resolve_references=True,
+                ignore_ref_errors=False,
                 hook_before_final_pass=None,
                 require_toc_placeholder=False,
                 permalink_prefix=None,
@@ -218,6 +219,7 @@ def manual_join(template, files_contents,
         with timeit('document_final_pass_after_toc'):
             document_final_pass_after_toc(soup=d, crossrefs=crossrefs,
                                           resolve_references=resolve_references,
+                                          ignore_ref_errors=ignore_ref_errors,
                                           resolve_external=resolve_external, res=result)
 
         if extra_css is not None:
@@ -370,6 +372,7 @@ def document_final_pass_before_toc(soup, remove, remove_selectors, res=None, loc
 
 def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
                                   resolve_external=True,
+                                    ignore_ref_errors=False,
                                   res=None, location=LocationUnknown()):
     if res is None:
         res = AugmentedResult()
@@ -788,7 +791,7 @@ def update_refs(filename2contents, id2filename):
         update_refs_(filename, contents, id2filename)
 
 
-def update_refs_(filename, contents, id2filename, main_headers=[]):
+def update_refs_(filename, contents, id2filename, main_headers=[], ignore_ref_errors=False):
     '''
 
     :param filename:
@@ -807,7 +810,15 @@ def update_refs_(filename, contents, id2filename, main_headers=[]):
     for a in elements:
         href = a.attrs['href']
         assert href[0] == '#'
-        id_ = href[1:]
+
+        if href.startswith('#external:'):
+            rest = href.replace('#external:','')
+            id_ = rest
+            is_external = True
+        else:
+            id_ = href[1:]
+            is_external = False
+
         if id_ in id2filename:
             point_to_filename = id2filename[id_]
             if point_to_filename != filename:

@@ -325,7 +325,8 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
             msg = 'Could not read external cross reference links'
             msg += '\n  %s' % url
             msg += '\n\n' + indent(str(ex), ' > ')
-            res.note_error(msg)
+            res.note_warning(msg)
+            logger.error(msg)
         else:
             s = bs(data)
             add_from_soup(s, url, ignore_alread_present=True, ignore_if_conflict=True)
@@ -524,6 +525,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
                               stylesheet=None, remove=remove, references=references,
                               resolve_references=resolve_references,
                               resolve_external=resolve_external,
+                              ignore_ref_errors=ignore_ref_errors,
                               crossrefs_aug=crossrefs_aug,
                               permalink_prefix=permalink_prefix,
                               job_id='join-%s' % cs)

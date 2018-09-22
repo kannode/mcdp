@@ -106,7 +106,7 @@ def make_page(contents, head0, add_toc, extra_panel_content, add_home_link):
     return html
 
 
-def only_second_part(mathjax, preamble, html, id2filename, main_headers, filename):
+def only_second_part(mathjax, preamble, html, id2filename, main_headers, filename, ignore_ref_errors=False):
     if mathjax:
         if preamble is not None:
             with timeit('add_mathjax_preamble()'):
@@ -116,7 +116,7 @@ def only_second_part(mathjax, preamble, html, id2filename, main_headers, filenam
             add_mathjax_call(html)
 
     with timeit('update_refs_'):
-        update_refs_(filename, html, id2filename, main_headers)
+        update_refs_(filename, html, id2filename, main_headers, ignore_ref_errors=ignore_ref_errors)
 
     create_slides(html)
     # context.comp(write_slides, slides_aug, out_split_dir)
@@ -162,6 +162,7 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, bookshor
                       output_crossref=None,
                       permalink_prefix=None,
                       only_refs=False,
+                    ignore_ref_errors=False,
                       reveal=True):
     data = data_aug.get_result()
     if nworkers == 0:
@@ -190,6 +191,7 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, bookshor
                                        extra_panel_content=extra_panel_content,
                                        output_crossref=output_crossref,
                                        permalink_prefix=permalink_prefix,
+                                       ignore_ref_errors=ignore_ref_errors,
                                        only_refs=only_refs,
                                        job_id='worker-%d-of-%d-%s' % (i, nworkers, h))
         jobs.append(promise)
@@ -222,7 +224,7 @@ def notification(aug, jobs_aug, reveal_download, output_dir):
 @contract(returns=AugmentedResult)
 def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, assets_dir,
        add_toc_if_not_existing, extra_panel_content, bookshort, permalink_prefix=None, output_crossref=None,
-       only_refs=False):
+       only_refs=False, ignore_ref_errors=False):
     res = AugmentedResult()
     soup = bs_entire_document(data)
 
@@ -355,7 +357,8 @@ def go(context, worker_i, num_workers, data, mathjax, preamble, output_dir, asse
 
         with timeit("direct job"):
             result = only_second_part(
-                    mathjax, preamble, html, id2filename=id2filename, filename=filename, main_headers=main_headers)
+                    mathjax, preamble, html, id2filename=id2filename, filename=filename, main_headers=main_headers,
+                    ignore_ref_errors=ignore_ref_errors)
 
             # ... we remove it. In this way we don't have to copy it every time...
             main_toc.extract()
