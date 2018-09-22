@@ -25,6 +25,7 @@ mcdp_books.Dockerfile: $(dd)/0_deps.Dockerfile $(dd)/1_mcdp_install.Dockerfile $
 	cat $^ > $@
 	chmod -w $@
 
+.PHONY: dockerfiles
 
 dockerfiles: mcdp_deps.Dockerfile mcdp.Dockerfile mcdp_server.Dockerfile mcdp_books.Dockerfile
 

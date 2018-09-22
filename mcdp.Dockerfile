@@ -104,27 +104,30 @@ RUN apt-get remove python-bs4 python-bs4-doc
 
 RUN apt-get install -y rsync
 
-#
-## install docker
-#RUN apt-get remove docker docker-engine docker.io
-#RUN apt-get install -y \
-#    apt-transport-https \
-#    ca-certificates \
-#    curl \
-#    software-properties-common
-#RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-#RUN add-apt-repository \
-#   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-#   $(lsb_release -cs) \
-#   stable"
-#RUN apt-get update
-#RUN apt-get install -y docker-ce
+
+
+RUN git clone https://github.com/AndreaCensi/linkchecker.git
+RUN cd linkchecker && python setup.py install
+RUN  linkchecker --version
+
+
+RUN apt-get clean
+
+
+RUN curl -L -o reveal-3.6.0.zip https://github.com/hakimel/reveal.js/archive/3.6.0.zip
+RUN echo "534378be63e218338e46430a106e2def  /project/reveal-3.6.0.zip" > md5-checks.txt
+RUN md5sum -c md5-checks.txt
+
+
 
 RUN mkdir /project/mcdp
 COPY Makefile.cython /project/mcdp
 COPY setup.py /project/mcdp
 COPY src /project/mcdp/src
 COPY misc /project/mcdp/misc
+
+RUN cp -R /project/mcdp/misc/fonts /usr/share/fonts/my-fonts
+RUN fc-cache -f -v
 
 RUN virtualenv --system-site-packages deploy
 
@@ -140,11 +143,6 @@ RUN find mcdp/src -name '*.c' -delete
 #   --no-deps should avoid downloading dependencies
 RUN . deploy/bin/activate && cd mcdp && python setup.py develop   --no-deps
 
-RUN cp -R /project/mcdp/misc/fonts /usr/share/fonts/my-fonts
-RUN fc-cache -f -v
-
-RUN apt-get clean
-
 ENV DISABLE_CONTRACTS=1
 RUN . deploy/bin/activate && mcdp-render-manual --help
 
@@ -154,8 +152,5 @@ RUN chmod +x /project/entrypoint.sh
 COPY docker/copy_dir.sh /project/copy_dir.sh
 RUN chmod +x /project/copy_dir.sh
 
-RUN curl -L -o reveal-3.6.0.zip https://github.com/hakimel/reveal.js/archive/3.6.0.zip
-RUN echo "534378be63e218338e46430a106e2def  /project/reveal-3.6.0.zip" > md5-checks.txt
-RUN md5sum -c md5-checks.txt
 
 RUN chmod 0777 /project

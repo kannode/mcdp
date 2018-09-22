@@ -121,7 +121,7 @@ DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     --resolve_external \
     -c "config echo 1; ${cmd}"
 
-#DISABLE_CONTRACTS=1 python -m mcdp_docs.make_index resources/books.yaml \
-#    duckuments-dist/index.html \
-#    duckuments-dist/all_crossref.html \
-#    duckuments-dist/errors_and_warnings.pickle
+DISABLE_CONTRACTS=1 python -m mcdp_docs.make_index resources/books.yaml \
+    duckuments-dist/index.html \
+    duckuments-dist/all_crossref.html \
+    duckuments-dist/errors_and_warnings.pickle

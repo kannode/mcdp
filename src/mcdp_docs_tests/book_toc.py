@@ -97,7 +97,7 @@ def test_toc_first():
     #     print(indent(soup.prettify(), 't > '))
     #     body = soup.find('body')
     filename2contents = split_in_files(soup)
-    print(list(filename2contents.keys()))
+    # print(list(filename2contents.keys()))
     index = filename2contents['index.html']
 
     print(indent(index, 'index > '))

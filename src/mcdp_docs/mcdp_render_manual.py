@@ -289,7 +289,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
                     if not ATT_ID_SHORT in e2.attrs:
                         id0 = e2.attrs['id']
                         e2.attrs[ATT_ID_SHORT] = id0[id0.index(':')+1:]
-                        logger.debug('settting short %r for %r' % (e2.attrs[ATT_ID_SHORT], e2.attrs['id']) )
+                        # logger.debug('settting short %r for %r' % (e2.attrs[ATT_ID_SHORT], e2.attrs['id']) )
                     # print e2
                     id_short = e2.attrs[ATT_ID_SHORT]
                     id_short2 = prefix + '/' + id_short

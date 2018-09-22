@@ -7,6 +7,7 @@ from contextlib import contextmanager
 
 from bs4 import BeautifulSoup
 from bs4.element import Comment, Tag, NavigableString
+
 from contracts import contract
 from contracts.utils import raise_desc, indent, check_isinstance
 from mcdp.logs import logger
@@ -18,7 +19,6 @@ from mcdp_docs.manual_constants import MCDPManualConstants
 from mcdp_utils_misc import AugmentedResult
 from mcdp_utils_misc.timing import timeit_wall as timeit
 from mcdp_utils_xml import add_class, bs, copy_contents_into
-
 from .footnote_javascript import add_footnote_polyfill
 from .macros import replace_macros
 from .minimal_doc import add_extra_css
@@ -372,7 +372,7 @@ def document_final_pass_before_toc(soup, remove, remove_selectors, res=None, loc
 
 def document_final_pass_after_toc(soup, crossrefs=None, resolve_references=True,
                                   resolve_external=True,
-                                    ignore_ref_errors=False,
+                                  ignore_ref_errors=False,
                                   res=None, location=LocationUnknown()):
     if res is None:
         res = AugmentedResult()
@@ -620,6 +620,7 @@ ATTR_NEXT = 'next'
 CLASS_LINK_NEXT = 'link_next'
 CLASS_LINK_PREV = 'link_prev'
 
+
 def add_prev_next_links(filename2contents, only_for=None):
     new_one = OrderedDict()
     for filename, contents in list(filename2contents.items()):
@@ -654,8 +655,6 @@ def add_prev_next_links(filename2contents, only_for=None):
 
         contents2 = contents
         S.append(contents2)
-
-
 
         contents2.insert(0, nav1.__copy__())
         contents2.append(nav1.__copy__())
@@ -792,7 +791,6 @@ def update_refs(filename2contents, id2filename):
 
 
 def update_refs_(filename, contents, id2filename, main_headers=[], ignore_ref_errors=False):
-    print sorted(id2filename)
     '''
 
     :param filename:
@@ -818,7 +816,7 @@ def update_refs_(filename, contents, id2filename, main_headers=[], ignore_ref_er
         #     is_external = True
         # else:
         id_ = href[1:]
-            # is_external = False
+        # is_external = False
 
         if id_ in id2filename:
             point_to_filename = id2filename[id_]
