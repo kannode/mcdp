@@ -792,6 +792,7 @@ def update_refs(filename2contents, id2filename):
 
 
 def update_refs_(filename, contents, id2filename, main_headers=[], ignore_ref_errors=False):
+    print sorted(id2filename)
     '''
 
     :param filename:
@@ -811,13 +812,13 @@ def update_refs_(filename, contents, id2filename, main_headers=[], ignore_ref_er
         href = a.attrs['href']
         assert href[0] == '#'
 
-        if href.startswith('#external:'):
-            rest = href.replace('#external:','')
-            id_ = rest
-            is_external = True
-        else:
-            id_ = href[1:]
-            is_external = False
+        # if href.startswith('#external:'):
+        #     rest = href.replace('#external:','')
+        #     id_ = rest
+        #     is_external = True
+        # else:
+        id_ = href[1:]
+            # is_external = False
 
         if id_ in id2filename:
             point_to_filename = id2filename[id_]

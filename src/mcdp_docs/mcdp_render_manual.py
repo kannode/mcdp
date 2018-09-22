@@ -216,7 +216,15 @@ def get_cross_refs_from_files(dirs):
     for f in filenames:
         read_and_interpret_yaml_file(f, interpret)
     return prefix2url
+
+
 import urlparse
+
+ATT_ID_SHORT = 'id-short'
+ATT_URL = 'url'
+ATT_URL_RELATIVE = 'url-relative'
+ATT_BOOKSHORT = 'bookshort'
+
 
 def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignore=()):
     res = AugmentedResult()
@@ -227,7 +235,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
 
     soup = Tag(name='div')
 
-    def add_from_soup(s, f, ignore_alread_present, ignore_if_conflict):
+    def add_from_soup(prefix, s, f, ignore_alread_present, ignore_if_conflict):
         for img in list(s.find_all('img')):
             img.extract()
 
@@ -244,12 +252,12 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
             id_ = e.attrs['id']
             if id_ == 'container': continue  # XXX:
 
-            if not 'bookshort' in e.attrs:
+            if not ATT_BOOKSHORT in e.attrs:
                 logger.warning('This element "%s" does not have bookshort.' % id_)
                 pass
             else:
-                if bookshort == e.attrs['bookshort']:
-                    logger.warning('Skipping because same bookshort = "%s".' % bookshort)
+                if bookshort == e.attrs[ATT_BOOKSHORT]:
+                    # logger.warning('Skipping because same bookshort = "%s".' % bookshort)
                     continue
 
             if id_ in id2file:
@@ -269,11 +277,29 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
                     logger.warning(msg)
                     continue
                 else:
-                    url_relative = e2.attrs['url-relative']
+                    url_relative = e2.attrs[ATT_URL_RELATIVE]
 
                     url = urlparse.urljoin(f, url_relative)
-                    e2.attrs['url'] = url
-                    logger.debug('found %s -> %s' % (id_, url))
+                    e2.attrs[ATT_URL] = url
+                    if prefix is not None:
+                        e2.attrs[ATT_BOOKSHORT] = prefix
+                    else:
+                        prefix = e2.attrs[ATT_BOOKSHORT]
+
+                    if not ATT_ID_SHORT in e2.attrs:
+                        id0 = e2.attrs['id']
+                        e2.attrs[ATT_ID_SHORT] = id0[id0.index(':')+1:]
+                        logger.debug('settting short %r for %r' % (e2.attrs[ATT_ID_SHORT], e2.attrs['id']) )
+                    # print e2
+                    id_short = e2.attrs[ATT_ID_SHORT]
+                    id_short2 = prefix + '/' + id_short
+                    e2.attrs['id'] = e2.attrs['id'].replace(id_short, id_short2)
+
+                    e2.attrs[ATT_ID_SHORT] = id_short2
+
+                    assert e2.attrs['id'].endswith(e2.attrs[ATT_ID_SHORT]), e2
+
+                    # logger.debug('found %s -> %s' % (e2.attrs['id'], url))
 
                 soup.append(e2)
                 soup.append('\n')
@@ -286,12 +312,13 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
             continue
         logger.info('cross ref file %s' % _f)
         data = open(_f).read()
-        if permalink_prefix in data:
-            msg = 'skipping own file'
-            logger.debug(msg)
-            continue
+        # if permalink_prefix in data:
+        #     msg = 'skipping own file'
+        #     logger.debug(msg)
+        #     continue
         s = bs(data)
-        add_from_soup(s, _f, ignore_alread_present=False, ignore_if_conflict=False)
+        prefix = None
+        add_from_soup(prefix, s, _f, ignore_alread_present=False, ignore_if_conflict=False)
 
     if extra_crossrefs is not None:
         msg = ('extra-crossref not supported')
@@ -329,7 +356,7 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
             logger.error(msg)
         else:
             s = bs(data)
-            add_from_soup(s, url, ignore_alread_present=True, ignore_if_conflict=True)
+            add_from_soup(prefix, s, url, ignore_alread_present=True, ignore_if_conflict=True)
 
     # print soup
     res.set_result(str(soup))

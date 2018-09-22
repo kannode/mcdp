@@ -100,6 +100,8 @@ echo DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     ${options1} \
     ${options2} \
     ${EXTRA_MCDP_RENDER_OPTIONS} \
+    --ignore_ref_errors \
+    --resolve_external \
     -c "config echo 1; ${cmd}"
 
 DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
@@ -115,10 +117,11 @@ DISABLE_CONTRACTS=1 NODE_PATH=${NP}  mcdp-render-manual \
     ${options1} \
     ${options2} \
     ${EXTRA_MCDP_RENDER_OPTIONS} \
+    --ignore_ref_errors \
+    --resolve_external \
     -c "config echo 1; ${cmd}"
-#    --symbols docs/symbols.tex \
 
-DISABLE_CONTRACTS=1 python -m mcdp_docs.make_index resources/books.yaml \
-    duckuments-dist/index.html \
-    duckuments-dist/all_crossref.html \
-    duckuments-dist/errors_and_warnings.pickle
+#DISABLE_CONTRACTS=1 python -m mcdp_docs.make_index resources/books.yaml \
+#    duckuments-dist/index.html \
+#    duckuments-dist/all_crossref.html \
+#    duckuments-dist/errors_and_warnings.pickle

@@ -86,12 +86,14 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
 
     if extra_refs is None:
         extra_refs = Tag(name='div')
-    else:
-        print('using extra cross refs')
+    # else:
+    #     print('using extra cross refs')
 
     # let's first find all the IDs
     id2element_current, duplicates = get_id2element(soup, 'id')
     id2element_extra, _ = get_id2element(extra_refs, 'id')
+
+    # logger.debug('extra: %s' % list(id2element_extra))
     id2element = {}
     id2element.update(id2element_extra)
     id2element.update(id2element_current)
