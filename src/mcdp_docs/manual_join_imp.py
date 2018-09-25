@@ -185,7 +185,8 @@ def manual_join(template, files_contents,
             if bibhere is None:
                 msg = ('Could not find #%s in document. '
                        'Adding one at end of document.') % ID_PUT_BIB_HERE
-                result.note_warning(msg)
+                # result.note_warning(msg)
+                logger.info(msg)
                 bibhere = Tag(name='div')
                 bibhere.attrs['id'] = ID_PUT_BIB_HERE
                 d.find('body').append(bibhere)

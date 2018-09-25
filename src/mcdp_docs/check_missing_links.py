@@ -125,6 +125,7 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
             others = []
             for possible_prefix in possible:
                 why_not = possible_prefix + ':' + core
+
                 others.append(why_not)
                 if why_not in id2element:
                     matches.append(why_not)
@@ -159,9 +160,9 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
                 if has_class(a, MCDPConstants.CLASS_IGNORE_IF_NOT_EXISTENT):
                     del a.attrs['href']
                     # logger.warning('ignoring link %s' % a)
-                elif ignore_ref_errors and 'external' in a.attrs:
-                    msg = 'Ignoring external ref %s' % a.attrs['external']
-                    res.note_warning(msg, location)
+                # elif ignore_ref_errors and 'external' in a.attrs:
+                #     msg = 'Ignoring external ref %s' % a.attrs['external']
+                #     res.note_warning(msg, location)
                 else:
                     msg = 'I do not know what is indicated by the link %r.' % href
                     marker = Tag(name='span')
@@ -174,7 +175,16 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
                         msg2 += '\n\n' + indent(msg, ' > ')
                         res.note_warning(msg2, location)
                     else:
-                        res.note_error(msg, location)
+                        if '/' in href:
+                            msg2 = "I will ignore this because it is an external link. "
+                            msg2 += '\n core: %s others %s' % (core.__repr__(), others)
+                            msg2 += '\n\n' + indent(msg, ' > ')
+                            res.note_warning(msg2, location)
+                            logger.warning(msg2)
+
+                            logger.debug("\n".join(x.__repr__() for x in sorted(id2element)))
+                        else:
+                            res.note_error(msg, location)
 
         if ID in duplicates:
             msg = 'More than one element matching %r.' % href

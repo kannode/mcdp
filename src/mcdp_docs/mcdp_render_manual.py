@@ -226,7 +226,7 @@ ATT_URL_RELATIVE = 'url-relative'
 ATT_BOOKSHORT = 'bookshort'
 
 
-def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignore=()):
+def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignore=(), output_debug_dir=None):
     res = AugmentedResult()
     files = look_for_files(src_dirs, "crossref.html")
     id2file = {}
@@ -359,7 +359,18 @@ def get_cross_refs(src_dirs, permalink_prefix, extra_crossrefs, bookshort, ignor
             add_from_soup(prefix, s, url, ignore_alread_present=True, ignore_if_conflict=True)
 
     # print soup
-    res.set_result(str(soup))
+    data= str(soup)
+
+    if output_debug_dir is not None:
+        if not os.path.exists(output_debug_dir):
+            os.makedirs(output_debug_dir)
+        fn = os.path.join(output_debug_dir, 'crossrefs_detected.txt')
+        with open(fn, 'w') as f:
+            f.write(data)
+
+        logger.debug('Wrote crossrefs at %s' % fn)
+
+    res.set_result(data)
     return res
 
 
@@ -513,7 +524,7 @@ def manual_jobs(context, src_dirs, resources_dirs, out_split_dir, output_file, g
         ignore.append(output_crossref)
 
     crossrefs_aug = get_cross_refs(resources_dirs, permalink_prefix, extra_crossrefs,
-                                   ignore=ignore, bookshort=bookshort)
+                                   ignore=ignore, bookshort=bookshort, output_debug_dir=out_split_dir)
 
     bib_files = get_bib_files(src_dirs)
 
@@ -1028,7 +1039,9 @@ def add_person_links(soup, users, res):
             span.attrs['href'] = users[k]['user_url']
         except KeyError:
             msg = u'Could not find user "%s" in DB.' % name
-            res.note_warning(msg.encode('utf8'), HTMLIDLocation.for_element(span))
+            pass
+            # TODO: put back
+            # res.note_warning(msg.encode('utf8'), HTMLIDLocation.for_element(span))
 
 
 def get_related(res, resources_dirs):
