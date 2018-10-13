@@ -429,6 +429,7 @@ def embed_pdf_image(tag, resolve, density, raise_on_error, res, location):
             raise_wrapped(ConversionError, e, msg, compact=True)
         else:
             # note_error2(tag, 'Conversion error', msg, [])
+            msg += '\n\n' + str(e)
             res.note_error(msg, HTMLIDLocation.for_element(tag, location))
         return
 

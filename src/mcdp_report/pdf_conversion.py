@@ -49,12 +49,23 @@ def png_from_pdf(pdf_data, density):
                 where = 'problematic.pdf'
                 msg += "\n I will copy the problematic pdf file to %s" % where
                 shutil.copy(tmpfile, where)
-                raise CmdException(msg)
+                raise ConversionError(msg)
 
         except CmdException as e:
             msg = 'I was not able to use Imagemagick to convert an image.'
-            
-            try: 
+            # msg += '\n\n' + indent(e.res.stderr, 'stderr: ')
+            # msg += '\n\n' + indent(e.res.stdout, 'stdout: ')
+
+            if e.res.stderr:
+                if 'not authorized' in e.res.stderr:
+                    fn = '/etc/ImageMagick-6/policy.xml'
+
+                    if os.path.exists(fn):
+                        data = open(fn).read()
+                        msg += '\n\nIt looks like you need to change the file %s' % fn
+                        msg += '\n\nCurrently:\n\n%s' % indent(data, '    ')
+                        msg += '\n\nTo add "read|write" in the appropriate places.'
+            try:
                 version = system_cmd_result(cwd='.', cmd=['convert', '--version'],
                      display_stdout=False,
                      display_stderr=False,

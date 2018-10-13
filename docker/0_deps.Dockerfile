@@ -82,10 +82,20 @@ RUN apt-get install -y \
 COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
-RUN wget https://www.princexml.com/download/prince_11.3-1_ubuntu16.04_amd64.deb && \
-    dpkg -i prince_11.3-1_ubuntu16.04_amd64.deb
-RUN rm prince_11.3-1_ubuntu16.04_amd64.deb
+RUN wget https://www.princexml.com/download/prince_12.2-1_ubuntu16.04_amd64.deb && \
+    dpkg -i prince_12.2-1_ubuntu16.04_amd64.deb
+RUN rm prince_12.2-1_ubuntu16.04_amd64.deb
 
+#
+#RUN apt-get update \
+#    && apt-get install -y wget \
+#    && wget https://www.princexml.com/download/prince_12.2-1_ubuntu16.04_amd64.deb \
+#    && apt-get install -y \
+#	git \
+#	python-pip \
+#	imagemagick \
+#	./prince_12.2-1_ubuntu16.04_amd64.deb \
+#    && apt-get remove -y wget
 # RUN  add-apt-repository ppa:mc3man/xerus-media
 # RUN apt-get update
 # RUN apt-get install -y  mplayer mencoder ffmpeg
@@ -109,3 +119,6 @@ RUN apt-get install -y rsync
 RUN git clone https://github.com/AndreaCensi/linkchecker.git
 RUN cd linkchecker && python setup.py install
 RUN  linkchecker --version
+
+COPY docker/fix.py /project/fix.py
+RUN /project/fix.py
