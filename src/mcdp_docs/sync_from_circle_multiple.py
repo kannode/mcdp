@@ -5,8 +5,8 @@ from collections import OrderedDict, namedtuple
 import pytz
 import ruamel.yaml as yaml
 from bs4 import Tag
-from contracts import check_isinstance
 
+from contracts import check_isinstance
 from mcdp_cli import mkdirs_thread_safe
 from mcdp_utils_misc import write_data_to_file
 from mcdp_utils_xml import bs, stag
@@ -168,7 +168,6 @@ def sync_circle_multiple_main():
                 else:
                     builds = {}
                     active_branches = None
-
 
                 outd = os.path.join(base, bk_id)
 

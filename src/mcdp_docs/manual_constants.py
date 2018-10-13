@@ -209,6 +209,14 @@ class MCDPManualConstants(object):
 
     add_person_links = getpass.getuser() == 'andrea'
 
+    # whether to allow external img links; if False it generated a warning
+    allow_external_img_links = True
+    # whether to *embed* external img links
+    # if False they will be left as they are
+    embed_external_img_links = False
+
+    checkout_repository = False
+
 
 Label = namedtuple('Label', 'what number label_self')
 

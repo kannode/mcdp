@@ -85,7 +85,12 @@ def download_reveal(output_dir):
             if True or not os.path.exists(dest):
                 logger.info('Downloading %s' % url)
 
-                response = requests.get(url, stream=True)
+                try:
+                    response = requests.get(url, stream=True)
+                except requests.ConnectionError as e:
+                    msg = 'Could not connect to download revealjs: %s' % e
+                    logger.error(msg)
+                    return None
 
                 with open(dest, 'wb') as f:
                     shutil.copyfileobj(response.raw, f)

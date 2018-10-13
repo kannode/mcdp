@@ -6,6 +6,7 @@ import os
 from contextlib import contextmanager
 from multiprocessing import cpu_count
 
+import requests
 from bs4.element import Tag
 from contracts import contract
 from mcdp_docs import LinkInfo
@@ -201,6 +202,8 @@ def create_split_jobs(context, data_aug, mathjax, preamble, output_dir, bookshor
 
     if reveal:
         reveal_download = context.comp(download_reveal, output_dir)
+
+
     else:
         reveal_download = None
 

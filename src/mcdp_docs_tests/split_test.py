@@ -1,8 +1,8 @@
 import os
 
 from bs4 import BeautifulSoup
-
 from compmake.utils.safe_write import write_data_to_file
+
 from comptests.registrar import run_module_tests, comptest
 from mcdp_docs.manual_join_imp import manual_join, split_in_files, \
     add_prev_next_links, update_refs, get_id2filename, create_link_base, \
@@ -32,6 +32,7 @@ def document_split():
     linkbase = 'link.html'
     filename2contents[linkbase] = create_link_base(id2filename)
 
+
 #     d = 'out/sec'
 #     write_split_files(filename2contents, d)
 
@@ -56,9 +57,9 @@ def get_split_test_document(s):
         <body></body></html>
         """
     complete_aug = manual_join(template=template,
-                            files_contents=files_contents,
-                            stylesheet=stylesheet, remove=None, extra_css=None,
-                            hook_before_toc=None)
+                               files_contents=files_contents,
+                               stylesheet=stylesheet, remove=None, extra_css=None,
+                               hook_before_toc=None)
 
     return complete_aug.get_result()
 
@@ -107,7 +108,8 @@ lorem lorem
 
     """
 
-    #     d = 'out/sec'
+
+#     d = 'out/sec'
 #     write_split_files(filename2contents, d)
 
 
@@ -137,11 +139,11 @@ This is another formula:
 
     filename2contents = split_in_files(soup)
     id2filename = get_id2filename(filename2contents)
-#    add_prev_next_links(filename2contents)
-#    update_refs(filename2contents, id2filename)
+    #    add_prev_next_links(filename2contents)
+    #    update_refs(filename2contents, id2filename)
 
-#    linkbase = 'link.html'
-#    filename2contents[linkbase] = create_link_base(id2filename)
+    #    linkbase = 'link.html'
+    #    filename2contents[linkbase] = create_link_base(id2filename)
     for fn, s in filename2contents.items():
         write_data_to_file(str(s), os.path.join(d, 'split', fn))
 

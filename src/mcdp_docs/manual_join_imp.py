@@ -1281,7 +1281,7 @@ class NoTocPlaceholder(Exception):
 
 def generate_and_add_toc(soup, raise_error=False, res=None):
     if res is None:
-        aug = AugmentedResult()
+        res = AugmentedResult()
     logger.info('adding toc')
     body = soup.find('body')
     toc = generate_toc(body, res)
@@ -1311,3 +1311,7 @@ def generate_and_add_toc(soup, raise_error=False, res=None):
         else:
             toc_place = tocs[0]
             toc_place.replaceWith(toc_ul)
+
+    # find all minitocs
+    for element in list(soup.select('minitoc')):
+        logger.debug('found minitoc %s' % element)

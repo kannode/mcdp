@@ -4,6 +4,8 @@ import shutil
 import time
 
 from bs4.element import Tag
+from mcdp_docs.manual_constants import MCDPManualConstants
+
 from contracts.utils import raise_wrapped, indent
 from git.exc import GitCommandError, InvalidGitRepositoryError
 from git.repo.base import Repo
@@ -17,15 +19,65 @@ from .reference import parse_github_file_ref, InvalidGithubRef
 
 
 def substitute_github_refs(soup, defaults, res, location):
-    n = 0
 
+
+    if not MCDPManualConstants.checkout_repository:
+        msg = 'Because MCDPManualConstants.checkout_repository = False, do not download repos.'
+        logger.debug(msg)
+
+
+
+    n = 0
     for a in soup.find_all('a'):
         href = a.attrs.get('href', '')
         if href.startswith('github:'):
-            substitute_github_ref(a, defaults, res, location)
+            if MCDPManualConstants.checkout_repository:
+                substitute_github_ref(a, defaults, res, location)
+            else:
+                substitute_github_ref_fake(a, defaults, res, location)
             n += 1
 
     return n
+
+
+def substitute_github_ref_fake(a, defaults, res, location):
+    href = a.attrs['href']
+
+    try:
+        ref = parse_github_file_ref(href)
+    except InvalidGithubRef as e:
+        msg = 'Could not parse a reference in %s.' % str(a)
+        msg += '\n\n' + indent(e, '  > ')
+        res.note_warning(msg, HTMLIDLocation.for_element(a, location))
+        return
+        # raise_wrapped(DPSyntaxError, e, msg, compact=True)
+
+
+    github_url = ('https://github.com/%s/%s/blob/%s/%s' %
+                  (ref.org, ref.repo, ref.branch, ref.path))
+
+    if ref.path is None:
+        msg = 'There is no path specified.'
+        res.note_warning(msg, HTMLIDLocation.for_element(a, location))
+        return
+        # raise_desc(DPSyntaxError, e, msg, ref=ref)
+
+    # try:
+    #     ref = resolve_reference(ref, defaults)
+    # except CouldNotResolveRef as e:
+    #     res.note_error(str(e), HTMLIDLocation.for_element(a, location))
+    #     FailedRepos.failed_repos[ref.url] = str(e)
+    #     #     logger.debug(ref.url)
+    #     return
+
+    a.attrs['href'] = github_url
+
+    if not list(a.children):
+        c = Tag(name='code')
+        add_class(c, 'github-resource-link')
+        c.append(os.path.basename(ref.path))
+        a.append(c)
+
 
 
 class FailedRepos(object):
@@ -33,6 +85,7 @@ class FailedRepos(object):
 
 
 def substitute_github_ref(a, defaults, res, location):
+
     href = a.attrs['href']
     try:
         ref = parse_github_file_ref(href)

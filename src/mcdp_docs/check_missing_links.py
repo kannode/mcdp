@@ -177,12 +177,12 @@ def check_if_any_href_is_invalid(soup, res, location0, extra_refs=None,
                     else:
                         if '/' in href:
                             msg2 = "I will ignore this because it is an external link. "
-                            msg2 += '\n core: %s others %s' % (core.__repr__(), others)
+                            # msg2 += '\n core: %s others %s' % (core.__repr__(), others)
                             msg2 += '\n\n' + indent(msg, ' > ')
                             res.note_warning(msg2, location)
                             logger.warning(msg2)
 
-                            logger.debug("\n".join(x.__repr__() for x in sorted(id2element)))
+                            # logger.debug("\n".join(x.__repr__() for x in sorted(id2element)))
                         else:
                             res.note_error(msg, location)
 
