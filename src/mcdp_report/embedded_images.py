@@ -253,7 +253,7 @@ def embed_img_data(soup, resolve, raise_on_error,
             if not MCDPManualConstants.allow_external_img_links:
                 msg = 'I will not embed remote files, such as\n   %s' % href0
                 res.note_warning(msg, HTMLIDLocation.for_element(tag0, location))
-                
+
             return MCDPManualConstants.embed_external_img_links
 
         return True
